@@ -1,0 +1,6 @@
+# Force LF everywhere in this repo, overriding any per-machine
+# core.autocrlf setting. Provenance verification (provenance/
+# source_import.json) hashes file bytes exactly as imported (LF) -- a
+# CRLF rewrite on checkout would silently break every recorded hash on
+# any Windows clone with autocrlf=true.
+* text=lf

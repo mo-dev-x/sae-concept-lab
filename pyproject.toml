@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sae-concept-lab"
+version = "0.1.0"
+description = "SAE Concept Lab -- standalone product UI (Gradio, stub-backed). Extracted from qwen-sae-interp@9a9f3b7 under recorded provenance; see BOUNDARY.md and provenance/source_import.json."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    # Pinned to the exact compatibility range this UI was built and tested
+    # against in the source repo (qwen-sae-interp's own pyproject.toml pin
+    # at the time of import, commit 9a9f3b7): Gradio 6.x only. gr.Chatbot's
+    # message-format dict value shape and the gr.State/get_config_file
+    # quirks documented in sae_concept_lab/README.md are specific to this
+    # major version -- do not widen without re-running the full suite.
+    "gradio>=6.22,<7",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=7"]
+
+[tool.setuptools.packages.find]
+include = ["sae_concept_lab*", "provenance*"]
+
+[tool.setuptools.package-data]
+"sae_concept_lab.fixtures" = ["*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
