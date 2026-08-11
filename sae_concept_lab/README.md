@@ -1,68 +1,78 @@
-# SAE Concept Lab (working title) -- UI-only build
+# SAE Concept Lab (working title) -- UI build, wired to the canonical contract
 
 Gradio 6.22 public-workflow demo. Runs entirely on CPU: both tabs are
-backed by `StubConceptLabBackend` (deterministic, GPU-free) and two
-FAKE-marked, `release_blocked: true` fixture bundles in `fixtures/`.
+backed by `StubConceptLabBackend` (deterministic, GPU-free) and this
+product's FAKE-provenance canonical concept documents in `fixtures/`.
 Nothing here talks to a real model or SAE. This is a UI/UX build for
 review, not a scientific instrument.
+
+Every control -- which concepts exist, which directions are available,
+what a resolved dose is, what fingerprints an execution carries -- is
+computed by `sae_concept_lab.canonical.concept_bundle`
+(`sae_concept_lab/canonical/concept_bundle/`, mechanically extracted from
+qwen-sae-interp; see `../BOUNDARY.md`). This package never re-implements
+any of that: it loads named files, calls the canonical resolver, and
+translates a `concept_id`/`pairing_id` into a display label -- the one
+thing the canonical contract deliberately holds none of.
 
 ## Launch
 
 ```bash
-pip install gradio  # if not already present in your environment
+pip install -e ".[test]"   # from the repository root
 python -m sae_concept_lab.app
 ```
 
 Then open the printed local URL (default `http://127.0.0.1:7860`).
 
-`--mode release` is a fail-closed gate that checks TWO independent
-things, and refuses if either looks fake: (1) the bundle's own
-`is_synthetic`/`release_blocked` flags, and (2) whether the active
-backend is `StubConceptLabBackend` by type, regardless of what the
-bundle's JSON claims. **Editing a bundle's JSON flags alone is not
-sufficient to reach release mode** -- this build always constructs
-`StubConceptLabBackend` for both tabs, so `--mode release` always refuses
-here no matter how the fixture files are edited:
+`--mode release` is a fail-closed gate that checks, in order: (1)
+whether the active backend is `StubConceptLabBackend` by type -- always
+true in this build, so release always refuses here regardless of
+anything else; (2) `--evidence-registry-root` (required in release mode;
+refused if absent, missing, unreadable, or empty); (3) canonical
+publishability (`release.select_layout_entries`) against a real
+`RepositoryEvidenceRegistry` rooted there. This product repository wires
+(1) and (2) -- the canonical package has no notion of "this product's
+stub backend" or "where this deployment's registry lives" -- and never
+duplicates (3):
 
 ```bash
 python -m sae_concept_lab.app --mode release
 # REFUSING TO LAUNCH: refusing --mode release: backend for model_key='gemma' is
-# StubConceptLabBackend (deterministic fake data), regardless of the bundle's
-# is_synthetic/release_blocked flags. ...
+# StubConceptLabBackend (deterministic fake data), regardless of any entry's
+# provenance. ...
 ```
-
-This was a deliberate correction (P0, successor commit to the initial
-build): the first version's gate only checked bundle flags, which meant
-someone could have flipped `is_synthetic`/`release_blocked` to `false` in
-a fixture JSON file and passed the gate while still serving
-`[FAKE STUB -- UI TEST ONLY]` text. `enforce_release_gate()` now requires
-a `backend` argument (no longer optional) and checks its type first.
 
 ## Layout
 
 ```
 sae_concept_lab/
-  app.py                    CLI entry point, --mode dev|release gate
+  app.py                    CLI entry point, --mode dev|release gate,
+                             --evidence-registry-root
   i18n.py                   FR|EN dictionary + t() lookup
   core/
-    protocol.py             ConceptLabBackend Protocol, ResolvedConfig,
-                             GenerationRequest/Result -- the seam a real
-                             backend implements later
-    config.py                resolve_config(): bundle + selections -> ResolvedConfig
+    protocol.py             ConceptLabBackend Protocol, GenerationRequest/
+                             Result -- resolved_config is a canonical
+                             ResolvedControlState, never a product type
     logic.py                 pure, Gradio-free: reset rule, chat turns,
                               Compare invariant, Public/Advanced rendering
+                              (delegates to ResolvedControlState.public_view()/
+                              advanced_view()/execution_dict())
     stub_backend.py          StubConceptLabBackend -- deterministic, FAKE-tagged
   fixtures/
-    loader.py                 load_bundle() (structural + basic fail-closed
-                               validation: boolean flags, known model_key,
-                               supported positions_default, valid
-                               seed_default), enforce_release_gate()
-                               (bundle flags AND backend type)
-    gemma_stub_bundle.json    4 invented concepts, is_synthetic/release_blocked
-    qwen_stub_bundle.json     4 different invented concepts (same reasons)
+    loader.py                 load_entries()/build_registry(): named canonical
+                               entry files -> ConceptRegistry (codec.load_entry_files,
+                               never a directory scan); enforce_release_gate()
+                               (backend type, evidence_registry_root, canonical
+                               publishability)
+    labels.py                  concept_id/pairing_id -> display label/description
+                               (product-owned; the canonical contract holds none)
+    gemma/*.json, qwen/*.json  8 canonical BundleEntry documents, provenance=fake
   ui/
     tab.py                    build_model_tab() -- the ONE shared component
-                               tree, instantiated once per model
+                               tree, instantiated once per pairing; direction
+                               choices come from calibrated_directions,
+                               PROHIBITED/CAPABILITY_LIMIT surfaced via
+                               check_direction_executable()
     app_ui.py                 build_demo(): banner, language switch,
                                explainer, both tabs
 ```
@@ -71,15 +81,35 @@ sae_concept_lab/
 
 - No real model or SAE weights anywhere on the import or runtime path.
 - No real feature IDs, bundles, weights, calibration, or persona
-  definitions -- every id in `fixtures/*.json` is invented and prefixed
-  `FAKE-`, every numeric layer/coefficient is a placeholder.
+  definitions -- every concept_id in `fixtures/gemma/*.json` and
+  `fixtures/qwen/*.json` is invented and prefixed `FAKE-`, every entry's
+  `provenance` is exactly `"fake"`, every numeric feature index/dose is a
+  placeholder.
 - No token streaming, no cross-layer runtime, no second intervention
-  system in Advanced (Advanced reads the exact same `ResolvedConfig`
-  Public used -- see `core/logic.py:advanced_output_details`).
+  system in Advanced (Advanced reads the exact same canonical
+  `ResolvedControlState` Public used -- see
+  `core/logic.py:advanced_output_details`, which is `resolved.advanced_view()`
+  plus `resolved.execution_dict()`, never a recomputation).
 - No auth, persistence, or multi-user infrastructure.
-- Public mode never renders seed, feature id, sae id, positions, hook
-  point, or coefficients -- see `core/logic.py:public_output_summary`
-  for the literal allow-list (model, concept, direction, strength only).
+- Public mode never renders a feature index, sae id, unit, or authored
+  value -- see `core/logic.py:public_output_summary`, sourced entirely
+  from `ResolvedControlState.public_view()`'s own allow-list (model,
+  concept, direction, strength, available/unavailable directions only).
+- No product-chosen positions default: `positions` is read from the
+  canonical entry (`entry.positions`), never offered as a public or
+  Advanced control -- Advanced displays it read-only.
+- Two of the eight shipped fixtures are deliberately not fully
+  executable, to give the PROHIBITED/CAPABILITY_LIMIT surfacing a real
+  case rather than only a synthetic vector: `gemma/enthusiasm.json`'s
+  amplify direction spans two layers (CAPABILITY_LIMIT, runtime v1 caps
+  execution at one `(sae_id, layer)` group per pass), and
+  `qwen/directness.json`'s amplify direction names two SAEs at one layer
+  (PROHIBITED, composing two reconstructions of one residual stream is
+  undefined). Both are still schema-valid and still calibrated; sending a
+  message on the affected direction is refused with the canonical
+  `CapabilityReport`'s own reason, verbatim, not silently degraded to a
+  subset of targets. `gemma/caution.json` and `qwen/skepticism.json` each
+  calibrate only one direction, for the disabled-control case.
 - No "continue anyway" override anywhere. An earlier draft of this build
   had an Advanced-only checkbox that let a settings change keep stale
   chat history instead of resetting it -- removed as part of the P0
@@ -189,28 +219,40 @@ Two smaller correctness fixes rode along with this pass:
 
 ## Unresolved integration questions (for Engineer A / next reviewer)
 
-1. No "bundle/resolution contract" existed anywhere in this repo's
-   history at build time (confirmed by direct search) -- a worktree/branch
-   reserved for it (`eng3/concept-bundle`) exists but carries zero commits
-   beyond `main`. `core/protocol.py` is this build's own seam in the
-   meantime; whoever lands the real contract should either implement
-   `ConceptLabBackend` directly, or this file gets replaced by a thin
-   adapter to it. Nothing in `ui/` or `core/logic.py` should need to change
-   either way -- that is the point of the Protocol boundary.
+1. **Resolved**, as of the Engineer 4 P0 dispatch: the concept-bundle
+   contract landed on `eng3/concept-bundle`, was frozen behind a
+   conformance pack, mechanically extracted into
+   `sae_concept_lab/canonical/concept_bundle/`, and is now wired into
+   `fixtures/loader.py`/`core/logic.py`/`ui/tab.py` directly.
+   `core/protocol.py`'s `ConceptLabBackend` Protocol is unchanged in
+   shape and remains the seam for a REAL chat backend (one that actually
+   intervenes on a model) -- that wiring is still not performed; only the
+   control/configuration side (what a concept/direction/strength resolves
+   to) is wired to canonical.
 2. Compare is currently a non-committing side-by-side probe: sending the
    same message via "Compare" does NOT append either response to the
    running chat history (only "Send" does). Unclear whether a future
    version should let the user "keep" one of the two Compare arms into
    the main conversation -- not implemented, flagged rather than guessed.
-3. Advanced's seed/positions controls are live and feed the next
-   generation, but there is no per-turn record of what seed/positions
-   produced a PAST message once the conversation has moved on --
-   `ResolvedConfig` is only kept for the MOST RECENT turn
-   (`resolved_config_state`), not per-message history. Whether every
-   past turn needs its own recoverable resolved state is a product
-   question, not resolved here.
+3. Advanced's seed control is live and feeds the next generation
+   (StubConceptLabBackend's digest input only -- not a canonical field),
+   but there is no per-turn record of what seed produced a PAST message
+   once the conversation has moved on -- the resolved `ResolvedControlState`
+   is only kept for the MOST RECENT turn (`resolved_config_state`), not
+   per-message history. Whether every past turn needs its own recoverable
+   resolved state is a product question, not resolved here. Positions is
+   no longer a live control at all -- it is read from the canonical entry
+   and displayed, never chosen.
 4. The permanent FAKE banner and the "How does this work?" explainer are
    global (above both tabs), not per-tab -- if Gemma and Qwen ever need
    materially different disclaimers (e.g. different real-model caveats
    once wired to something real), the banner will need to become
    per-tab.
+5. `evidence_registry_root`'s fail-closed pre-flight (absent/missing/
+   unreadable/empty) is this product's own addition; canonical
+   `RepositoryEvidenceRegistry.resolve()` verifies a registry record's
+   own declared `self_hash` field against a reference's digest -- it does
+   not independently read a separately-stored raw artifact and recompute
+   a hash from its bytes. Flagged as a canonical-source defect (not
+   duplicated or weakened here); see `../BOUNDARY.md` and
+   `fixtures/loader.py::enforce_release_gate`'s release diagnostics.

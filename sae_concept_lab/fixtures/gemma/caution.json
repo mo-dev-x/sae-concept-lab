@@ -1,0 +1,41 @@
+{
+  "calibration_provenance": null,
+  "concept_id": "FAKE-gemma-caution",
+  "directions": {
+    "amplify": {
+      "specs": {
+        "high": {
+          "operation": "clamp",
+          "unit": "absolute_activation",
+          "unit_source": null,
+          "value": 1.0
+        },
+        "low": {
+          "operation": "clamp",
+          "unit": "absolute_activation",
+          "unit_source": null,
+          "value": 0.33
+        },
+        "medium": {
+          "operation": "clamp",
+          "unit": "absolute_activation",
+          "unit_source": null,
+          "value": 0.66
+        }
+      },
+      "targets": [
+        {
+          "feature_idx": 1005,
+          "layer": 11,
+          "sae_id": "fake-sae-demo-gemma-000",
+          "weight": 1.0
+        }
+      ]
+    },
+    "suppress": null
+  },
+  "pairing_id": "fake-gemma-demo-pairing",
+  "positions": "generated_only",
+  "provenance": "fake",
+  "schema_version": "1.0"
+}

@@ -81,19 +81,18 @@ STRINGS: dict[str, dict[str, str]] = {
     "output_summary_strength": {"en": "Strength", "fr": "Intensité"},
     "advanced_accordion_title": {"en": "Advanced (technical detail)", "fr": "Avancé (détails techniques)"},
     "advanced_resolved_state_title": {
-        "en": "Resolved configuration (identical to what Public mode used)",
-        "fr": "Configuration résolue (identique à celle utilisée en mode Public)",
+        "en": "Resolved state (canonical advanced view + execution payload)",
+        "fr": "État résolu (vue avancée canonique + charge utile d'exécution)",
     },
-    "advanced_diagnostics_title": {"en": "Diagnostics (placeholder)", "fr": "Diagnostics (fictif)"},
     "advanced_seed_label": {"en": "Seed", "fr": "Graine"},
-    "advanced_positions_label": {"en": "Positions", "fr": "Positions"},
-    "advanced_positions_generated_only": {
-        "en": "Generated tokens only",
-        "fr": "Jetons générés uniquement",
+    "advanced_positions_readonly_label": {
+        "en": "Positions (from bundle, read-only)",
+        "fr": "Positions (du bundle, lecture seule)",
     },
-    "advanced_positions_all": {
-        "en": "All tokens (including prompt)",
-        "fr": "Tous les jetons (y compris l'invite)",
+    "direction_unavailable_label": {"en": "Unavailable", "fr": "Indisponible"},
+    "capability_notice_title": {
+        "en": "This direction cannot run on this build",
+        "fr": "Cette direction ne peut pas s'exécuter dans cette build",
     },
 }
 

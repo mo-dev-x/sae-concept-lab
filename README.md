@@ -8,10 +8,13 @@ not own, and must never be treated as, a scientific source of truth. See
 
 Everything this app currently serves is synthetic: both model tabs are
 backed by `StubConceptLabBackend` (deterministic, GPU-free, every response
-tagged `[FAKE STUB -- UI TEST ONLY]`) and two `is_synthetic: true,
-release_blocked: true` fixture bundles. `--mode release` is a fail-closed
-gate that refuses to launch on this build no matter how the fixture JSON
-is edited, because the gate also checks the backend's concrete type. See
+tagged `[FAKE STUB -- UI TEST ONLY]`) and eight canonical
+`provenance: "fake"` concept-bundle documents (four per pairing), loaded
+and resolved entirely through
+[`sae_concept_lab/canonical/concept_bundle/`](sae_concept_lab/canonical/concept_bundle/)
+-- see below. `--mode release` is a fail-closed gate that refuses to
+launch on this build no matter what, because every backend it constructs
+is `StubConceptLabBackend` by type, checked before anything else. See
 [`sae_concept_lab/README.md`](sae_concept_lab/README.md) for the full
 detail on the UI, the release gate, and known Gradio limitations.
 
@@ -38,23 +41,30 @@ Then open the printed local URL (default `http://127.0.0.1:7860`).
 ## Launch (release mode -- always refuses on this build)
 
 ```bash
-python -m sae_concept_lab.app --mode release
+python -m sae_concept_lab.app --mode release --evidence-registry-root /path/to/registry
 ```
 
-This exits non-zero and never opens a server, because every backend this
-build constructs is `StubConceptLabBackend`. See
+This exits non-zero and never opens a server: the backend-type check
+refuses first (every backend this build constructs is
+`StubConceptLabBackend`), and even past that, `--evidence-registry-root`
+is validated fail-closed (refused if absent/missing/unreadable/empty)
+before any canonical publishability check runs. See
 [`sae_concept_lab/README.md`](sae_concept_lab/README.md) for why that is a
 deliberate, structural refusal rather than a flag someone forgot to flip.
 
-## Canonical concept-bundle contract (extracted, not yet wired)
+## Canonical concept-bundle contract (extracted, certified, and wired into the UI)
 
 `sae_concept_lab/canonical/concept_bundle/` carries the eight-module
 concept-bundle contract, mechanically extracted from qwen-sae-interp and
 certified against Engineer 3's frozen 50-vector conformance pack. It is
 standard-library-only, has zero import-time dependency on
-qwen-sae-interp, and is not yet wired into the UI (see
-[`BOUNDARY.md`](BOUNDARY.md) for what that means and why). To re-run the
-conformance check against this repository's own copy:
+qwen-sae-interp, and every control this UI renders -- concept selection,
+direction availability, resolved dose, execution payload, fingerprints --
+is computed by this package directly (see
+[`BOUNDARY.md`](BOUNDARY.md) for the full wiring statement and for
+`extraction_class`, the code-provenance axis this repository uses to
+track it). To re-run the conformance check against this repository's own
+copy:
 
 ```bash
 python - <<'PY'
@@ -86,6 +96,15 @@ Every extraction into this repository -- the UI import from commit
 repository identity, source commit(s), the exact source-to-destination
 path mapping, a SHA-256 per imported file, the import timestamp, and an
 explicit statement of what was and was not imported.
+
+Each extraction also carries an `extraction_class` -- `HISTORICAL_SEED`
+(a past import permitted to evolve, verified against this repository's
+own frozen import commit) or `CANONICAL_MIRROR` (a byte-for-byte mirror
+that may never evolve, verified against current bytes AND all 50 frozen
+conformance vectors). This is a code-provenance axis, entirely separate
+from the scientific `Provenance` field (`ATTESTED`/`CANDIDATE`/`DRAFT`/
+`FAKE`/`UNKNOWN`) a `BundleEntry` carries -- see
+[`BOUNDARY.md`](BOUNDARY.md) for the full statement.
 
 To verify that recorded provenance against a live `qwen-sae-interp`
 checkout (read-only -- this never modifies that checkout):

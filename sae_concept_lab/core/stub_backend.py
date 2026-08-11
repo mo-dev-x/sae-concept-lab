@@ -38,8 +38,8 @@ class StubConceptLabBackend:
                     "got None. This is a wiring bug in the caller, not a data problem."
                 )
             body = (
-                f"turn {turn_index} | concept={cfg.concept_id} | direction={cfg.direction} | "
-                f"strength={cfg.strength_level} (coef={cfg.strength_coefficient}) | "
+                f"turn {turn_index} | concept={cfg.concept_id} | direction={cfg.direction.value} | "
+                f"strength={cfg.strength.value} (value={cfg.value}) | "
                 f"digest={digest}"
             )
         else:

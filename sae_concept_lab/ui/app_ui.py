@@ -5,10 +5,9 @@ ui.tab.build_model_tab (the one shared component tree)."""
 
 from __future__ import annotations
 
-from typing import Any
-
 import gradio as gr
 
+from sae_concept_lab.canonical.concept_bundle import BundleEntry
 from sae_concept_lab.core.protocol import ConceptLabBackend
 from sae_concept_lab.i18n import DEFAULT_LANG, LANGS, t
 from sae_concept_lab.ui.tab import RelangTarget, build_model_tab
@@ -16,8 +15,8 @@ from sae_concept_lab.ui.tab import RelangTarget, build_model_tab
 
 def build_demo(
     *,
-    gemma_bundle: dict[str, Any],
-    qwen_bundle: dict[str, Any],
+    gemma_entries: tuple[BundleEntry, ...],
+    qwen_entries: tuple[BundleEntry, ...],
     gemma_backend: ConceptLabBackend,
     qwen_backend: ConceptLabBackend,
 ) -> gr.Blocks:
@@ -49,7 +48,7 @@ def build_demo(
                 relang.extend(
                     build_model_tab(
                         model_key="gemma",
-                        bundle=gemma_bundle,
+                        entries=gemma_entries,
                         backend=gemma_backend,
                         lang_state=lang_state,
                         lang_radio=lang_radio,
@@ -60,7 +59,7 @@ def build_demo(
                 relang.extend(
                     build_model_tab(
                         model_key="qwen",
-                        bundle=qwen_bundle,
+                        entries=qwen_entries,
                         backend=qwen_backend,
                         lang_state=lang_state,
                         lang_radio=lang_radio,

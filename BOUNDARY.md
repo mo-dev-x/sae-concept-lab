@@ -56,64 +56,90 @@ derivative by construction:
 it claims to be" a mechanically checkable question against the recorded
 source commit, rather than something anyone has to take on faith.
 
-## The interim backend protocol is a non-canonical integration seam -- UNCHANGED by the concept-bundle extraction
+## The concept-bundle contract is extracted, certified, AND wired into the UI
 
-`sae_concept_lab/core/protocol.py` defines `ConceptLabBackend`, the
-`Protocol` this UI's core/ui code depends on instead of any concrete
-backend class. At the time this UI was built (and at the time it was
-first extracted here), no bundle/resolution contract existed anywhere in
-qwen-sae-interp's history -- a branch reserved for one
-(`eng3/concept-bundle`) carried zero commits beyond `main`.
-
-Engineer 3 has since landed that contract on `eng3/concept-bundle` and
-frozen it behind a conformance pack (see the next section). **This task
-mechanically extracted and certified the contract; it did not wire it
-in.** `core/protocol.py` is still what `sae_concept_lab/ui/` and
-`sae_concept_lab/core/logic.py` depend on, unchanged, and every backend
-this repository instantiates today is still `StubConceptLabBackend`:
-deterministic, GPU-free, and tagged `[FAKE STUB -- UI TEST ONLY]` on
-every response it produces. See `sae_concept_lab/README.md` for the
-fail-closed `--mode release` gate that refuses to launch against it no
-matter what a fixture bundle's JSON claims.
-
-Wiring the extracted contract into the UI -- implementing
-`ConceptLabBackend` against `sae_concept_lab.canonical.concept_bundle`,
-or replacing `core/protocol.py` with a thin adapter to it -- is a
-**subsequent, bounded task**, deliberately not performed here. Nothing in
-`ui/` or `core/logic.py` should need to change either way when it
-happens; that is the entire purpose of routing everything through the
-Protocol boundary instead of a concrete class.
-
-## The concept-bundle contract: extracted and certified, not yet wired
-
-`sae_concept_lab/canonical/concept_bundle/` is a second, independent
-extraction: the eight-module minimum runtime surface of the
-concept-bundle contract (schema, codec, typed refusals, execution
-grouping, resolution arithmetic, evidence-reference resolution, and the
-fail-closed publication gate), mechanically copied byte-for-byte from
-qwen-sae-interp's `interplab/concept_bundle/` at commit `cdae9c7` and
-certified against Engineer 3's frozen 50-vector conformance pack. See
-`provenance/source_import.json`'s `concept_bundle_contract` entry for the
-full source-to-destination mapping and hash table, and
-`provenance/runtime_extractions/concept_bundle/` for the copied vectors,
-export inventory, and check-mode runner.
+`sae_concept_lab/canonical/concept_bundle/` is the eight-module minimum
+runtime surface of the concept-bundle contract (schema, codec, typed
+refusals, execution grouping, resolution arithmetic, evidence-reference
+resolution, and the fail-closed publication gate), mechanically copied
+byte-for-byte from qwen-sae-interp's `interplab/concept_bundle/` at
+commit `cdae9c7` and certified against Engineer 3's frozen 50-vector
+conformance pack. See `provenance/source_import.json`'s
+`concept_bundle_contract` entry for the full source-to-destination
+mapping and hash table, and `provenance/runtime_extractions/concept_bundle/`
+for the copied vectors, export inventory, and check-mode runner.
 
 This is the CONTRACT only -- what a bundle entry is, what runtime v1 can
 execute, how resolution and publication work -- never any scientific
 concept, feature membership, calibration value, or evidence artifact.
 `interplab/concept_bundle/fixtures.py` (invented data) was deliberately
 not extracted, matching the canonical export inventory's own exclusion
-list.
+list. It is standard-library-only and has no import-time dependency on
+qwen-sae-interp/interplab or any third-party package.
 
-It is standard-library-only, has no import-time dependency on
-qwen-sae-interp/interplab or any third-party package, and is entirely
-disconnected from the UI's own bundle discovery and release gate
-(`sae_concept_lab/fixtures/loader.py`) -- those two gates are independent
-mechanisms guarding independent schemas, and neither can be satisfied by
-the other's data (see `tests/test_concept_bundle_release_isolation.py`).
-Nothing in `sae_concept_lab/ui/`, `sae_concept_lab/core/`, or
-`sae_concept_lab/app.py` imports from `canonical/` yet. That wiring is
-the subsequent bounded task named above.
+**Wired**, as of the Engineer 4 P0 dispatch that also introduced
+`extraction_class` (below): `sae_concept_lab/fixtures/loader.py` loads
+this product's FAKE concept documents through `codec.load_entry_files`
+and enforces publishability through `release.select_layout_entries` /
+`evaluate_publishability`, never through a product-owned schema or
+validation of its own. `sae_concept_lab/core/logic.py` and
+`sae_concept_lab/ui/tab.py` read a canonical `ResolvedControlState`
+(`resolver.resolve_control`) directly -- `core/protocol.py`'s
+`GenerationRequest`/`GenerationResult` now type their `resolved_config`
+field as `ResolvedControlState`, and the product-only `ResolvedConfig`
+dataclass that used to stand in for it is retired. The ONE thing this
+product repository still adds on top is presentation: `fixtures/labels.py`
+maps a `concept_id`/`pairing_id` to a display label and description, because
+the canonical contract deliberately holds no display name for either (see
+`schema.py`'s module note and `resolver.py`'s `public_view()` docstring).
+Translating an id into a label is presentation, not scientific validation.
+
+The interim `ConceptLabBackend` Protocol (`core/protocol.py`) is
+unchanged in shape and purpose: it is still the seam between this UI and
+whatever generates chat text (currently always `StubConceptLabBackend`).
+Wiring a REAL chat backend -- one that actually intervenes on a model
+using a resolved control state -- remains a separate, not-yet-performed
+task; only the CONTROL/CONFIGURATION side (what a concept/direction/
+strength resolves to) is wired to canonical now.
+
+## extraction_class: a code-provenance axis, never the scientific-content axis
+
+`provenance/source_import.json` tags every extraction with an
+`extraction_class` of `HISTORICAL_SEED` or `CANONICAL_MIRROR`. This is a
+CODE axis -- how a file entered this repository and how strictly its
+bytes must stay fixed -- and it is deliberately kept in a different
+field, with a different vocabulary, from the SCIENTIFIC `provenance` field
+(`Provenance.ATTESTED` / `CANDIDATE` / `DRAFT` / `FAKE` / `UNKNOWN`,
+defined in `sae_concept_lab/canonical/concept_bundle/schema.py`). The two
+must never be confused: a `BundleEntry`'s `provenance` says how well
+established a CONCEPT's origin is; an extraction's `extraction_class`
+says how strictly a FILE's bytes must be verified. Nothing in this
+repository's provenance tooling reads or writes the word `provenance` as
+a code-extraction field or verdict.
+
+- **HISTORICAL_SEED** (`sae_concept_lab_ui`): a past import whose current
+  bytes are PERMITTED TO EVOLVE. `app.py`, `core/*`, `ui/*`,
+  `fixtures/loader.py`, and `tests/test_sae_concept_lab_*.py` were
+  imported at this repository's own commit `d1f5e3f` and have since
+  evolved (this dispatch is exactly that evolution). Verified by reading
+  git objects at `d1f5e3f` in THIS repository's own history -- never
+  qwen-sae-interp, never current bytes -- and printing:
+  `HISTORICAL_SEED d1f5e3f import faithful at import commit; current bytes not checked`.
+- **CANONICAL_MIRROR** (`concept_bundle_contract`): a byte-for-byte
+  mirror that may NEVER evolve. Verified by hash-comparing CURRENT bytes
+  against both the manifest and a live qwen-sae-interp checkout, AND by
+  re-running all 50 frozen conformance vectors, printing:
+  `CANONICAL_MIRROR fabf702 current bytes match canonical source; conformance vectors pass`.
+
+`provenance/verify_provenance.py` rejects reclassification: a
+HISTORICAL_SEED extraction naming a source_path that the frozen pack's
+own `export_inventory.json` lists under `minimum_export_surface` is a
+fatal configuration error, not a per-file finding -- it would let a
+canonical-mirror-owned path escape strict verification by being
+relabelled. New, genuinely product-native files (e.g.
+`fixtures/labels.py`, the eight canonical fixture documents under
+`fixtures/gemma/` and `fixtures/qwen/`) need no invented extraction class
+at all -- they are simply not extractions.
 
 ## Reserved space for future runtime extraction
 

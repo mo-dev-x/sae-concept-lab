@@ -1,128 +1,154 @@
-"""Loads the JSON public-preset bundles in this directory and enforces the
-fail-closed release gate. Pure I/O + validation -- no gradio import -- but
-DOES import the concrete StubConceptLabBackend, because the release gate's
-whole job is to know about that one specific fake implementation and
-refuse it by identity, not just by trusting whatever a bundle's JSON claims
-about itself. Safe to call from a CPU-only test or the login-node side of
-any future deploy script.
+"""Loads this repository's FAKE-marked canonical concept-bundle documents
+and enforces the fail-closed release gate.
+
+Every validation decision -- is this document well-formed, is this entry
+publishable, does this evidence reference resolve -- is made by
+sae_concept_lab.canonical.concept_bundle (codec.py, release.py,
+evidence.py). This module never re-implements any of it: it only names
+which explicit files belong to which pairing (codec.py's load_entry_files
+takes a list, never a directory scan) and wires the canonical release
+gate to this product's own StubConceptLabBackend identity check and
+evidence_registry_root configuration -- the two things the canonical
+package cannot know about, because it has no concept of "the product's
+stub backend" or "where this deployment's registry lives".
 """
 
 from __future__ import annotations
 
-import json
+import sys
 from pathlib import Path
-from typing import Any, get_args
 
-from sae_concept_lab.core.protocol import ConceptLabBackend, PositionsMode
+from sae_concept_lab.canonical.concept_bundle import (
+    BundleEntry,
+    ConceptRegistry,
+    Exposure,
+    RepositoryEvidenceRegistry,
+    evaluate_publishability,
+    load_entry_files,
+    select_layout_entries,
+)
+from sae_concept_lab.core.protocol import ConceptLabBackend
 from sae_concept_lab.core.stub_backend import StubConceptLabBackend
 
 FIXTURES_DIR = Path(__file__).resolve().parent
 
-KNOWN_MODEL_KEYS = ("gemma", "qwen")
-SUPPORTED_POSITIONS_VALUES = get_args(PositionsMode)
+GEMMA_PAIRING_ID = "fake-gemma-demo-pairing"
+QWEN_PAIRING_ID = "fake-qwen-demo-pairing"
 
-REQUIRED_BUNDLE_FIELDS = (
-    "is_synthetic",
-    "release_blocked",
-    "model_key",
-    "model_label",
-    "sae_id",
-    "layer",
-    "hook_point",
-    "positions_default",
-    "decoding_default",
-    "seed_default",
-    "random_feature_control_id",
-    "concepts",
-)
+#: Explicit, named files only -- never a directory scan (codec.py's own
+#: rule: "a build must name every entry it loads"). Adding a ninth file to
+#: fixtures/gemma/ without adding it here does not make it appear anywhere.
+_ENTRY_FILENAMES: dict[str, tuple[str, ...]] = {
+    "gemma": ("warmth.json", "formality.json", "enthusiasm.json", "caution.json"),
+    "qwen": ("curiosity.json", "directness.json", "playfulness.json", "skepticism.json"),
+}
 
-REQUIRED_CONCEPT_FIELDS = (
-    "concept_id",
-    "label",
-    "description",
-    "feature_id",
-    "feature_weight",
-    "strength_coefficients",
-)
+PAIRING_ID_FOR_MODEL_KEY: dict[str, str] = {"gemma": GEMMA_PAIRING_ID, "qwen": QWEN_PAIRING_ID}
 
 
 class ReleaseGateError(RuntimeError):
-    """Raised when a release/public launch is requested against a bundle
-    marked synthetic and/or release_blocked, OR against the stub backend
-    regardless of what the bundle claims. There is deliberately no
-    override parameter on enforce_release_gate() -- fixing this means
-    swapping in both a real, non-synthetic bundle AND a real backend, not
-    passing a flag or editing a JSON file."""
+    """Raised when a release/public launch is requested against the stub
+    backend, or against an entry set with no publishable concept, or
+    against a missing/invalid evidence_registry_root. There is
+    deliberately no override parameter -- fixing this means wiring in a
+    real backend, a real registry, and a genuinely ATTESTED entry, not
+    passing a flag."""
 
 
-def load_bundle(path: str | Path) -> dict[str, Any]:
-    path = Path(path)
-    if not path.exists():
-        raise FileNotFoundError(f"public-preset bundle not found at {path}")
-    bundle = json.loads(path.read_text(encoding="utf-8"))
+def _entry_paths(model_key: str) -> tuple[Path, ...]:
+    if model_key not in _ENTRY_FILENAMES:
+        raise ValueError(f"unknown model_key {model_key!r}; expected one of {sorted(_ENTRY_FILENAMES)}")
+    return tuple(FIXTURES_DIR / model_key / name for name in _ENTRY_FILENAMES[model_key])
 
-    missing = [f for f in REQUIRED_BUNDLE_FIELDS if f not in bundle]
-    if missing:
-        raise ValueError(f"bundle {path} is missing required field(s): {missing}")
-    if not bundle["concepts"]:
-        raise ValueError(f"bundle {path} has zero concepts")
-    for concept in bundle["concepts"]:
-        concept_missing = [f for f in REQUIRED_CONCEPT_FIELDS if f not in concept]
-        if concept_missing:
-            raise ValueError(
-                f"bundle {path} concept {concept.get('concept_id')!r} is missing "
-                f"field(s): {concept_missing}"
-            )
 
-    for flag_name in ("is_synthetic", "release_blocked"):
-        if not isinstance(bundle[flag_name], bool):
-            raise ValueError(
-                f"bundle {path} field {flag_name!r} must be a boolean, got {bundle[flag_name]!r}"
-            )
-    if bundle["model_key"] not in KNOWN_MODEL_KEYS:
-        raise ValueError(
-            f"bundle {path} has model_key={bundle['model_key']!r}; expected one of {KNOWN_MODEL_KEYS}"
+def load_entries(model_key: str) -> tuple[BundleEntry, ...]:
+    """Strictly decodes this model's explicit entry files via the canonical
+    codec. Raises whatever canonical.concept_bundle.errors exception the
+    codec raises on a malformed document -- never a product-defined
+    ValueError standing in for it."""
+    return load_entry_files(_entry_paths(model_key))
+
+
+def build_registry(model_key: str) -> ConceptRegistry:
+    return ConceptRegistry(load_entries(model_key))
+
+
+def _validate_evidence_registry_root(evidence_registry_root: Path | str | None) -> Path:
+    """Fail-closed pre-flight, independent of (and prior to) any specific
+    evidence reference: an absent, missing, unreadable, or empty root is
+    refused before canonical evidence resolution is even attempted, so the
+    operator sees which of these it was rather than a generic
+    'not publishable'."""
+    if evidence_registry_root is None:
+        raise ReleaseGateError(
+            "refusing --mode release: no evidence_registry_root was supplied. Release mode "
+            "requires an explicit, existing, readable, non-empty registry directory to resolve "
+            "evidence references against. Dev mode may omit it -- dev mode never evaluates "
+            "publishability."
         )
-    if bundle["positions_default"] not in SUPPORTED_POSITIONS_VALUES:
-        raise ValueError(
-            f"bundle {path} has positions_default={bundle['positions_default']!r}; "
-            f"expected one of {SUPPORTED_POSITIONS_VALUES}"
-        )
-    seed_default = bundle["seed_default"]
-    if not isinstance(seed_default, int) or isinstance(seed_default, bool) or seed_default < 0:
-        raise ValueError(f"bundle {path} has seed_default={seed_default!r}; expected a non-negative int")
+    root = Path(evidence_registry_root)
+    if not root.exists():
+        raise ReleaseGateError(f"refusing --mode release: evidence_registry_root {root} does not exist")
+    if not root.is_dir():
+        raise ReleaseGateError(f"refusing --mode release: evidence_registry_root {root} is not a directory")
+    try:
+        contents = list(root.iterdir())
+    except OSError as exc:
+        raise ReleaseGateError(
+            f"refusing --mode release: evidence_registry_root {root} is unreadable: {exc}"
+        ) from exc
+    if not contents:
+        raise ReleaseGateError(f"refusing --mode release: evidence_registry_root {root} is empty")
+    return root
 
-    return bundle
 
-
-def enforce_release_gate(bundle: dict[str, Any], *, mode: str, backend: ConceptLabBackend) -> None:
-    """Fail closed: refuses outright (raises ReleaseGateError) if `mode`
-    is "release" and EITHER the backend is the known stub implementation
-    OR the bundle is synthetic and/or release_blocked. `backend` is a
-    required argument -- there is no bundle-only call path left, precisely
-    because a bundle's JSON flags alone were never sufficient evidence
-    that real data is actually in play. `mode` == "dev" never raises here
-    -- dev mode is exactly where fake data is expected to run."""
+def enforce_release_gate(
+    *,
+    mode: str,
+    backend: ConceptLabBackend,
+    model_key: str,
+    evidence_registry_root: Path | str | None = None,
+) -> None:
+    """Fail closed: refuses outright (raises ReleaseGateError) if `mode` is
+    "release" and EITHER the backend is the known stub implementation, OR
+    the evidence_registry_root is absent/missing/unreadable/empty, OR no
+    entry for this model_key is publishable against it (which subsumes
+    "unresolved": an unresolved evidence reference is one of the reasons
+    evaluate_publishability collects). `mode` == "dev" never raises here.
+    """
     if mode != "release":
         return
     if isinstance(backend, StubConceptLabBackend):
         raise ReleaseGateError(
-            f"refusing --mode release: backend for model_key={bundle.get('model_key')!r} is "
-            "StubConceptLabBackend (deterministic fake data), regardless of the bundle's "
-            "is_synthetic/release_blocked flags. Marking a bundle's JSON is_synthetic=false and "
-            "release_blocked=false is NOT sufficient on its own to reach release mode -- a real, "
-            "non-stub backend implementing ConceptLabBackend.generate() is also required."
+            f"refusing --mode release: backend for model_key={model_key!r} is "
+            "StubConceptLabBackend (deterministic fake data), regardless of any entry's "
+            "provenance. A real, non-stub backend implementing ConceptLabBackend.generate() is "
+            "required before evidence/publishability is even worth checking."
         )
-    if bundle.get("is_synthetic") or bundle.get("release_blocked"):
+
+    root = _validate_evidence_registry_root(evidence_registry_root)
+    registry = RepositoryEvidenceRegistry(root=root)
+    entries = load_entries(model_key)
+
+    selection = select_layout_entries(entries, exposure=Exposure.RELEASE, evidence_registry=registry)
+    if not selection:
+        per_entry_reasons = []
+        for entry in entries:
+            decision = evaluate_publishability(entry, evidence_registry=registry)
+            per_entry_reasons.append(f"{entry.concept_id}: {'; '.join(decision.reasons)}")
         raise ReleaseGateError(
-            f"refusing --mode release: bundle for model_key={bundle.get('model_key')!r} has "
-            f"is_synthetic={bundle.get('is_synthetic')!r}, "
-            f"release_blocked={bundle.get('release_blocked')!r}. Fake data must never reach a "
-            "release/public launch -- load a real, non-synthetic bundle instead."
+            f"refusing --mode release: no publishable concept entries for model_key={model_key!r} "
+            f"against evidence_registry_root={root}. " + " | ".join(per_entry_reasons)
         )
 
-
-def default_bundle_path(model_key: str) -> Path:
-    if model_key not in ("gemma", "qwen"):
-        raise ValueError(f"unknown model_key {model_key!r}; expected 'gemma' or 'qwen'")
-    return FIXTURES_DIR / f"{model_key}_stub_bundle.json"
+    resolved_ref_count = sum(len(le.entry.evidence) for le in selection)
+    print(
+        f"RELEASE DIAGNOSTICS model_key={model_key!r}: {len(selection)} publishable "
+        f"entr{'y' if len(selection) == 1 else 'ies'}, {resolved_ref_count} evidence_ref(s) all "
+        f"reported RESOLVED by RepositoryEvidenceRegistry against {root}. KNOWN CANONICAL-SOURCE "
+        "LIMITATION (not duplicated or weakened here -- see BOUNDARY.md): "
+        "RepositoryEvidenceRegistry.resolve() checks a registry record's own declared self_hash "
+        "field against the reference's digest; it does not independently read a separate raw "
+        "artifact and recompute a hash from its bytes.",
+        file=sys.stderr,
+    )

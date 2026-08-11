@@ -1,17 +1,15 @@
-"""Proves provenance.verify_provenance detects modification, deletion, and
-unrecorded extraction files -- for the concept-bundle extraction and, by
-construction, for any extraction, since the verifier's `verify()` takes a
-synthetic manifest here rather than the repository's real
-source_import.json.
+"""Proves provenance.verify_provenance's extraction_class policy: the two
+classes (HISTORICAL_SEED, CANONICAL_MIRROR) are verified by genuinely
+different mechanisms, print the two exact ratified verdict strings, and
+reject reclassification -- for any extraction, since every manifest here
+is synthetic rather than the repository's real source_import.json.
 
 Fully standalone: every git checkout used is built fresh in tmp_path via
-`git init`, never the real qwen-sae-interp repository, so these tests
-never require that checkout to exist or be reachable. The real
-source_import.json is exercised end to end (against the real
-qwen-sae-interp checkout) only when an operator explicitly runs
-`python -m provenance.verify_provenance --qwen-sae-interp-checkout ...`
-by hand -- that is an integration check, not something the standalone
-suite can assume a path for.
+`git init`, never the real qwen-sae-interp repository or the real
+provenance manifest, so these tests never require either to exist. The
+real source_import.json is exercised end to end only when an operator
+explicitly runs `python -m provenance.verify_provenance
+--qwen-sae-interp-checkout ...` by hand.
 """
 
 from __future__ import annotations
@@ -20,6 +18,7 @@ import hashlib
 import json
 import subprocess
 import sys
+import textwrap
 from pathlib import Path
 
 import pytest
@@ -45,19 +44,14 @@ def _write_exact(path: Path, content: str) -> None:
     os.linesep on write (CRLF on Windows) -- silently changing the bytes
     a sha256 computed from the literal Python string would expect. Every
     write in this file that must later hash-match uses this instead."""
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8", newline="")
 
 
-def _write_and_commit(repo: Path, relative_path: str, content: str) -> str:
-    """Writes, commits, and returns the resulting HEAD commit hash."""
-    target = repo / relative_path
-    target.parent.mkdir(parents=True, exist_ok=True)
-    _write_exact(target, content)
-    subprocess.run(["git", "add", relative_path], cwd=repo, check=True)
-    subprocess.run(["git", "commit", "-q", "-m", f"add {relative_path}"], cwd=repo, check=True)
-    result = subprocess.run(
-        ["git", "rev-parse", "HEAD"], cwd=repo, check=True, capture_output=True, text=True
-    )
+def _commit_all(repo: Path, message: str) -> str:
+    subprocess.run(["git", "add", "-A"], cwd=repo, check=True)
+    subprocess.run(["git", "commit", "-q", "-m", message], cwd=repo, check=True)
+    result = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, check=True, capture_output=True, text=True)
     return result.stdout.strip()
 
 
@@ -65,229 +59,334 @@ def _sha256(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
-def _one_extraction_manifest(*, extraction_id, commit, entries, roots, scaffolding=None) -> dict:
+# ---------------------------------------------------------------------------
+# HISTORICAL_SEED
+# ---------------------------------------------------------------------------
+
+
+def _historical_seed_manifest(*, commit, entries, roots) -> dict:
     return {
         "extractions": [
             {
-                "extraction_id": extraction_id,
-                "source_repository": {"checkout_commit": commit},
+                "extraction_id": "synthetic_seed",
+                "extraction_class": "HISTORICAL_SEED",
+                "historical_seed_commit": commit,
+                "historical_seed_commit_short": commit[:7],
+                "source_repository": {"identity": "synthetic"},
                 "import_path_roots": roots,
                 "imported_files": entries,
-                "scaffolding_added": scaffolding or [],
             }
         ]
     }
 
 
-@pytest.fixture
-def synthetic_checkout(tmp_path):
+def test_historical_seed_clean_verdict_is_the_exact_ratified_string(tmp_path):
+    repo = _init_repo(tmp_path / "product")
+    _write_exact(repo / "pkg" / "module.py", "ORIGINAL CONTENT\n")
+    commit = _commit_all(repo, "seed import")
+    manifest = _historical_seed_manifest(
+        commit=commit,
+        entries=[{"source_path": "pkg/module.py", "dest_path": "pkg/module.py", "sha256": _sha256("ORIGINAL CONTENT\n")}],
+        roots=["pkg"],
+    )
+    report = verify(repo_root=repo, checkout=repo, manifest=manifest)
+    assert report["verdicts"] == [
+        f"HISTORICAL_SEED {commit[:7]} import faithful at import commit; current bytes not checked"
+    ]
+
+
+def test_historical_seed_permits_current_bytes_to_evolve(tmp_path):
+    """The defining property of this class: editing the file AFTER the
+    seed commit must not affect the verdict at all -- current bytes are
+    never read."""
+    repo = _init_repo(tmp_path / "product")
+    _write_exact(repo / "pkg" / "module.py", "ORIGINAL CONTENT\n")
+    commit = _commit_all(repo, "seed import")
+    manifest = _historical_seed_manifest(
+        commit=commit,
+        entries=[{"source_path": "pkg/module.py", "dest_path": "pkg/module.py", "sha256": _sha256("ORIGINAL CONTENT\n")}],
+        roots=["pkg"],
+    )
+    _write_exact(repo / "pkg" / "module.py", "COMPLETELY DIFFERENT, EVOLVED CONTENT\n")
+    report = verify(repo_root=repo, checkout=repo, manifest=manifest)
+    assert report["verdicts"] == [
+        f"HISTORICAL_SEED {commit[:7]} import faithful at import commit; current bytes not checked"
+    ]
+    assert report["modified_dest"] == []
+    assert report["missing_dest"] == []
+
+
+def test_historical_seed_new_product_native_file_is_not_flagged_unrecorded(tmp_path):
+    """'New product-native files need no invented extraction class':
+    adding a brand-new file under a HISTORICAL_SEED root must not be
+    reported as unrecorded."""
+    repo = _init_repo(tmp_path / "product")
+    _write_exact(repo / "pkg" / "module.py", "ORIGINAL CONTENT\n")
+    commit = _commit_all(repo, "seed import")
+    manifest = _historical_seed_manifest(
+        commit=commit,
+        entries=[{"source_path": "pkg/module.py", "dest_path": "pkg/module.py", "sha256": _sha256("ORIGINAL CONTENT\n")}],
+        roots=["pkg"],
+    )
+    _write_exact(repo / "pkg" / "brand_new_product_file.py", "# new work, never extracted from anywhere\n")
+    report = verify(repo_root=repo, checkout=repo, manifest=manifest)
+    assert report["unrecorded"] == []
+
+
+def test_historical_seed_missing_at_import_commit_is_not_faithful(tmp_path):
+    repo = _init_repo(tmp_path / "product")
+    _write_exact(repo / "pkg" / "module.py", "ORIGINAL CONTENT\n")
+    commit = _commit_all(repo, "seed import")
+    manifest = _historical_seed_manifest(
+        commit=commit,
+        entries=[{"source_path": "pkg/module.py", "dest_path": "pkg/other_name.py", "sha256": _sha256("x")}],
+        roots=["pkg"],
+    )
+    report = verify(repo_root=repo, checkout=repo, manifest=manifest)
+    assert report["verdicts"] == [f"HISTORICAL_SEED {commit[:7]} import NOT faithful at import commit: 1 missing at import commit"]
+    assert report["missing_dest"] == ["synthetic_seed:pkg/other_name.py"]
+
+
+def test_historical_seed_wrong_recorded_hash_is_not_faithful(tmp_path):
+    repo = _init_repo(tmp_path / "product")
+    _write_exact(repo / "pkg" / "module.py", "ORIGINAL CONTENT\n")
+    commit = _commit_all(repo, "seed import")
+    manifest = _historical_seed_manifest(
+        commit=commit,
+        entries=[{"source_path": "pkg/module.py", "dest_path": "pkg/module.py", "sha256": _sha256("WRONG\n")}],
+        roots=["pkg"],
+    )
+    report = verify(repo_root=repo, checkout=repo, manifest=manifest)
+    assert "NOT faithful at import commit: 1 modified since import commit" in report["verdicts"][0]
+    assert report["modified_dest"] == ["synthetic_seed:pkg/module.py"]
+
+
+# ---------------------------------------------------------------------------
+# CANONICAL_MIRROR
+# ---------------------------------------------------------------------------
+
+_FAKE_RUNNER_SOURCE = textwrap.dedent(
+    """
+    def verify_pack(pack, package="unused"):
+        return list(pack.get("forced_failures", []))
+    """
+)
+
+
+def _write_fake_conformance_pack(repo_root: Path, *, forced_failures=()) -> None:
+    pack_dir = repo_root / "provenance" / "runtime_extractions" / "concept_bundle"
+    pack_dir.mkdir(parents=True, exist_ok=True)
+    (pack_dir / "concept_bundle_conformance.py").write_text(_FAKE_RUNNER_SOURCE, encoding="utf-8")
+    (pack_dir / "vectors.json").write_text(
+        json.dumps({"vectors": [{"id": "v1"}, {"id": "v2"}], "forced_failures": list(forced_failures)}),
+        encoding="utf-8",
+    )
+
+
+def _canonical_mirror_manifest(*, commit, frozen_pack_commit_short, entries, roots) -> dict:
+    return {
+        "extractions": [
+            {
+                "extraction_id": "synthetic_mirror",
+                "extraction_class": "CANONICAL_MIRROR",
+                "source_repository": {
+                    "identity": "synthetic",
+                    "checkout_commit": commit,
+                    "frozen_pack_commit": "0000000",
+                    "frozen_pack_commit_short": frozen_pack_commit_short,
+                },
+                "import_path_roots": roots,
+                "imported_modules": entries,
+            }
+        ]
+    }
+
+
+def test_canonical_mirror_clean_verdict_is_the_exact_ratified_string(tmp_path):
     checkout = _init_repo(tmp_path / "checkout")
-    commit = _write_and_commit(checkout, "pkg/module.py", "ORIGINAL CONTENT\n")
-    return checkout, commit
+    _write_exact(checkout / "src" / "module.py", "CANONICAL CONTENT\n")
+    commit = _commit_all(checkout, "canonical commit")
+
+    repo = _init_repo(tmp_path / "product")
+    _write_exact(repo / "mirror" / "module.py", "CANONICAL CONTENT\n")
+    _write_fake_conformance_pack(repo)
+
+    manifest = _canonical_mirror_manifest(
+        commit=commit,
+        frozen_pack_commit_short="abc1234",
+        entries=[
+            {"source_path": "src/module.py", "dest_path": "mirror/module.py", "sha256": _sha256("CANONICAL CONTENT\n")}
+        ],
+        roots=["mirror"],
+    )
+    report = verify(repo_root=repo, checkout=checkout, manifest=manifest)
+    assert report["verdicts"] == [
+        "CANONICAL_MIRROR abc1234 current bytes match canonical source; conformance vectors pass"
+    ]
 
 
-@pytest.fixture
-def product_repo_with_module(tmp_path, synthetic_checkout):
-    _checkout, commit = synthetic_checkout
-    repo_root = tmp_path / "product"
-    (repo_root / "pkg").mkdir(parents=True)
-    (repo_root / "pkg" / "module.py").write_text("ORIGINAL CONTENT\n", encoding="utf-8", newline="")
-    manifest = _one_extraction_manifest(
-        extraction_id="synthetic_extraction",
+def test_canonical_mirror_byte_mismatch_is_not_clean(tmp_path):
+    checkout = _init_repo(tmp_path / "checkout")
+    _write_exact(checkout / "src" / "module.py", "CANONICAL CONTENT\n")
+    commit = _commit_all(checkout, "canonical commit")
+
+    repo = _init_repo(tmp_path / "product")
+    _write_exact(repo / "mirror" / "module.py", "TAMPERED CONTENT\n")
+    _write_fake_conformance_pack(repo)
+
+    manifest = _canonical_mirror_manifest(
+        commit=commit,
+        frozen_pack_commit_short="abc1234",
+        entries=[
+            {"source_path": "src/module.py", "dest_path": "mirror/module.py", "sha256": _sha256("CANONICAL CONTENT\n")}
+        ],
+        roots=["mirror"],
+    )
+    report = verify(repo_root=repo, checkout=checkout, manifest=manifest)
+    assert "NOT clean: 1 byte mismatch(es)" in report["verdicts"][0]
+    assert report["modified_dest"] == ["synthetic_mirror:mirror/module.py"]
+
+
+def test_canonical_mirror_new_file_under_its_root_is_flagged_unrecorded(tmp_path):
+    """The opposite of HISTORICAL_SEED's evolution allowance: a
+    CANONICAL_MIRROR root must never gain an unrecorded file."""
+    checkout = _init_repo(tmp_path / "checkout")
+    _write_exact(checkout / "src" / "module.py", "CANONICAL CONTENT\n")
+    commit = _commit_all(checkout, "canonical commit")
+
+    repo = _init_repo(tmp_path / "product")
+    _write_exact(repo / "mirror" / "module.py", "CANONICAL CONTENT\n")
+    _write_fake_conformance_pack(repo)
+    _write_exact(repo / "mirror" / "stray.py", "# never recorded\n")
+
+    manifest = _canonical_mirror_manifest(
+        commit=commit,
+        frozen_pack_commit_short="abc1234",
+        entries=[
+            {"source_path": "src/module.py", "dest_path": "mirror/module.py", "sha256": _sha256("CANONICAL CONTENT\n")}
+        ],
+        roots=["mirror"],
+    )
+    report = verify(repo_root=repo, checkout=checkout, manifest=manifest)
+    assert report["unrecorded"] == ["mirror/stray.py"]
+
+
+def test_canonical_mirror_conformance_vector_failure_is_not_clean(tmp_path):
+    checkout = _init_repo(tmp_path / "checkout")
+    _write_exact(checkout / "src" / "module.py", "CANONICAL CONTENT\n")
+    commit = _commit_all(checkout, "canonical commit")
+
+    repo = _init_repo(tmp_path / "product")
+    _write_exact(repo / "mirror" / "module.py", "CANONICAL CONTENT\n")
+    _write_fake_conformance_pack(repo, forced_failures=["v1: deliberately broken for this test"])
+
+    manifest = _canonical_mirror_manifest(
+        commit=commit,
+        frozen_pack_commit_short="abc1234",
+        entries=[
+            {"source_path": "src/module.py", "dest_path": "mirror/module.py", "sha256": _sha256("CANONICAL CONTENT\n")}
+        ],
+        roots=["mirror"],
+    )
+    report = verify(repo_root=repo, checkout=checkout, manifest=manifest)
+    assert "NOT clean: 1 conformance vector failure(s)" in report["verdicts"][0]
+
+
+def test_canonical_mirror_missing_conformance_pack_is_not_clean(tmp_path):
+    checkout = _init_repo(tmp_path / "checkout")
+    _write_exact(checkout / "src" / "module.py", "CANONICAL CONTENT\n")
+    commit = _commit_all(checkout, "canonical commit")
+
+    repo = _init_repo(tmp_path / "product")
+    _write_exact(repo / "mirror" / "module.py", "CANONICAL CONTENT\n")
+    # deliberately no _write_fake_conformance_pack() call
+
+    manifest = _canonical_mirror_manifest(
+        commit=commit,
+        frozen_pack_commit_short="abc1234",
+        entries=[
+            {"source_path": "src/module.py", "dest_path": "mirror/module.py", "sha256": _sha256("CANONICAL CONTENT\n")}
+        ],
+        roots=["mirror"],
+    )
+    report = verify(repo_root=repo, checkout=checkout, manifest=manifest)
+    assert "conformance vectors could not be run" in report["verdicts"][0]
+
+
+# ---------------------------------------------------------------------------
+# Reclassification rejection
+# ---------------------------------------------------------------------------
+
+
+def test_reclassification_of_a_canonical_path_as_historical_seed_is_rejected(tmp_path):
+    checkout = _init_repo(tmp_path / "checkout")
+    _write_exact(checkout / "README.md", "unrelated file, establishes a commit\n")
+    commit = _commit_all(checkout, "unused for this test")
+
+    repo = _init_repo(tmp_path / "product")
+    inventory_dir = repo / "provenance" / "runtime_extractions" / "concept_bundle"
+    inventory_dir.mkdir(parents=True)
+    (inventory_dir / "export_inventory.json").write_text(
+        json.dumps({
+            "minimum_export_surface": [
+                {"path": "interplab/concept_bundle/schema.py", "sha256": "x", "bytes": 1},
+            ]
+        }),
+        encoding="utf-8",
+    )
+
+    manifest = _historical_seed_manifest(
         commit=commit,
         entries=[
             {
-                "source_path": "pkg/module.py",
-                "dest_path": "pkg/module.py",
-                "sha256": _sha256("ORIGINAL CONTENT\n"),
+                "source_path": "interplab/concept_bundle/schema.py",  # a CANONICAL_MIRROR path
+                "dest_path": "sae_concept_lab/schema.py",
+                "sha256": "y",
             }
         ],
-        roots=["pkg"],
+        roots=["sae_concept_lab"],
     )
-    return repo_root, manifest
+    with pytest.raises(ProvenanceError, match="reclassification rejected"):
+        verify(repo_root=repo, checkout=checkout, manifest=manifest)
 
 
-def test_clean_extraction_verifies_with_zero_findings(product_repo_with_module, synthetic_checkout):
-    repo_root, manifest = product_repo_with_module
-    checkout, _commit = synthetic_checkout
-    report = verify(repo_root=repo_root, checkout=checkout, manifest=manifest)
-    assert report["verified_count"] == 1
-    assert report["missing_source"] == []
-    assert report["modified_source"] == []
-    assert report["missing_dest"] == []
-    assert report["modified_dest"] == []
-    assert report["unrecorded"] == []
+def test_reclassification_guard_is_silent_when_no_canonical_inventory_is_present(tmp_path):
+    """No canonical pack copied yet (e.g. a repo with only a
+    HISTORICAL_SEED extraction) -- nothing to cross-check against, so
+    this must not raise."""
+    repo = _init_repo(tmp_path / "product")
+    _write_exact(repo / "pkg" / "module.py", "X\n")
+    commit = _commit_all(repo, "seed")
 
-
-def test_modified_destination_file_is_detected(product_repo_with_module, synthetic_checkout):
-    repo_root, manifest = product_repo_with_module
-    checkout, _commit = synthetic_checkout
-    (repo_root / "pkg" / "module.py").write_text("TAMPERED CONTENT\n", encoding="utf-8", newline="")
-    report = verify(repo_root=repo_root, checkout=checkout, manifest=manifest)
-    assert report["modified_dest"] == ["synthetic_extraction:pkg/module.py"]
-    assert report["verified_count"] == 0
-
-
-def test_deleted_destination_file_is_detected(product_repo_with_module, synthetic_checkout):
-    repo_root, manifest = product_repo_with_module
-    checkout, _commit = synthetic_checkout
-    (repo_root / "pkg" / "module.py").unlink()
-    report = verify(repo_root=repo_root, checkout=checkout, manifest=manifest)
-    assert report["missing_dest"] == ["synthetic_extraction:pkg/module.py"]
-    assert report["verified_count"] == 0
-
-
-def test_unrecorded_file_under_an_import_root_is_detected(product_repo_with_module, synthetic_checkout):
-    repo_root, manifest = product_repo_with_module
-    checkout, _commit = synthetic_checkout
-    (repo_root / "pkg" / "stray.py").write_text("# never recorded\n", encoding="utf-8", newline="")
-    report = verify(repo_root=repo_root, checkout=checkout, manifest=manifest)
-    assert report["unrecorded"] == ["pkg/stray.py"]
-    # the recorded, unmodified file is still reported clean independently
-    assert report["verified_count"] == 1
-
-
-def test_manifest_recording_a_wrong_hash_is_detected_as_modified_source(
-    product_repo_with_module, synthetic_checkout
-):
-    """Simulates a stale/incorrect provenance record: the commit is real
-    and the destination file matches it, but the manifest's own sha256
-    disagrees with what the source commit actually contains."""
-    repo_root, manifest = product_repo_with_module
-    checkout, _commit = synthetic_checkout
-    manifest["extractions"][0]["imported_files"][0]["sha256"] = _sha256("SOMETHING ELSE\n")
-    report = verify(repo_root=repo_root, checkout=checkout, manifest=manifest)
-    assert report["modified_source"] == ["synthetic_extraction:pkg/module.py"]
-
-
-def test_source_path_absent_at_the_recorded_commit_is_detected_as_missing_source(
-    product_repo_with_module, synthetic_checkout
-):
-    repo_root, manifest = product_repo_with_module
-    checkout, _commit = synthetic_checkout
-    manifest["extractions"][0]["imported_files"][0]["source_path"] = "pkg/does_not_exist.py"
-    report = verify(repo_root=repo_root, checkout=checkout, manifest=manifest)
-    assert report["missing_source"] == ["synthetic_extraction:pkg/does_not_exist.py"]
-
-
-def test_missing_declared_scaffolding_is_detected(tmp_path, synthetic_checkout):
-    checkout, commit = synthetic_checkout
-    repo_root = tmp_path / "product"
-    (repo_root / "pkg").mkdir(parents=True)
-    manifest = _one_extraction_manifest(
-        extraction_id="synthetic_extraction",
+    manifest = _historical_seed_manifest(
         commit=commit,
-        entries=[],
+        entries=[{"source_path": "pkg/module.py", "dest_path": "pkg/module.py", "sha256": _sha256("X\n")}],
         roots=["pkg"],
-        scaffolding=[{"path": "pkg/__init__.py"}],
     )
-    report = verify(repo_root=repo_root, checkout=checkout, manifest=manifest)
-    assert report["missing_scaffolding"] == ["synthetic_extraction:pkg/__init__.py"]
+    report = verify(repo_root=repo, checkout=repo, manifest=manifest)
+    assert report["verdicts"][0].startswith("HISTORICAL_SEED")
 
 
-def test_declared_scaffolding_present_is_not_flagged_unrecorded(tmp_path, synthetic_checkout):
-    checkout, commit = synthetic_checkout
-    repo_root = tmp_path / "product"
-    (repo_root / "pkg").mkdir(parents=True)
-    (repo_root / "pkg" / "__init__.py").write_text("", encoding="utf-8", newline="")
-    manifest = _one_extraction_manifest(
-        extraction_id="synthetic_extraction",
-        commit=commit,
-        entries=[],
-        roots=["pkg"],
-        scaffolding=[{"path": "pkg/__init__.py"}],
-    )
-    report = verify(repo_root=repo_root, checkout=checkout, manifest=manifest)
-    assert report["missing_scaffolding"] == []
-    assert report["unrecorded"] == []
+# ---------------------------------------------------------------------------
+# Unknown extraction_class / setup errors
+# ---------------------------------------------------------------------------
 
 
-def test_nested_extraction_roots_do_not_false_positive_each_other(tmp_path):
-    """The exact scenario this repository actually has: an outer
-    extraction's root (sae_concept_lab-equivalent) contains an inner
-    extraction's root (canonical/concept_bundle-equivalent). Scanning
-    globally (as verify() does) must not report the inner extraction's
-    own recorded files as unrecorded from the outer extraction's point of
-    view."""
+def test_unknown_extraction_class_raises(tmp_path):
     checkout = _init_repo(tmp_path / "checkout")
-    outer_commit = _write_and_commit(checkout, "outer/a.py", "OUTER\n")
-    inner_commit = _write_and_commit(checkout, "outer/inner/b.py", "INNER\n")
-
-    repo_root = tmp_path / "product"
-    (repo_root / "outer" / "inner").mkdir(parents=True)
-    (repo_root / "outer" / "a.py").write_text("OUTER\n", encoding="utf-8", newline="")
-    (repo_root / "outer" / "inner" / "b.py").write_text("INNER\n", encoding="utf-8", newline="")
-
+    repo = _init_repo(tmp_path / "product")
     manifest = {
         "extractions": [
             {
-                "extraction_id": "outer",
-                "source_repository": {"checkout_commit": outer_commit},
-                "import_path_roots": ["outer"],
-                "imported_files": [
-                    {"source_path": "outer/a.py", "dest_path": "outer/a.py", "sha256": _sha256("OUTER\n")}
-                ],
-            },
-            {
-                "extraction_id": "inner",
-                "source_repository": {"checkout_commit": inner_commit},
-                "import_path_roots": ["outer/inner"],
-                "imported_files": [
-                    {
-                        "source_path": "outer/inner/b.py",
-                        "dest_path": "outer/inner/b.py",
-                        "sha256": _sha256("INNER\n"),
-                    }
-                ],
-            },
+                "extraction_id": "bad",
+                "extraction_class": "SOMETHING_ELSE",
+                "imported_files": [],
+                "import_path_roots": [],
+            }
         ]
     }
-    report = verify(repo_root=repo_root, checkout=checkout, manifest=manifest)
-    assert report["unrecorded"] == []
-    assert report["verified_count"] == 2
-
-
-def test_glob_style_import_path_root_is_supported(tmp_path, synthetic_checkout):
-    """import_path_roots entries containing '*' are matched as a glob
-    relative to repo_root, mirroring the real manifest's
-    'tests/test_sae_concept_lab_*.py' root."""
-    checkout, commit = synthetic_checkout
-    repo_root = tmp_path / "product"
-    (repo_root / "tests").mkdir(parents=True)
-    (repo_root / "tests" / "test_foo_bar.py").write_text("# recorded\n", encoding="utf-8", newline="")
-    (repo_root / "tests" / "test_unrelated.py").write_text("# not under this extraction's glob\n", encoding="utf-8", newline="")
-    manifest = _one_extraction_manifest(
-        extraction_id="glob_extraction",
-        commit=commit,
-        entries=[
-            {
-                "source_path": "pkg/module.py",
-                "dest_path": "tests/test_foo_bar.py",
-                "sha256": _sha256("ORIGINAL CONTENT\n"),
-            }
-        ],
-        roots=["tests/test_foo_bar.py"],
-    )
-    (repo_root / "tests" / "test_foo_bar.py").write_text("ORIGINAL CONTENT\n", encoding="utf-8", newline="")
-    report = verify(repo_root=repo_root, checkout=checkout, manifest=manifest)
-    # test_unrelated.py is outside this extraction's exact-name glob root,
-    # so it correctly does not appear as unrecorded.
-    assert report["unrecorded"] == []
-    assert report["verified_count"] == 1
-
-
-def test_commit_not_present_in_checkout_raises_provenance_error(tmp_path, synthetic_checkout):
-    checkout, _commit = synthetic_checkout
-    repo_root = tmp_path / "product"
-    repo_root.mkdir()
-    manifest = _one_extraction_manifest(
-        extraction_id="synthetic_extraction",
-        commit="0" * 40,
-        entries=[],
-        roots=[],
-    )
-    with pytest.raises(ProvenanceError):
-        verify(repo_root=repo_root, checkout=checkout, manifest=manifest)
+    with pytest.raises(ProvenanceError, match="no recognized extraction_class"):
+        verify(repo_root=repo, checkout=checkout, manifest=manifest)
 
 
 def test_assert_is_git_checkout_rejects_a_non_git_directory(tmp_path):
@@ -303,32 +402,25 @@ def test_load_manifest_missing_file_raises():
 
 
 # ---------------------------------------------------------------------------
-# End-to-end CLI, against the real manifest but a synthetic checkout that
-# mirrors it -- exercises main()/argparse without requiring a real
-# qwen-sae-interp checkout on disk.
+# End-to-end CLI
 # ---------------------------------------------------------------------------
 
 
 def test_main_cli_reports_failure_on_a_missing_destination_file(tmp_path):
-    checkout, commit = _init_repo(tmp_path / "checkout"), None
-    commit = _write_and_commit(checkout, "pkg/module.py", "ORIGINAL CONTENT\n")
+    checkout = _init_repo(tmp_path / "checkout")  # unused by HISTORICAL_SEED verification, only by --qwen-sae-interp-checkout validation
 
-    repo_root = tmp_path / "product"
-    (repo_root / "pkg").mkdir(parents=True)
-    # deliberately never write pkg/module.py -- missing_dest
+    repo = _init_repo(tmp_path / "product")
+    _write_exact(repo / "README.md", "unrelated file, establishes a commit\n")
+    commit = _commit_all(repo, "seed")
+    # deliberately never write pkg/module.py in `repo` -- missing at the seed commit
 
     manifest_path = tmp_path / "manifest.json"
     manifest_path.write_text(
         json.dumps(
-            _one_extraction_manifest(
-                extraction_id="cli_extraction",
+            _historical_seed_manifest(
                 commit=commit,
                 entries=[
-                    {
-                        "source_path": "pkg/module.py",
-                        "dest_path": "pkg/module.py",
-                        "sha256": _sha256("ORIGINAL CONTENT\n"),
-                    }
+                    {"source_path": "pkg/module.py", "dest_path": "pkg/module.py", "sha256": _sha256("ORIGINAL CONTENT\n")}
                 ],
                 roots=["pkg"],
             )
@@ -346,10 +438,11 @@ def test_main_cli_reports_failure_on_a_missing_destination_file(tmp_path):
             "--manifest",
             str(manifest_path),
             "--repo-root",
-            str(repo_root),
+            str(repo),
         ],
         capture_output=True,
         text=True,
     )
     assert result.returncode == 1
-    assert "MISSING IN THIS CHECKOUT: cli_extraction:pkg/module.py" in result.stderr
+    assert "MISSING: synthetic_seed:pkg/module.py" in result.stderr
+    assert f"verdict: HISTORICAL_SEED {commit[:7]} import NOT faithful at import commit" in result.stdout

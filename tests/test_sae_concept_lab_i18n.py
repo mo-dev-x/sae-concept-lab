@@ -6,9 +6,9 @@ from __future__ import annotations
 
 import pytest
 
-from sae_concept_lab.i18n import LANGS, STRINGS, t
-from sae_concept_lab.fixtures.loader import default_bundle_path, load_bundle
 from sae_concept_lab.core.stub_backend import StubConceptLabBackend
+from sae_concept_lab.fixtures.loader import load_entries
+from sae_concept_lab.i18n import LANGS, STRINGS, t
 from sae_concept_lab.ui.app_ui import build_demo
 
 
@@ -86,11 +86,9 @@ def test_switching_language_does_not_touch_gr_state_language_value_only_flag():
 
 
 def _demo_kwargs():
-    gemma_bundle = load_bundle(default_bundle_path("gemma"))
-    qwen_bundle = load_bundle(default_bundle_path("qwen"))
-    return dict(
-        gemma_bundle=gemma_bundle,
-        qwen_bundle=qwen_bundle,
-        gemma_backend=StubConceptLabBackend(),
-        qwen_backend=StubConceptLabBackend(),
-    )
+    return {
+        "gemma_entries": load_entries("gemma"),
+        "qwen_entries": load_entries("qwen"),
+        "gemma_backend": StubConceptLabBackend(),
+        "qwen_backend": StubConceptLabBackend(),
+    }

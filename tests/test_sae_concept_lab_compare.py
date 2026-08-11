@@ -8,21 +8,16 @@ import dataclasses
 
 import pytest
 
-from sae_concept_lab.core.config import resolve_config
+from sae_concept_lab.canonical.concept_bundle import resolve_control
 from sae_concept_lab.core.logic import assert_compare_invariant, run_compare
 from sae_concept_lab.core.stub_backend import StubConceptLabBackend
-from sae_concept_lab.fixtures.loader import default_bundle_path, load_bundle
+from sae_concept_lab.fixtures.loader import load_entries
 
-GEMMA_BUNDLE = load_bundle(default_bundle_path("gemma"))
+GEMMA_ENTRIES = load_entries("gemma")
 
 
 def _resolved(strength="medium"):
-    return resolve_config(
-        bundle=GEMMA_BUNDLE,
-        concept_id=GEMMA_BUNDLE["concepts"][0]["concept_id"],
-        direction="amplify",
-        strength_level=strength,
-    )
+    return resolve_control(GEMMA_ENTRIES[0], direction="amplify", strength=strength)
 
 
 def test_compare_requests_are_identical_except_intervention_fields():

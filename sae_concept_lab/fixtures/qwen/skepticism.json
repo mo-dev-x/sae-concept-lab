@@ -1,0 +1,41 @@
+{
+  "calibration_provenance": null,
+  "concept_id": "FAKE-qwen-skepticism",
+  "directions": {
+    "amplify": null,
+    "suppress": {
+      "specs": {
+        "high": {
+          "operation": "clamp",
+          "unit": "absolute_activation",
+          "unit_source": null,
+          "value": 1.0
+        },
+        "low": {
+          "operation": "clamp",
+          "unit": "absolute_activation",
+          "unit_source": null,
+          "value": 0.33
+        },
+        "medium": {
+          "operation": "clamp",
+          "unit": "absolute_activation",
+          "unit_source": null,
+          "value": 0.66
+        }
+      },
+      "targets": [
+        {
+          "feature_idx": 2004,
+          "layer": 7,
+          "sae_id": "fake-sae-demo-qwen-000",
+          "weight": 1.0
+        }
+      ]
+    }
+  },
+  "pairing_id": "fake-qwen-demo-pairing",
+  "positions": "generated_only",
+  "provenance": "fake",
+  "schema_version": "1.0"
+}

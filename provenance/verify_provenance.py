@@ -1,47 +1,58 @@
 """Read-only provenance verification for this repository's extractions.
 
-Checks provenance/source_import.json's recorded mapping (source commit,
-source path, destination path, SHA-256) against two independent things,
-for every extraction listed in the manifest's `extractions` array:
+Two extraction classes exist, and they are verified completely
+differently -- this is the ratified policy, not a convenience split:
 
-  1. The destination file in THIS repository -- has it been modified or
-     deleted since import?
-  2. The source blob at that extraction's own recorded commit in a
-     qwen-sae-interp checkout the caller points this at -- does the
-     source commit still contain exactly what was imported?
+  HISTORICAL_SEED  A past import whose current bytes are permitted to
+                   evolve (e.g. sae_concept_lab_ui: app.py, core/*, ui/*,
+                   fixtures/loader.py -- all now wired to call the
+                   canonical package directly, which is expected
+                   evolution, not drift). Verified by reading git objects
+                   at this repository's OWN `historical_seed_commit`
+                   (never qwen-sae-interp, never current working-tree
+                   bytes) and hash-comparing them against the manifest.
+                   The verdict this class prints declares faithfulness
+                   AT THE IMPORT COMMIT and explicitly disclaims checking
+                   current bytes.
 
-Each extraction is independent and may name its own source commit(s) --
-the original UI import (`sae_concept_lab_ui`) records a single `commit`;
-the concept-bundle contract extraction (`concept_bundle_contract`)
-records `checkout_commit` (what was actually read), plus
-`contract_base_commit` and `frozen_pack_commit` for the record (not
-separately re-fetched, since checkout_commit is asserted unchanged from
-both -- see that extraction's `contract_base_commit_note`).
+  CANONICAL_MIRROR A byte-for-byte mirror that may NEVER evolve (the
+                   eight concept_bundle contract modules). Verified by
+                   hash-comparing CURRENT bytes against both the manifest
+                   and a live qwen-sae-interp checkout, AND by re-running
+                   all 50 frozen conformance vectors against the
+                   extracted package. Membership is derived from frozen
+                   pack fabf702's own export_inventory.json
+                   minimum_export_surface list, not merely asserted --
+                   see assert_no_reclassification().
 
-It also walks the UNION of every extraction's declared
-`import_path_roots` for files that exist but are NOT recorded by ANY
-extraction -- an unrecorded import is exactly the kind of drift a
-hash-only check of the recorded entries would miss. This is computed
-globally, not per extraction, because one extraction's root can nest
-inside another's (concept_bundle_contract's
-sae_concept_lab/canonical/concept_bundle sits inside
-sae_concept_lab_ui's sae_concept_lab root) -- scanning in isolation would
-flag every file the inner extraction owns as unrecorded from the outer
-one's point of view.
+The two classes never share a field, a serialized key, or a verdict
+vocabulary with the SCIENTIFIC `provenance` field (Provenance.ATTESTED /
+CANDIDATE / DRAFT / FAKE / UNKNOWN, defined in
+sae_concept_lab.canonical.concept_bundle.schema) -- extraction_class is a
+code-provenance axis, entirely orthogonal to that scientific-content
+axis, and this module never reads or writes the word "provenance" as a
+code-extraction field.
 
-Scaffolding (parent-package markers added only to make an extraction
-importable, carrying no extracted content -- e.g.
-sae_concept_lab/canonical/__init__.py) is declared per extraction under
-`scaffolding_added` and is checked for existence only, never hashed
-against a source commit, and never flagged unrecorded.
+Every verdict is scope-qualified: main() never prints a bare "PASS" --
+each extraction's line names its class and the commit its faithfulness
+is judged against, and reads exactly one of:
 
-READ-ONLY, by construction: every git operation against the caller-
-supplied qwen-sae-interp checkout is `git -C <checkout> cat-file -e/-p
-<commit>:<path>` (or `git show <commit>:<path>`) -- reading a blob
-directly out of the object database. Neither of these touches that
-checkout's working tree, index, or HEAD; there is no `checkout`,
-`reset`, `fetch`, `pull`, or `switch` call anywhere in this module. This
-script never writes to the qwen-sae-interp checkout it is pointed at.
+  HISTORICAL_SEED <short-commit> import faithful at import commit; current bytes not checked
+  CANONICAL_MIRROR <short-commit> current bytes match canonical source; conformance vectors pass
+
+Rejects reclassification: a HISTORICAL_SEED extraction naming a
+source_path that appears in the canonical pack's own minimum_export_surface
+is a fatal configuration error (ProvenanceError), not a per-file finding --
+it would let a canonical-mirror-owned path escape strict verification by
+being relabelled.
+
+READ-ONLY, by construction. Every git operation -- against the caller-
+supplied qwen-sae-interp checkout (CANONICAL_MIRROR only) or against this
+repository's own history (HISTORICAL_SEED) -- is `git -C <path>
+cat-file -e/-p <commit>:<file>` or `git show <commit>:<file>`: reading a
+blob directly out of the object database. Neither touches a working
+tree, an index, or HEAD; there is no `checkout`, `reset`, `fetch`,
+`pull`, or `switch` call anywhere in this module.
 
 Usage:
     python -m provenance.verify_provenance --qwen-sae-interp-checkout /path/to/qwen-sae-interp
@@ -51,6 +62,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import json
 import subprocess
 import sys
@@ -58,6 +70,12 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_MANIFEST_PATH = REPO_ROOT / "provenance" / "source_import.json"
+
+CANONICAL_PACK_DIR = Path("provenance") / "runtime_extractions" / "concept_bundle"
+CANONICAL_INVENTORY_RELATIVE_PATH = CANONICAL_PACK_DIR / "export_inventory.json"
+CANONICAL_RUNNER_RELATIVE_PATH = CANONICAL_PACK_DIR / "concept_bundle_conformance.py"
+CANONICAL_VECTORS_RELATIVE_PATH = CANONICAL_PACK_DIR / "vectors.json"
+CANONICAL_PACKAGE = "sae_concept_lab.canonical.concept_bundle"
 
 # Manifest keys that carry {source_path, dest_path, sha256} entries subject
 # to hash verification. An extraction may use any subset of these -- the
@@ -69,8 +87,8 @@ ENTRY_LIST_KEYS = ("imported_files", "imported_modules", "extracted_artifacts")
 
 class ProvenanceError(RuntimeError):
     """Raised for a fatal setup problem (bad checkout, missing manifest,
-    unknown commit) -- distinct from a per-file finding, which is
-    accumulated and reported instead of raised."""
+    unknown commit, reclassification) -- distinct from a per-file
+    finding, which is accumulated and reported instead of raised."""
 
 
 def load_manifest(manifest_path: Path) -> dict:
@@ -79,37 +97,37 @@ def load_manifest(manifest_path: Path) -> dict:
     return json.loads(manifest_path.read_text(encoding="utf-8"))
 
 
-def _run_git(checkout: Path, args: list[str]) -> subprocess.CompletedProcess:
-    return subprocess.run(
-        ["git", "-C", str(checkout), *args],
-        capture_output=True,
-    )
+def _run_git(repo: Path, args: list[str]) -> subprocess.CompletedProcess:
+    return subprocess.run(["git", "-C", str(repo), *args], capture_output=True)
 
 
-def assert_is_git_checkout(checkout: Path) -> None:
-    if not checkout.exists():
-        raise ProvenanceError(f"qwen-sae-interp checkout path does not exist: {checkout}")
-    result = _run_git(checkout, ["rev-parse", "--git-dir"])
+def assert_is_git_checkout(repo: Path) -> None:
+    if not repo.exists():
+        raise ProvenanceError(f"path does not exist: {repo}")
+    result = _run_git(repo, ["rev-parse", "--git-dir"])
     if result.returncode != 0:
-        raise ProvenanceError(f"{checkout} is not a git checkout (git rev-parse --git-dir failed)")
+        raise ProvenanceError(f"{repo} is not a git checkout (git rev-parse --git-dir failed)")
 
 
-def assert_commit_exists(checkout: Path, commit: str) -> None:
-    result = _run_git(checkout, ["cat-file", "-e", f"{commit}^{{commit}}"])
+def assert_commit_exists(repo: Path, commit: str) -> None:
+    result = _run_git(repo, ["cat-file", "-e", f"{commit}^{{commit}}"])
     if result.returncode != 0:
         raise ProvenanceError(
-            f"commit {commit!r} was not found in the checkout at {checkout} -- "
-            "cannot verify provenance against a commit this checkout does not have"
+            f"commit {commit!r} was not found in {repo} -- cannot verify provenance against a "
+            "commit this checkout does not have"
         )
 
 
-def read_source_blob(checkout: Path, commit: str, source_path: str) -> bytes | None:
-    """Returns the raw blob bytes at commit:source_path, or None if that
-    path does not resolve to a blob at that commit (missing)."""
-    exists = _run_git(checkout, ["cat-file", "-e", f"{commit}:{source_path}"])
+def read_blob_at_commit(repo: Path, commit: str, path: str) -> bytes | None:
+    """Returns the raw blob bytes at commit:path in `repo`'s own object
+    database, or None if that path does not resolve to a blob at that
+    commit (missing). `repo` may be this repository itself (HISTORICAL_SEED)
+    or an external qwen-sae-interp checkout (CANONICAL_MIRROR) -- both are
+    ordinary git repositories from this function's point of view."""
+    exists = _run_git(repo, ["cat-file", "-e", f"{commit}:{path}"])
     if exists.returncode != 0:
         return None
-    shown = _run_git(checkout, ["show", f"{commit}:{source_path}"])
+    shown = _run_git(repo, ["show", f"{commit}:{path}"])
     if shown.returncode != 0:
         return None
     return shown.stdout
@@ -117,22 +135,6 @@ def read_source_blob(checkout: Path, commit: str, source_path: str) -> bytes | N
 
 def sha256_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
-
-
-def extraction_commit(extraction: dict) -> str:
-    """The commit an extraction's entries should be read against. The
-    original import names it `commit`; the concept-bundle extraction names
-    the commit it actually read from `checkout_commit` (contract_base_commit
-    and frozen_pack_commit are recorded for the audit trail but are
-    ancestors already asserted unchanged, not independently re-fetched)."""
-    source_repo = extraction["source_repository"]
-    commit = source_repo.get("commit") or source_repo.get("checkout_commit")
-    if not commit:
-        raise ProvenanceError(
-            f"extraction {extraction.get('extraction_id')!r} has no 'commit' or "
-            "'checkout_commit' in source_repository"
-        )
-    return commit
 
 
 def extraction_entries(extraction: dict) -> list[dict]:
@@ -166,14 +168,164 @@ def _expand_root(repo_root: Path, root: str) -> set[str]:
 
 
 def find_actual_files_under_all_roots(repo_root: Path, extractions: list[dict]) -> set[str]:
-    """The union of every extraction's declared import_path_roots, walked
-    once. Must be computed globally (not per extraction) because one
-    extraction's root can nest inside another's."""
+    """The union of every CANONICAL_MIRROR extraction's declared
+    import_path_roots, walked once. Deliberately excludes HISTORICAL_SEED
+    roots: those extractions permit current evolution, so a new file
+    appearing under sae_concept_lab/ (e.g. fixtures/labels.py, or a new
+    canonical fixture document) is expected product-native work, not an
+    unrecorded import -- "new product-native files need no invented
+    extraction class" is the ratified policy this encodes. Computed as a
+    union (not per extraction) because one CANONICAL_MIRROR root can nest
+    inside a HISTORICAL_SEED root (canonical/concept_bundle inside
+    sae_concept_lab), and only the inner, stricter root's contents must
+    ever be flagged."""
     found: set[str] = set()
     for extraction in extractions:
+        if extraction.get("extraction_class") != "CANONICAL_MIRROR":
+            continue
         for root in extraction.get("import_path_roots", []):
             found |= _expand_root(repo_root, root)
     return found
+
+
+def assert_no_reclassification(repo_root: Path, manifest: dict) -> None:
+    """A HISTORICAL_SEED extraction naming a source_path that the frozen
+    canonical pack's own export_inventory.json lists under
+    minimum_export_surface is a fatal reclassification attempt: it would
+    let a path that must be verified byte-for-byte escape into the more
+    lenient "faithful at import commit, current bytes not checked" class
+    by being relabelled. Silent if the canonical inventory is not present
+    at all (nothing to cross-check against yet)."""
+    inventory_path = repo_root / CANONICAL_INVENTORY_RELATIVE_PATH
+    if not inventory_path.exists():
+        return
+    inventory = json.loads(inventory_path.read_text(encoding="utf-8"))
+    canonical_source_paths = {m["path"] for m in inventory["minimum_export_surface"]}
+
+    for extraction in manifest["extractions"]:
+        if extraction.get("extraction_class") != "HISTORICAL_SEED":
+            continue
+        for entry in extraction_entries(extraction):
+            if entry["source_path"] in canonical_source_paths:
+                raise ProvenanceError(
+                    f"reclassification rejected: extraction {extraction['extraction_id']!r} "
+                    f"(HISTORICAL_SEED) names source_path {entry['source_path']!r}, which is a "
+                    "CANONICAL_MIRROR path per the frozen pack's own export inventory. A "
+                    "canonical-mirror-owned path may never be verified under the more lenient "
+                    "historical-seed rules."
+                )
+
+
+def run_conformance_vectors(repo_root: Path) -> dict:
+    """Loads the copied runner and vectors from THIS repository (never
+    qwen-sae-interp) and calls verify_pack() directly, in process, against
+    the extracted package. Returns {"ran": bool, "vectors_checked": int,
+    "failures": list[str]}."""
+    runner_path = repo_root / CANONICAL_RUNNER_RELATIVE_PATH
+    vectors_path = repo_root / CANONICAL_VECTORS_RELATIVE_PATH
+    if not runner_path.exists() or not vectors_path.exists():
+        return {"ran": False, "vectors_checked": 0, "failures": ["runner or vectors file is missing"]}
+
+    spec = importlib.util.spec_from_file_location("concept_bundle_conformance_check", runner_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    pack = json.loads(vectors_path.read_text(encoding="utf-8"))
+    failures = module.verify_pack(pack, package=CANONICAL_PACKAGE)
+    return {"ran": True, "vectors_checked": len(pack["vectors"]), "failures": failures}
+
+
+def verify_historical_seed_extraction(repo_root: Path, extraction: dict) -> dict:
+    """HISTORICAL_SEED: reads git objects at THIS repository's own
+    historical_seed_commit and hash-compares them against the manifest.
+    Never touches current working-tree bytes, and never touches
+    qwen-sae-interp."""
+    commit = extraction["historical_seed_commit"]
+    assert_commit_exists(repo_root, commit)
+
+    missing: list[str] = []
+    modified: list[str] = []
+    for entry in extraction_entries(extraction):
+        blob = read_blob_at_commit(repo_root, commit, entry["dest_path"])
+        if blob is None:
+            missing.append(entry["dest_path"])
+        elif sha256_bytes(blob) != entry["sha256"]:
+            modified.append(entry["dest_path"])
+    return {"missing": missing, "modified": modified, "clean": not missing and not modified}
+
+
+def verify_canonical_mirror_extraction(repo_root: Path, checkout: Path, extraction: dict) -> dict:
+    """CANONICAL_MIRROR: hash-compares CURRENT bytes (both in this
+    repository and at the source commit in the qwen-sae-interp checkout)
+    AND re-runs all 50 frozen conformance vectors."""
+    commit = extraction["source_repository"].get("checkout_commit") or extraction["source_repository"].get("commit")
+    assert_commit_exists(checkout, commit)
+
+    missing_source: list[str] = []
+    modified_source: list[str] = []
+    missing_dest: list[str] = []
+    modified_dest: list[str] = []
+
+    for entry in extraction_entries(extraction):
+        source_blob = read_blob_at_commit(checkout, commit, entry["source_path"])
+        if source_blob is None:
+            missing_source.append(entry["source_path"])
+        elif sha256_bytes(source_blob) != entry["sha256"]:
+            modified_source.append(entry["source_path"])
+
+        dest_file = repo_root / entry["dest_path"]
+        if not dest_file.exists():
+            missing_dest.append(entry["dest_path"])
+        else:
+            if sha256_bytes(dest_file.read_bytes()) != entry["sha256"]:
+                modified_dest.append(entry["dest_path"])
+
+    vector_result = run_conformance_vectors(repo_root)
+    bytes_clean = not (missing_source or modified_source or missing_dest or modified_dest)
+    vectors_clean = vector_result["ran"] and not vector_result["failures"]
+    return {
+        "missing_source": missing_source,
+        "modified_source": modified_source,
+        "missing_dest": missing_dest,
+        "modified_dest": modified_dest,
+        "vector_result": vector_result,
+        "clean": bytes_clean and vectors_clean,
+    }
+
+
+def _short_commit(value: str) -> str:
+    return value[:7]
+
+
+def historical_seed_verdict(extraction: dict, result: dict) -> str:
+    short = extraction.get("historical_seed_commit_short") or _short_commit(extraction["historical_seed_commit"])
+    if result["clean"]:
+        return f"HISTORICAL_SEED {short} import faithful at import commit; current bytes not checked"
+    problems = []
+    if result["missing"]:
+        problems.append(f"{len(result['missing'])} missing at import commit")
+    if result["modified"]:
+        problems.append(f"{len(result['modified'])} modified since import commit")
+    return f"HISTORICAL_SEED {short} import NOT faithful at import commit: " + "; ".join(problems)
+
+
+def canonical_mirror_verdict(extraction: dict, result: dict) -> str:
+    source_repo = extraction["source_repository"]
+    short = source_repo.get("frozen_pack_commit_short") or _short_commit(source_repo["frozen_pack_commit"])
+    if result["clean"]:
+        return f"CANONICAL_MIRROR {short} current bytes match canonical source; conformance vectors pass"
+    problems = []
+    n_byte_problems = (
+        len(result["missing_source"]) + len(result["modified_source"])
+        + len(result["missing_dest"]) + len(result["modified_dest"])
+    )
+    if n_byte_problems:
+        problems.append(f"{n_byte_problems} byte mismatch(es)")
+    vector_result = result["vector_result"]
+    if not vector_result["ran"]:
+        problems.append("conformance vectors could not be run")
+    elif vector_result["failures"]:
+        problems.append(f"{len(vector_result['failures'])} conformance vector failure(s)")
+    return f"CANONICAL_MIRROR {short} current bytes/vectors NOT clean: " + "; ".join(problems)
 
 
 def verify(
@@ -182,13 +334,14 @@ def verify(
     checkout: Path,
     manifest: dict,
 ) -> dict:
-    """Returns a report dict. `missing_source`, `modified_source`,
-    `missing_dest`, `modified_dest`, and `missing_scaffolding` are lists of
-    "extraction_id:path" strings; `unrecorded` is a list of plain relative
-    paths (computed globally, not per extraction). Every value is a path
-    string and a category label -- never a diff, never file content."""
+    """Returns a report dict with per-class findings, a `verdicts` list of
+    scope-qualified strings (one per extraction, in manifest order --
+    never a bare PASS), and the usual global unrecorded/scaffolding
+    checks. Raises ProvenanceError (not a finding) on reclassification."""
     extractions = manifest["extractions"]
+    assert_no_reclassification(repo_root, manifest)
 
+    verdicts: list[str] = []
     missing_source: list[str] = []
     modified_source: list[str] = []
     missing_dest: list[str] = []
@@ -197,52 +350,46 @@ def verify(
     verified_count = 0
     total_entries = 0
 
-    recorded_dest_paths: set[str] = set()
-
     for extraction in extractions:
         extraction_id = extraction["extraction_id"]
-        commit = extraction_commit(extraction)
-        assert_commit_exists(checkout, commit)
+        extraction_class = extraction.get("extraction_class")
+        entries = extraction_entries(extraction)
+        total_entries += len(entries)
 
-        for entry in extraction_entries(extraction):
-            total_entries += 1
-            source_path = entry["source_path"]
-            dest_path = entry["dest_path"]
-            expected_sha256 = entry["sha256"]
-            recorded_dest_paths.add(dest_path)
-
-            entry_ok = True
-
-            source_blob = read_source_blob(checkout, commit, source_path)
-            if source_blob is None:
-                missing_source.append(f"{extraction_id}:{source_path}")
-                entry_ok = False
-            elif sha256_bytes(source_blob) != expected_sha256:
-                modified_source.append(f"{extraction_id}:{source_path}")
-                entry_ok = False
-
-            dest_file = repo_root / dest_path
-            if not dest_file.exists():
-                missing_dest.append(f"{extraction_id}:{dest_path}")
-                entry_ok = False
-            else:
-                dest_bytes = dest_file.read_bytes()
-                if sha256_bytes(dest_bytes) != expected_sha256:
-                    modified_dest.append(f"{extraction_id}:{dest_path}")
-                    entry_ok = False
-
-            if entry_ok:
-                verified_count += 1
+        if extraction_class == "HISTORICAL_SEED":
+            result = verify_historical_seed_extraction(repo_root, extraction)
+            if result["clean"]:
+                verified_count += len(entries)
+            missing_dest.extend(f"{extraction_id}:{p}" for p in result["missing"])
+            modified_dest.extend(f"{extraction_id}:{p}" for p in result["modified"])
+            verdicts.append(historical_seed_verdict(extraction, result))
+        elif extraction_class == "CANONICAL_MIRROR":
+            result = verify_canonical_mirror_extraction(repo_root, checkout, extraction)
+            if result["clean"]:
+                verified_count += len(entries)
+            missing_source.extend(f"{extraction_id}:{p}" for p in result["missing_source"])
+            modified_source.extend(f"{extraction_id}:{p}" for p in result["modified_source"])
+            missing_dest.extend(f"{extraction_id}:{p}" for p in result["missing_dest"])
+            modified_dest.extend(f"{extraction_id}:{p}" for p in result["modified_dest"])
+            verdicts.append(canonical_mirror_verdict(extraction, result))
+        else:
+            raise ProvenanceError(
+                f"extraction {extraction_id!r} has no recognized extraction_class "
+                "(expected HISTORICAL_SEED or CANONICAL_MIRROR)"
+            )
 
         for scaffold_path in extraction_scaffolding_paths(extraction):
-            recorded_dest_paths.add(scaffold_path)
             if not (repo_root / scaffold_path).exists():
                 missing_scaffolding.append(f"{extraction_id}:{scaffold_path}")
 
+    all_scaffolding_and_recorded = {
+        p for extraction in extractions for p in extraction_scaffolding_paths(extraction)
+    } | {entry["dest_path"] for extraction in extractions for entry in extraction_entries(extraction)}
     actual_files = find_actual_files_under_all_roots(repo_root, extractions)
-    unrecorded = sorted(actual_files - recorded_dest_paths)
+    unrecorded = sorted(actual_files - all_scaffolding_and_recorded)
 
     return {
+        "verdicts": verdicts,
         "missing_source": missing_source,
         "modified_source": modified_source,
         "missing_dest": missing_dest,
@@ -261,7 +408,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--qwen-sae-interp-checkout",
         required=True,
         type=Path,
-        help="Path to a local qwen-sae-interp git checkout. Read-only: never modified.",
+        help=(
+            "Path to a local qwen-sae-interp git checkout. Read-only: never modified. Required for "
+            "CANONICAL_MIRROR extractions; HISTORICAL_SEED extractions never use it."
+        ),
     )
     p.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST_PATH)
     p.add_argument("--repo-root", type=Path, default=REPO_ROOT)
@@ -273,6 +423,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         manifest = load_manifest(args.manifest)
         assert_is_git_checkout(args.qwen_sae_interp_checkout)
+        assert_is_git_checkout(args.repo_root)
         report = verify(repo_root=args.repo_root, checkout=args.qwen_sae_interp_checkout, manifest=manifest)
     except ProvenanceError as exc:
         print(f"PROVENANCE VERIFICATION FAILED TO RUN: {exc}", file=sys.stderr)
@@ -290,6 +441,8 @@ def main(argv: list[str] | None = None) -> int:
     print(f"extractions: {report['extraction_count']}")
     print(f"manifest entries: {report['manifest_entry_count']}")
     print(f"verified clean: {report['verified_count']}")
+    for verdict in report["verdicts"]:
+        print(f"verdict: {verdict}")
     print(f"missing at source commit: {len(report['missing_source'])}")
     print(f"modified at source commit: {len(report['modified_source'])}")
     print(f"missing in this checkout: {len(report['missing_dest'])}")
@@ -298,7 +451,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"unrecorded imported-path files: {len(report['unrecorded'])}")
 
     if not problems:
-        print("PROVENANCE OK: every imported file matches its recorded source commit and hash.")
+        print("PROVENANCE OK: every extraction's verdict is clean (see verdict lines above).")
         return 0
 
     print("PROVENANCE VERIFICATION FAILED:", file=sys.stderr)
@@ -307,9 +460,9 @@ def main(argv: list[str] | None = None) -> int:
     for path in report["modified_source"]:
         print(f"  MODIFIED AT SOURCE COMMIT (should be immutable -- check the commit hash): {path}", file=sys.stderr)
     for path in report["missing_dest"]:
-        print(f"  MISSING IN THIS CHECKOUT: {path}", file=sys.stderr)
+        print(f"  MISSING: {path}", file=sys.stderr)
     for path in report["modified_dest"]:
-        print(f"  MODIFIED IN THIS CHECKOUT SINCE IMPORT: {path}", file=sys.stderr)
+        print(f"  MODIFIED: {path}", file=sys.stderr)
     for path in report["missing_scaffolding"]:
         print(f"  MISSING DECLARED SCAFFOLDING: {path}", file=sys.stderr)
     for path in report["unrecorded"]:

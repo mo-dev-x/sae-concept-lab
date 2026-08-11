@@ -4,6 +4,15 @@ module is directly unit-testable without constructing a single Gradio
 component -- the same split scripts/legacy/gemma3_tool.py already uses
 (dose_to_absolute_clamp, feature_by_idx, etc. are plain functions; only
 build_ui() touches gradio).
+
+Public/Advanced rendering below reads a canonical
+`ResolvedControlState` (sae_concept_lab.canonical.concept_bundle.resolver)
+through its OWN `public_view()`/`advanced_view()`/`execution_dict()`
+methods -- this module never recomputes what those methods already
+compute, and never re-derives availability, fingerprints, or the
+execution payload itself. The only thing this module adds is translating
+a concept_id/pairing_id into product-owned display text (labels.py),
+which the canonical contract deliberately holds none of.
 """
 
 from __future__ import annotations
@@ -11,7 +20,9 @@ from __future__ import annotations
 import dataclasses
 from typing import Any
 
-from sae_concept_lab.core.protocol import ConceptLabBackend, GenerationRequest, GenerationResult, ResolvedConfig
+from sae_concept_lab.canonical.concept_bundle import ResolvedControlState
+from sae_concept_lab.core.protocol import ConceptLabBackend, GenerationRequest, GenerationResult
+from sae_concept_lab.fixtures.labels import concept_label, pairing_label
 from sae_concept_lab.i18n import t
 
 # ---------------------------------------------------------------------------
@@ -62,7 +73,7 @@ def build_generation_request(
     decoding: dict[str, Any],
     seed: int,
     apply_intervention: bool,
-    resolved_config: ResolvedConfig | None,
+    resolved_config: ResolvedControlState | None,
 ) -> GenerationRequest:
     return GenerationRequest(
         history=tuple((m["role"], m["content"]) for m in history),
@@ -83,7 +94,7 @@ def send_message(
     model_key: str,
     decoding: dict[str, Any],
     seed: int,
-    resolved_config: ResolvedConfig,
+    resolved_config: ResolvedControlState,
 ) -> tuple[list[dict[str, str]], GenerationResult]:
     request = build_generation_request(
         history=history,
@@ -102,7 +113,8 @@ def send_message(
 # ---------------------------------------------------------------------------
 # Compare: Original and Modified must share history/prompt/model_key/
 # decoding/seed exactly, differing ONLY in apply_intervention and
-# resolved_config.
+# resolved_config. Both arms are bound to the SAME resolved_config the
+# caller passes in -- run_compare never resolves a second time.
 # ---------------------------------------------------------------------------
 
 
@@ -122,7 +134,7 @@ def run_compare(
     model_key: str,
     decoding: dict[str, Any],
     seed: int,
-    resolved_config: ResolvedConfig,
+    resolved_config: ResolvedControlState,
 ) -> CompareResult:
     original_request = build_generation_request(
         history=history,
@@ -168,33 +180,40 @@ def assert_compare_invariant(compare: CompareResult) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Public vs Advanced rendering of a ResolvedConfig -- deliberately built
-# from the SAME object, never two derivations.
+# Public vs Advanced rendering of a ResolvedControlState -- both built from
+# the SAME object's own public_view()/advanced_view()/execution_dict(),
+# never a second, product-derived computation of what those already
+# compute. The only product-owned addition is the concept/pairing display
+# label, which the canonical contract deliberately holds none of.
 # ---------------------------------------------------------------------------
 
+_STRENGTH_KEYS = {"low": "strength_low", "medium": "strength_medium", "high": "strength_high"}
 
-def public_output_summary(resolved_config: ResolvedConfig, lang: str) -> str:
+
+def public_output_summary(resolved_config: ResolvedControlState, lang: str) -> str:
     """Model + concept + direction + strength only. Never seed, feature
-    id, sae id, layer, hook point, positions, coefficients, or the
-    random-feature control id -- those are Advanced-only, per the
-    project rule that Public mode carries no SAE jargon or raw values."""
-    direction_key = "direction_amplify" if resolved_config.direction == "amplify" else "direction_suppress"
-    strength_key = {
-        "low": "strength_low",
-        "medium": "strength_medium",
-        "high": "strength_high",
-    }[resolved_config.strength_level]
-    concept_label = resolved_config.concept_label_i18n.get(lang, resolved_config.concept_label_i18n.get("en", ""))
+    idx, sae id, layer, positions, or the authored value -- those are
+    Advanced-only, per the project rule that Public mode carries no SAE
+    jargon or raw values. Sourced entirely from public_view(), never a
+    second read of fields public_view() itself excludes."""
+    view = resolved_config.public_view()
+    direction_key = "direction_amplify" if view["direction"] == "amplify" else "direction_suppress"
+    strength_key = _STRENGTH_KEYS[view["strength"]]
     return (
-        f"{t('output_summary_model', lang)}: {resolved_config.model_label}\n"
-        f"{t('output_summary_concept', lang)}: {concept_label}\n"
+        f"{t('output_summary_model', lang)}: {pairing_label(view['pairing_id'], lang)}\n"
+        f"{t('output_summary_concept', lang)}: {concept_label(view['concept_id'], lang)}\n"
         f"{t('output_summary_direction', lang)}: {t(direction_key, lang)}\n"
         f"{t('output_summary_strength', lang)}: {t(strength_key, lang)}"
     )
 
 
-def advanced_output_details(resolved_config: ResolvedConfig) -> dict[str, Any]:
-    """The full resolved state, verbatim -- exactly what Public used to
-    produce its summary above, never a second, separately-computed
-    technical view."""
-    return dataclasses.asdict(resolved_config)
+def advanced_output_details(resolved_config: ResolvedControlState) -> dict[str, Any]:
+    """advanced_view() (full per-target detail, provenance, evidence
+    identity and fingerprints) plus the canonical execution payload
+    (execution_dict(): only what the executor applies) under its own key
+    -- the dispatch calls for both, and they are two distinct, deliberately
+    narrower/wider canonical views, not one that subsumes the other."""
+    return {
+        **resolved_config.advanced_view(),
+        "execution_payload": resolved_config.execution_dict(),
+    }

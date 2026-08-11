@@ -7,58 +7,23 @@ just another class implementing `ConceptLabBackend.generate()` -- the UI
 layer (ui/) and the pure turn-taking logic (core/logic.py) only ever hold
 a `ConceptLabBackend`, never a concrete class.
 
-This also doubles as the answer to "keep integration through a narrow
-adapter": at the time this was built, no bundle/resolution contract
-existed anywhere in this repo (a reserved worktree/branch for it existed
-but carried zero commits beyond main) -- so there was nothing to adapt to
-yet. `ResolvedConfig` below is deliberately small and flat so that
-whichever real contract lands later can be mapped onto it (or this file
-replaced by an adapter to it) without touching ui/ or core/logic.py.
+`resolved_config` on both dataclasses below is the canonical
+`ResolvedControlState` (sae_concept_lab.canonical.concept_bundle.resolver):
+the product-only `ResolvedConfig` dataclass this module used to define
+here is retired now that sae_concept_lab.fixtures.loader resolves
+controls through the canonical package directly (the bundle/resolution
+contract this module's docstring once said did not exist yet). This
+module does not construct a ResolvedControlState; it only names the type
+its own dataclasses carry, so ui/ and core/logic.py keep depending on a
+Protocol rather than a concrete backend.
 """
 
 from __future__ import annotations
 
 import dataclasses
-from typing import Any, Literal, Protocol
+from typing import Any, Protocol
 
-Direction = Literal["amplify", "suppress"]
-StrengthLevel = Literal["low", "medium", "high"]
-PositionsMode = Literal["generated_only", "all"]
-
-
-@dataclasses.dataclass(frozen=True)
-class ResolvedConfig:
-    """The one object Public mode and the Advanced accordion both read.
-
-    Public renders a small, friendly subset of this (model + concept +
-    direction + strength -- see core.logic.public_output_summary).
-    Advanced renders this object in full (core.logic.advanced_output_details).
-    Neither view ever recomputes its own copy -- there is exactly one
-    ResolvedConfig per generation, constructed once by core.config.resolve_config.
-
-    is_synthetic is always True for every fixture-backed bundle this
-    build ships with; a real backend's resolver would set it False.
-    """
-
-    model_key: str
-    model_label: str
-    concept_id: str
-    concept_label_i18n: dict[str, str]
-    concept_description_i18n: dict[str, str]
-    direction: Direction
-    strength_level: StrengthLevel
-    strength_coefficient: float
-    seed: int
-    positions: PositionsMode
-    hook_point: str
-    sae_id: str
-    layer: int
-    feature_id: str
-    feature_weight: float
-    random_feature_control_id: str
-    decoding: dict[str, Any]
-    is_synthetic: bool
-    diagnostics: dict[str, Any]
+from sae_concept_lab.canonical.concept_bundle import ResolvedControlState
 
 
 @dataclasses.dataclass(frozen=True)
@@ -80,14 +45,14 @@ class GenerationRequest:
     decoding: dict[str, Any]
     seed: int
     apply_intervention: bool
-    resolved_config: ResolvedConfig | None
+    resolved_config: ResolvedControlState | None
 
 
 @dataclasses.dataclass(frozen=True)
 class GenerationResult:
     text: str
     is_synthetic: bool
-    resolved_config: ResolvedConfig | None
+    resolved_config: ResolvedControlState | None
 
 
 class ConceptLabBackend(Protocol):

@@ -9,21 +9,22 @@ from __future__ import annotations
 import json
 
 from sae_concept_lab.core.stub_backend import StubConceptLabBackend
-from sae_concept_lab.fixtures.loader import default_bundle_path, load_bundle
+from sae_concept_lab.fixtures.labels import concept_label
+from sae_concept_lab.fixtures.loader import load_entries
 from sae_concept_lab.i18n import t
 from sae_concept_lab.ui.app_ui import build_demo
 
 
 def _build():
-    gemma_bundle = load_bundle(default_bundle_path("gemma"))
-    qwen_bundle = load_bundle(default_bundle_path("qwen"))
+    gemma_entries = load_entries("gemma")
+    qwen_entries = load_entries("qwen")
     demo = build_demo(
-        gemma_bundle=gemma_bundle,
-        qwen_bundle=qwen_bundle,
+        gemma_entries=gemma_entries,
+        qwen_entries=qwen_entries,
         gemma_backend=StubConceptLabBackend(),
         qwen_backend=StubConceptLabBackend(),
     )
-    return demo, gemma_bundle, qwen_bundle
+    return demo, gemma_entries, qwen_entries
 
 
 def test_app_builds_with_no_gpu_and_no_real_weights():
@@ -64,14 +65,14 @@ def test_advanced_accordion_present_and_starts_closed():
 
 
 def test_concept_cards_are_present_for_both_models_with_distinct_concepts():
-    demo, gemma_bundle, qwen_bundle = _build()
+    demo, gemma_entries, qwen_entries = _build()
     cfg = demo.get_config_file()
     datasets = [c for c in cfg["components"] if c["type"] == "dataset"]
     assert len(datasets) == 2
     all_samples = [row for ds in datasets for row in ds["props"]["samples"]]
-    gemma_labels = {c["label"]["en"] for c in gemma_bundle["concepts"]}
-    qwen_labels = {c["label"]["en"] for c in qwen_bundle["concepts"]}
-    assert gemma_labels.isdisjoint(qwen_labels)  # the two bundles use different concept sets
+    gemma_labels = {concept_label(e.concept_id, "en") for e in gemma_entries}
+    qwen_labels = {concept_label(e.concept_id, "en") for e in qwen_entries}
+    assert gemma_labels.isdisjoint(qwen_labels)  # the two pairings use different concept sets
     rendered_labels = {row[0] for row in all_samples}
     assert gemma_labels <= rendered_labels
     assert qwen_labels <= rendered_labels
@@ -121,22 +122,42 @@ def test_advanced_accordion_has_no_continue_anyway_control():
 def test_no_raw_technical_value_appears_outside_the_advanced_accordion_subtree():
     """Structural version of the public-vs-advanced test: walk the real
     rendered component tree and confirm every occurrence of a raw
-    technical value (seed default, a FAKE- feature id, an sae id) lives
-    under an Advanced accordion, not in a top-level/public component."""
-    demo, gemma_bundle, _qwen = _build()
+    technical value (a feature index, an sae id) lives under an Advanced
+    accordion, not in a top-level/public component."""
+    demo, gemma_entries, _qwen = _build()
     cfg = demo.get_config_file()
 
-    root_ids = {c["id"] for c in cfg["components"] if c["type"] == "column" and c.get("props", {}).get("root")}
-    # Simpler and robust across Gradio config-shape versions: check the
-    # known raw values only appear inside components whose type is one of
-    # the Advanced-only leaf types (json, number-labelled "Seed", or a
-    # radio literally labelled "Positions") -- never inside a markdown/
-    # button/chatbot/textbox component (the public surface).
+    # Robust across Gradio config-shape versions: check the known raw
+    # values only appear inside components whose type is one of the
+    # Advanced-only leaf types (json, number-labelled "Seed") -- never
+    # inside a markdown/button/chatbot/textbox component (the public
+    # surface).
     disallowed_types = {"markdown", "button", "chatbot", "textbox"}
-    needle = gemma_bundle["concepts"][0]["feature_id"]
+    first_entry = gemma_entries[0]
+    first_direction = first_entry.calibrated_directions[0]
+    first_target = first_entry.directions[first_direction].targets[0]
     for c in cfg["components"]:
         if c["type"] not in disallowed_types:
             continue
         rendered = json.dumps(c.get("props", {}))
-        assert needle not in rendered, f"raw feature_id leaked into public component type={c['type']!r}"
-        assert gemma_bundle["sae_id"] not in rendered, f"raw sae_id leaked into public component type={c['type']!r}"
+        assert str(first_target.feature_idx) not in rendered, (
+            f"raw feature_idx leaked into public component type={c['type']!r}"
+        )
+        assert first_target.sae_id not in rendered, f"raw sae_id leaked into public component type={c['type']!r}"
+
+
+def test_one_direction_concept_removes_the_unavailable_choice_and_shows_the_exact_notice():
+    """Acceptance case: a one-direction concept's unavailable control is
+    not offered as a choice at all, and the exact canonical refusal
+    message is rendered verbatim for it."""
+    demo, gemma_entries, _qwen = _build()
+    caution = next(e for e in gemma_entries if e.concept_id == "FAKE-gemma-caution")
+    assert caution.calibrated_directions == (caution.calibrated_directions[0],)
+
+    click_fns = [bf for bf in demo.fns.values() if bf.fn.__name__ == "_on_concept_click"]
+    caution_index = gemma_entries.index(caution)
+    fn = click_fns[0].fn  # gemma tab is registered first
+    result = fn(caution_index, "low", [], None, "en")
+    _concept_id, _detail, direction_update, unavailable_notice, *_rest = result
+    assert direction_update.constructor_args["choices"] == [("Amplify", "amplify")]
+    assert "this direction is not calibrated for this concept on this model" in unavailable_notice

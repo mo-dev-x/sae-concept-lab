@@ -2,21 +2,20 @@
 cannot pass either release gate this repository has:
 
   1. sae_concept_lab.fixtures.loader -- the UI's own gate (--mode
-     release), keyed to StubConceptLabBackend's type and a bundle's
-     is_synthetic/release_blocked flags, over the UI's own bundle schema
-     (is_synthetic/model_key/concepts/...).
+     release), keyed to StubConceptLabBackend's type, an explicit named
+     list of this pairing's entry files (never a directory scan), and an
+     evidence_registry_root.
   2. sae_concept_lab.canonical.concept_bundle.release -- the extracted
      contract's own fail-closed publication gate, keyed to ATTESTED
-     provenance and evidence that resolves against a real registry, over
-     the contract's own schema (schema_version/concept_id/pairing_id/
-     directions/...).
+     provenance and evidence that resolves against a real registry.
 
-These are two independent mechanisms over two structurally incompatible
-schemas. Neither can be satisfied by the other's data, and this task's
-extraction did not connect them (see BOUNDARY.md's note that wiring is a
-subsequent, bounded task) -- both facts are demonstrated here rather than
-asserted.
-"""
+Since the canonical UI integration, both the UI's fixtures AND the
+conformance pack's vectors are canonical BundleEntry documents -- the
+schema is no longer what keeps them apart. What keeps them apart now is
+that codec.py's load_entry_files takes an EXPLICIT, named list of files
+(never a directory scan, per its own module docstring: "a build must
+name every entry it loads") -- a conformance vector's document has no
+path by which it could reach that list without someone editing it."""
 
 from __future__ import annotations
 
@@ -33,13 +32,14 @@ from sae_concept_lab.canonical.concept_bundle import (
 from sae_concept_lab.core.stub_backend import StubConceptLabBackend
 from sae_concept_lab.fixtures.loader import (
     FIXTURES_DIR,
-    default_bundle_path,
+    ReleaseGateError,
     enforce_release_gate,
-    load_bundle,
+    load_entries,
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 VECTORS_PATH = REPO_ROOT / "provenance" / "runtime_extractions" / "concept_bundle" / "vectors.json"
+RUNTIME_EXTRACTIONS_DIR = REPO_ROOT / "provenance" / "runtime_extractions"
 
 
 def _vectors() -> list[dict]:
@@ -67,39 +67,58 @@ def _decodable_documents() -> list[tuple[str, str]]:
 
 
 # ---------------------------------------------------------------------------
-# 1. UI bundle discovery: structurally scoped away from the extraction
+# 1. UI bundle discovery: an explicit named list, never a directory scan
 # ---------------------------------------------------------------------------
 
 
-def test_ui_bundle_discovery_is_scoped_to_sae_concept_lab_fixtures_only():
+def test_ui_bundle_discovery_is_scoped_under_sae_concept_lab_fixtures_only():
     assert FIXTURES_DIR.name == "fixtures"
     assert FIXTURES_DIR.parent.name == "sae_concept_lab"
-    for model_key in ("gemma", "qwen"):
-        path = default_bundle_path(model_key)
-        assert path.parent == FIXTURES_DIR
-        assert "canonical" not in path.parts
-        assert "provenance" not in path.parts
+    for model_key, count in (("gemma", 4), ("qwen", 4)):
+        entries = load_entries(model_key)
+        assert len(entries) == count
+
+
+def test_no_conformance_pack_path_is_named_in_the_explicit_entry_list():
+    """The list load_entries reads from names only files under
+    fixtures/<model_key>/ -- never anything under provenance/, which is
+    where the conformance pack's copied vectors live."""
+    from sae_concept_lab.fixtures.loader import _ENTRY_FILENAMES
+
+    for model_key, filenames in _ENTRY_FILENAMES.items():
+        for name in filenames:
+            path = FIXTURES_DIR / model_key / name
+            assert RUNTIME_EXTRACTIONS_DIR not in path.parents
+            assert path.is_relative_to(FIXTURES_DIR)
+
+
+def test_load_entries_never_scans_the_fixtures_directory(tmp_path, monkeypatch):
+    """Adding an extra, unnamed file to a pairing's fixtures directory
+    must not change what load_entries returns -- codec.load_entry_files
+    takes an explicit list, never a directory listing."""
+    before = load_entries("gemma")
+    stray = FIXTURES_DIR / "gemma" / "_stray_unnamed_entry.json"
+    stray.write_text("{}", encoding="utf-8")
+    try:
+        after = load_entries("gemma")
+        assert after == before
+    finally:
+        stray.unlink()
 
 
 @pytest.mark.parametrize("vector_id,document", _decodable_documents())
-def test_no_conformance_vector_document_loads_as_a_ui_bundle(vector_id, document, tmp_path):
-    """The two schemas are incompatible by construction: a canonical
-    document has no is_synthetic/release_blocked/model_key/concepts, all
-    of which load_bundle requires. Every decodable vector document must
-    be rejected if handed to the UI's own loader."""
-    path = tmp_path / "not_a_ui_bundle.json"
-    path.write_text(document, encoding="utf-8")
-    with pytest.raises(ValueError):
-        load_bundle(path)
-
-
-def test_real_ui_bundles_are_unaffected_and_still_load(tmp_path):
-    """Sanity control for the test above: load_bundle DOES work on an
-    actual UI bundle, so the rejections above are about schema
-    incompatibility, not a broken loader."""
+def test_no_conformance_vector_document_is_one_of_the_named_ui_entry_files(vector_id, document):
+    """Even though a conformance vector's document is now schema-COMPATIBLE
+    with a UI entry (both are canonical BundleEntry JSON), it is never
+    reachable through UI bundle discovery: its concept_id/pairing_id never
+    appear in the explicit list load_entries reads, decoded or not."""
+    vector_entry = decode_entry(document, where=vector_id)
     for model_key in ("gemma", "qwen"):
-        bundle = load_bundle(default_bundle_path(model_key))
-        assert bundle["model_key"] == model_key
+        for shipped_entry in load_entries(model_key):
+            assert (vector_entry.concept_id, vector_entry.pairing_id) != (
+                shipped_entry.concept_id,
+                shipped_entry.pairing_id,
+            )
 
 
 # ---------------------------------------------------------------------------
@@ -109,14 +128,10 @@ def test_real_ui_bundles_are_unaffected_and_still_load(tmp_path):
 
 def test_ui_release_gate_still_refuses_the_stub_backend_after_extraction():
     """Regression: this task's extraction must not have weakened the
-    pre-existing UI release gate. Reproduces the P0 guarantee from
-    sae_concept_lab/README.md directly against the real fixtures."""
-    from sae_concept_lab.fixtures.loader import ReleaseGateError
-
+    pre-existing UI release gate."""
     for model_key in ("gemma", "qwen"):
-        bundle = load_bundle(default_bundle_path(model_key))
         with pytest.raises(ReleaseGateError):
-            enforce_release_gate(bundle, mode="release", backend=StubConceptLabBackend())
+            enforce_release_gate(mode="release", backend=StubConceptLabBackend(), model_key=model_key)
 
 
 # ---------------------------------------------------------------------------

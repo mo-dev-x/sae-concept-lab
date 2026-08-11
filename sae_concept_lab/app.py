@@ -1,27 +1,28 @@
 """CLI entry point for SAE Concept Lab (working title).
 
 Launches entirely on CPU, no GPU weights required: both tabs are backed
-by StubConceptLabBackend and the two FAKE-marked fixtures/*.json bundles.
-See README.md in this directory for the launch command this maps to.
+by StubConceptLabBackend and this repository's FAKE-marked canonical
+concept-bundle fixtures. See README.md in this directory for the launch
+command this maps to.
 
 --mode release is a fail-closed gate, not a feature flag with an escape
 hatch: it refuses to start if EITHER the active backend is the known
-StubConceptLabBackend OR the loaded bundle is synthetic/release_blocked
-(both shipped fixtures always are, and both tabs are always backed by the
-stub backend in this build). There is no flag on this path that overrides
-the check -- the only way past it is to load a bundle that is genuinely
-neither synthetic nor release_blocked AND wire in a real, non-stub
-backend. Editing a bundle's JSON flags alone is not sufficient.
+StubConceptLabBackend, OR --evidence-registry-root is absent/missing/
+unreadable/empty, OR no concept entry for a pairing is publishable
+against it (this build's fixtures are always provenance=fake, so
+'release' always exits non-zero without opening a server). There is no
+flag on this path that overrides the check -- the only way past it is a
+real, non-stub backend AND a real, populated evidence registry AND a
+genuinely ATTESTED entry with evidence that resolves.
 """
 
 from __future__ import annotations
 
 import argparse
 import sys
-from pathlib import Path
 
 from sae_concept_lab.core.stub_backend import StubConceptLabBackend
-from sae_concept_lab.fixtures.loader import ReleaseGateError, default_bundle_path, enforce_release_gate, load_bundle
+from sae_concept_lab.fixtures.loader import ReleaseGateError, enforce_release_gate, load_entries
 from sae_concept_lab.ui.app_ui import build_demo
 
 
@@ -33,13 +34,19 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default="dev",
         help=(
             "'dev' (default) runs the fixture-backed UI as-is. 'release' enforces the fail-closed "
-            "gate: it refuses to launch if the active backend is the stub backend OR the loaded "
-            "bundle is synthetic or release_blocked -- this build always uses the stub backend, "
-            "so 'release' always exits non-zero without opening a server, regardless of bundle flags."
+            "gate: see the module docstring above. This build's fixtures are always "
+            "provenance=fake, so 'release' always exits non-zero without opening a server."
         ),
     )
-    p.add_argument("--gemma-bundle-path", default=str(default_bundle_path("gemma")))
-    p.add_argument("--qwen-bundle-path", default=str(default_bundle_path("qwen")))
+    p.add_argument(
+        "--evidence-registry-root",
+        default=None,
+        help=(
+            "Path to the evidence registry directory release mode resolves evidence_refs "
+            "against. Required in --mode release (refused if absent, missing, unreadable, or "
+            "empty); ignored in dev mode, which never evaluates publishability."
+        ),
+    )
     p.add_argument("--server-name", default="127.0.0.1", help="Bind address -- localhost only by default.")
     p.add_argument("--server-port", type=int, default=7860)
     return p.parse_args(argv)
@@ -48,21 +55,27 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
 
-    gemma_bundle = load_bundle(Path(args.gemma_bundle_path))
-    qwen_bundle = load_bundle(Path(args.qwen_bundle_path))
+    gemma_entries = load_entries("gemma")
+    qwen_entries = load_entries("qwen")
     gemma_backend = StubConceptLabBackend()
     qwen_backend = StubConceptLabBackend()
 
     try:
-        enforce_release_gate(gemma_bundle, mode=args.mode, backend=gemma_backend)
-        enforce_release_gate(qwen_bundle, mode=args.mode, backend=qwen_backend)
+        enforce_release_gate(
+            mode=args.mode, backend=gemma_backend, model_key="gemma",
+            evidence_registry_root=args.evidence_registry_root,
+        )
+        enforce_release_gate(
+            mode=args.mode, backend=qwen_backend, model_key="qwen",
+            evidence_registry_root=args.evidence_registry_root,
+        )
     except ReleaseGateError as exc:
         print(f"REFUSING TO LAUNCH: {exc}", file=sys.stderr)
         return 2
 
     demo = build_demo(
-        gemma_bundle=gemma_bundle,
-        qwen_bundle=qwen_bundle,
+        gemma_entries=gemma_entries,
+        qwen_entries=qwen_entries,
         gemma_backend=gemma_backend,
         qwen_backend=qwen_backend,
     )

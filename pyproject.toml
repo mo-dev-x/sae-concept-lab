@@ -29,7 +29,7 @@ test = ["pytest>=7"]
 include = ["sae_concept_lab*", "provenance*"]
 
 [tool.setuptools.package-data]
-"sae_concept_lab.fixtures" = ["*.json"]
+"sae_concept_lab.fixtures" = ["*.json", "gemma/*.json", "qwen/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
