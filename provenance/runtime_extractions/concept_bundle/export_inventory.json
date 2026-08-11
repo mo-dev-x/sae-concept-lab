@@ -1,0 +1,169 @@
+{
+  "canonical_repository": {
+    "branch": "eng3/concept-bundle",
+    "contract_base_commit": "4675def305d7af3a9234dc2999d23d5d996b8115",
+    "frozen_at_commit": "fabf702f21276a6b518629a64389fc7fb358eaf0",
+    "frozen_at_commit_note": "The commit that adds this pack cannot name itself: a file cannot contain the hash of the commit containing it. This field is stamped by an immediately following commit. contract_base_commit is the commit the module hashes below were taken from, and those files are unchanged by either.",
+    "name": "qwen-sae-interp",
+    "package": "interplab.concept_bundle",
+    "role": "canonical scientific source of the concept-bundle contract"
+  },
+  "conformance": {
+    "how_to_check_an_extracted_copy": "python scripts/concept_bundle_conformance.py --check --package <extracted.package.name>",
+    "properties": [
+      "cpu_only",
+      "deterministic",
+      "offline",
+      "no_model_weights"
+    ],
+    "runner": {
+      "bytes": 49661,
+      "path": "scripts/concept_bundle_conformance.py",
+      "sha256": "b1045ecd39ee42f1e6b71136cae7079939725a30fdd14251b52cef782becf927"
+    },
+    "vectors": {
+      "bytes": 136236,
+      "path": "conformance/concept_bundle/vectors.json",
+      "sha256": "d8bece7d16b8abe07d055dd412a09fdae15b898ab41f1102ab1221b59b31664a"
+    }
+  },
+  "excluded_from_minimum_surface": [
+    {
+      "path": "interplab/concept_bundle/fixtures.py",
+      "reason": "invented data. Not runtime. An extracted product must ship no fixtures."
+    },
+    {
+      "path": "scripts/concept_bundle_conformance.py",
+      "reason": "verification harness. Copy it to RUN the check, not as part of the runtime surface."
+    },
+    {
+      "path": "tests/concept_bundle_helpers.py",
+      "reason": "test-only construction, including the gate-passing object deliberately kept out of the production package."
+    }
+  ],
+  "inventory_version": "1.0",
+  "minimum_export_surface": [
+    {
+      "bytes": 5166,
+      "path": "interplab/concept_bundle/__init__.py",
+      "role": "public surface; re-exports every name the runtime and UI use",
+      "sha256": "a027b44061c8ed833e76563b3e6fb964d9d41be394fd0c5fe5d850ac9983c543"
+    },
+    {
+      "bytes": 7362,
+      "path": "interplab/concept_bundle/errors.py",
+      "role": "typed refusals, including the two runtime classifications",
+      "sha256": "eaedef72876c2a706290ee4bb96e833ef886516d80c2406e42ff6b666cc2e25d"
+    },
+    {
+      "bytes": 26225,
+      "path": "interplab/concept_bundle/schema.py",
+      "role": "BundleEntry, DirectionRecord, Spec, Target, provenance and evidence types",
+      "sha256": "896e267d0efdeb8afae476aee2ff25e89872a3c777b1aea47f737076cd051044"
+    },
+    {
+      "bytes": 9198,
+      "path": "interplab/concept_bundle/codec.py",
+      "role": "strict versioned JSON for explicitly named files; no directory scanning",
+      "sha256": "90a7849a13de8b1a63c480f3b40409e59831b0bb488bfb9a1261e16390a1cb00"
+    },
+    {
+      "bytes": 8602,
+      "path": "interplab/concept_bundle/runtime.py",
+      "role": "(sae_id, layer) execution grouping and the v1 capability ceiling",
+      "sha256": "2b478eddf83376e31cd326c4fe0ee992019f4038f799bc337fd8897671c4a267"
+    },
+    {
+      "bytes": 21978,
+      "path": "interplab/concept_bundle/resolver.py",
+      "role": "resolution arithmetic, shared Public/Advanced state, fingerprints",
+      "sha256": "8e456d6d28446fc1c2b3804446bebbd1d362db34ebcbba9121a875dce411306a"
+    },
+    {
+      "bytes": 8974,
+      "path": "interplab/concept_bundle/evidence.py",
+      "role": "evidence-reference resolution against a registry tree",
+      "sha256": "af6b93e3cce9e6456bcc5dc17cea922f3b9bb5e7fe8fb334ed8635dfcf0e2ac6"
+    },
+    {
+      "bytes": 11765,
+      "path": "interplab/concept_bundle/release.py",
+      "role": "fail-closed publication gate and development-stub exposure",
+      "sha256": "22881fbdba3b48d5bd07fbaa582774295d243188ecc67c3f8927da841bfa2df1"
+    }
+  ],
+  "product_repository": {
+    "note": "A separate product repository will carry an extracted copy. This inventory is written FOR that extraction and does not name, import, write to, or depend on it. No dependency exists in either direction."
+  },
+  "python": {
+    "features_requiring_3_11": [
+      "enum.StrEnum",
+      "datetime.fromisoformat accepting a trailing Z"
+    ],
+    "requires": ">=3.11,<4"
+  },
+  "runtime_dependencies": [
+    {
+      "module": "collections",
+      "purpose": "Mapping protocol for the frozen mapping fields",
+      "standard_library": true
+    },
+    {
+      "module": "dataclasses",
+      "purpose": "frozen slotted value objects",
+      "standard_library": true
+    },
+    {
+      "module": "datetime",
+      "purpose": "ISO-8601 validation of calibrated_at",
+      "standard_library": true
+    },
+    {
+      "module": "enum",
+      "purpose": "the closed vocabularies (StrEnum, 3.11+)",
+      "standard_library": true
+    },
+    {
+      "module": "hashlib",
+      "purpose": "SHA-256 fingerprints",
+      "standard_library": true
+    },
+    {
+      "module": "json",
+      "purpose": "canonical serialization",
+      "standard_library": true
+    },
+    {
+      "module": "logging",
+      "purpose": "one line per resolved absolute clamp value",
+      "standard_library": true
+    },
+    {
+      "module": "math",
+      "purpose": "finiteness checks",
+      "standard_library": true
+    },
+    {
+      "module": "pathlib",
+      "purpose": "explicitly named bundle files and the registry tree",
+      "standard_library": true
+    },
+    {
+      "module": "re",
+      "purpose": "id and artifact-hash patterns",
+      "standard_library": true
+    },
+    {
+      "module": "types",
+      "purpose": "MappingProxyType for immutability after validation",
+      "standard_library": true
+    },
+    {
+      "module": "typing",
+      "purpose": "Protocol and annotations",
+      "standard_library": true
+    }
+  ],
+  "standard_library_only": true,
+  "third_party_runtime_dependencies": []
+}

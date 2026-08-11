@@ -46,14 +46,46 @@ build constructs is `StubConceptLabBackend`. See
 [`sae_concept_lab/README.md`](sae_concept_lab/README.md) for why that is a
 deliberate, structural refusal rather than a flag someone forgot to flip.
 
+## Canonical concept-bundle contract (extracted, not yet wired)
+
+`sae_concept_lab/canonical/concept_bundle/` carries the eight-module
+concept-bundle contract, mechanically extracted from qwen-sae-interp and
+certified against Engineer 3's frozen 50-vector conformance pack. It is
+standard-library-only, has zero import-time dependency on
+qwen-sae-interp, and is not yet wired into the UI (see
+[`BOUNDARY.md`](BOUNDARY.md) for what that means and why). To re-run the
+conformance check against this repository's own copy:
+
+```bash
+python - <<'PY'
+import importlib.util, json
+from pathlib import Path
+runner_path = Path("provenance/runtime_extractions/concept_bundle/concept_bundle_conformance.py")
+spec = importlib.util.spec_from_file_location("concept_bundle_conformance", runner_path)
+runner = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(runner)
+pack = json.loads(Path("provenance/runtime_extractions/concept_bundle/vectors.json").read_text())
+failures = runner.verify_pack(pack, package="sae_concept_lab.canonical.concept_bundle")
+print(f"{len(pack['vectors'])} vectors, {len(failures)} failures")
+PY
+```
+
+Or, from a qwen-sae-interp checkout at commit `cdae9c7` (this repository
+must be installed and importable from that Python environment):
+
+```bash
+python scripts/concept_bundle_conformance.py --check --package sae_concept_lab.canonical.concept_bundle
+```
+
 ## Provenance
 
-Every file under `sae_concept_lab/` and every `tests/test_sae_concept_lab_*.py`
-test in this repository was imported verbatim from a single commit of
-`qwen-sae-interp` (`9a9f3b7`, branch `sae-concept-lab`). The exact mapping,
-a SHA-256 per imported file, the import timestamp, and an explicit
-no-scientific-runtime-was-imported statement are recorded in
-[`provenance/source_import.json`](provenance/source_import.json).
+Every extraction into this repository -- the UI import from commit
+`9a9f3b7` and the concept-bundle contract extraction from commit
+`cdae9c7` -- is recorded in
+[`provenance/source_import.json`](provenance/source_import.json): source
+repository identity, source commit(s), the exact source-to-destination
+path mapping, a SHA-256 per imported file, the import timestamp, and an
+explicit statement of what was and was not imported.
 
 To verify that recorded provenance against a live `qwen-sae-interp`
 checkout (read-only -- this never modifies that checkout):
@@ -64,14 +96,16 @@ python -m provenance.verify_provenance --qwen-sae-interp-checkout /path/to/qwen-
 
 This fails loudly if any imported file is missing, has been modified
 since import, or exists under an imported path without being recorded in
-the manifest. See [`provenance/verify_provenance.py`](provenance/verify_provenance.py)
+the manifest -- checked across every extraction in the manifest, not just
+one. See [`provenance/verify_provenance.py`](provenance/verify_provenance.py)
 for exactly what it checks.
 
 ## Dependencies
 
-- `gradio>=6.22,<7` (runtime)
+- `gradio>=6.22,<7` (runtime, for the UI)
 - `pytest>=7` (test, optional extra `test`)
 
-No GPU, no real model weights, and no scientific dependency (`interplab`,
-`sae_lens`, `transformer_lens`, etc.) anywhere in this repository's import
-graph.
+The extracted concept-bundle contract (`sae_concept_lab/canonical/`) adds
+no dependency of its own -- standard library only. No GPU, no real model
+weights, and no scientific dependency (`interplab`, `sae_lens`,
+`transformer_lens`, etc.) anywhere in this repository's import graph.

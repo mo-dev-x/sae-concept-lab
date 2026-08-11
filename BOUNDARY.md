@@ -56,37 +56,69 @@ derivative by construction:
 it claims to be" a mechanically checkable question against the recorded
 source commit, rather than something anyone has to take on faith.
 
-## The interim backend protocol is a non-canonical integration seam
+## The interim backend protocol is a non-canonical integration seam -- UNCHANGED by the concept-bundle extraction
 
 `sae_concept_lab/core/protocol.py` defines `ConceptLabBackend`, the
 `Protocol` this UI's core/ui code depends on instead of any concrete
 backend class. At the time this UI was built (and at the time it was
-extracted here), no bundle/resolution contract existed anywhere in
+first extracted here), no bundle/resolution contract existed anywhere in
 qwen-sae-interp's history -- a branch reserved for one
 (`eng3/concept-bundle`) carried zero commits beyond `main`.
 
-**This protocol is explicitly not canonical.** It is a placeholder seam
-that let UI development proceed without waiting on qwen-sae-interp's real
-contract. When that contract lands:
+Engineer 3 has since landed that contract on `eng3/concept-bundle` and
+frozen it behind a conformance pack (see the next section). **This task
+mechanically extracted and certified the contract; it did not wire it
+in.** `core/protocol.py` is still what `sae_concept_lab/ui/` and
+`sae_concept_lab/core/logic.py` depend on, unchanged, and every backend
+this repository instantiates today is still `StubConceptLabBackend`:
+deterministic, GPU-free, and tagged `[FAKE STUB -- UI TEST ONLY]` on
+every response it produces. See `sae_concept_lab/README.md` for the
+fail-closed `--mode release` gate that refuses to launch against it no
+matter what a fixture bundle's JSON claims.
 
-- Whoever wires in a real backend should implement `ConceptLabBackend`
-  directly, or replace `core/protocol.py` with a thin adapter to the real
-  contract.
-- Nothing in `sae_concept_lab/ui/` or `sae_concept_lab/core/logic.py`
-  should need to change either way -- that is the entire purpose of
-  routing everything through the Protocol boundary instead of a concrete
-  class.
-- Until that day, every backend instantiated in this repository is
-  `StubConceptLabBackend`: deterministic, GPU-free, and tagged
-  `[FAKE STUB -- UI TEST ONLY]` on every response it produces. See
-  `sae_concept_lab/README.md` for the fail-closed `--mode release` gate
-  that refuses to launch against it no matter what a fixture bundle's
-  JSON claims.
+Wiring the extracted contract into the UI -- implementing
+`ConceptLabBackend` against `sae_concept_lab.canonical.concept_bundle`,
+or replacing `core/protocol.py` with a thin adapter to it -- is a
+**subsequent, bounded task**, deliberately not performed here. Nothing in
+`ui/` or `core/logic.py` should need to change either way when it
+happens; that is the entire purpose of routing everything through the
+Protocol boundary instead of a concrete class.
+
+## The concept-bundle contract: extracted and certified, not yet wired
+
+`sae_concept_lab/canonical/concept_bundle/` is a second, independent
+extraction: the eight-module minimum runtime surface of the
+concept-bundle contract (schema, codec, typed refusals, execution
+grouping, resolution arithmetic, evidence-reference resolution, and the
+fail-closed publication gate), mechanically copied byte-for-byte from
+qwen-sae-interp's `interplab/concept_bundle/` at commit `cdae9c7` and
+certified against Engineer 3's frozen 50-vector conformance pack. See
+`provenance/source_import.json`'s `concept_bundle_contract` entry for the
+full source-to-destination mapping and hash table, and
+`provenance/runtime_extractions/concept_bundle/` for the copied vectors,
+export inventory, and check-mode runner.
+
+This is the CONTRACT only -- what a bundle entry is, what runtime v1 can
+execute, how resolution and publication work -- never any scientific
+concept, feature membership, calibration value, or evidence artifact.
+`interplab/concept_bundle/fixtures.py` (invented data) was deliberately
+not extracted, matching the canonical export inventory's own exclusion
+list.
+
+It is standard-library-only, has no import-time dependency on
+qwen-sae-interp/interplab or any third-party package, and is entirely
+disconnected from the UI's own bundle discovery and release gate
+(`sae_concept_lab/fixtures/loader.py`) -- those two gates are independent
+mechanisms guarding independent schemas, and neither can be satisfied by
+the other's data (see `tests/test_concept_bundle_release_isolation.py`).
+Nothing in `sae_concept_lab/ui/`, `sae_concept_lab/core/`, or
+`sae_concept_lab/app.py` imports from `canonical/` yet. That wiring is
+the subsequent bounded task named above.
 
 ## Reserved space for future runtime extraction
 
-`provenance/runtime_extractions/` exists as a location and is
-intentionally empty at this repository's initial commit. Populating it
-with real runtime code is a separate, future decision -- not something
-this initial import performs implicitly. See
+`provenance/runtime_extractions/` now holds one populated subdirectory,
+`concept_bundle/` (the copied conformance pack described above), added by
+the concept-bundle extraction. It otherwise remains a reserved location
+for future extractions, added incrementally and never implicitly. See
 `provenance/runtime_extractions/README.md`.

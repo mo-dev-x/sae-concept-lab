@@ -1,135 +1,260 @@
 {
-  "schema_note": "Provenance record for the initial import of SAE Concept Lab's product UI files into this standalone repository. Verified by provenance/verify_provenance.py against a live qwen-sae-interp checkout -- see that script and ../BOUNDARY.md.",
-  "source_repository": {
-    "identity": "qwen-sae-interp",
-    "remote_url": "https://github.com/mo-dev-x/qwen-sae-interp.git",
-    "commit": "9a9f3b77b7fff63a337729a7f59557f484f6c937",
-    "commit_short": "9a9f3b7",
-    "branch": "sae-concept-lab",
-    "commit_subject": "SAE Concept Lab: P0 release-safety correction (successor to 8daef08)"
-  },
-  "import_timestamp_utc": "2026-08-11T05:17:27Z",
-  "imported_files": [
+  "schema_note": "Provenance record for every extraction imported into this standalone product repository. Each entry in 'extractions' is independent: its own source commit(s), its own path mapping, its own hashes. Verified by provenance/verify_provenance.py against a live qwen-sae-interp checkout -- see that script and ../BOUNDARY.md.",
+  "extractions": [
     {
-      "source_path": "sae_concept_lab/README.md",
-      "dest_path": "sae_concept_lab/README.md",
-      "sha256": "ad36240aaef12b88407f4f1eb0283b8aeb0af8e219092f4821182b4cc3a066d1"
+      "extraction_id": "sae_concept_lab_ui",
+      "schema_note": "Provenance record for the initial import of SAE Concept Lab's product UI files into this standalone repository. Verified by provenance/verify_provenance.py against a live qwen-sae-interp checkout -- see that script and ../BOUNDARY.md.",
+      "source_repository": {
+        "identity": "qwen-sae-interp",
+        "remote_url": "https://github.com/mo-dev-x/qwen-sae-interp.git",
+        "commit": "9a9f3b77b7fff63a337729a7f59557f484f6c937",
+        "commit_short": "9a9f3b7",
+        "branch": "sae-concept-lab",
+        "commit_subject": "SAE Concept Lab: P0 release-safety correction (successor to 8daef08)"
+      },
+      "import_timestamp_utc": "2026-08-11T05:17:27Z",
+      "import_path_roots": [
+        "sae_concept_lab",
+        "tests/test_sae_concept_lab_*.py"
+      ],
+      "imported_files": [
+        {
+          "source_path": "sae_concept_lab/README.md",
+          "dest_path": "sae_concept_lab/README.md",
+          "sha256": "ad36240aaef12b88407f4f1eb0283b8aeb0af8e219092f4821182b4cc3a066d1"
+        },
+        {
+          "source_path": "sae_concept_lab/__init__.py",
+          "dest_path": "sae_concept_lab/__init__.py",
+          "sha256": "bb951438c7487f207485c0a9e283c940b2ef14a6ea66f66d84ce295b9f7cbcb4"
+        },
+        {
+          "source_path": "sae_concept_lab/app.py",
+          "dest_path": "sae_concept_lab/app.py",
+          "sha256": "3b13a88fb1027365b71320ff6a9aaad2727ae9d8f1f0ff15506bcd29afc3f57d"
+        },
+        {
+          "source_path": "sae_concept_lab/core/__init__.py",
+          "dest_path": "sae_concept_lab/core/__init__.py",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "source_path": "sae_concept_lab/core/config.py",
+          "dest_path": "sae_concept_lab/core/config.py",
+          "sha256": "0622982000158cdc17089e7102916c77d3289a608a119bb627a8da494b8b9f59"
+        },
+        {
+          "source_path": "sae_concept_lab/core/logic.py",
+          "dest_path": "sae_concept_lab/core/logic.py",
+          "sha256": "dc41268f9ea06fbe20bdabaf6673f5b79504a1a27e9006245e75eea98222faa5"
+        },
+        {
+          "source_path": "sae_concept_lab/core/protocol.py",
+          "dest_path": "sae_concept_lab/core/protocol.py",
+          "sha256": "9b917bbe03d668e26fda05431033420ef42d78706f06011eecac1d9ea10df017"
+        },
+        {
+          "source_path": "sae_concept_lab/core/stub_backend.py",
+          "dest_path": "sae_concept_lab/core/stub_backend.py",
+          "sha256": "2eb9fbd5df2095ea45957f70165de436ea38a5bf6baa4b839f17c6937e95033d"
+        },
+        {
+          "source_path": "sae_concept_lab/fixtures/__init__.py",
+          "dest_path": "sae_concept_lab/fixtures/__init__.py",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "source_path": "sae_concept_lab/fixtures/gemma_stub_bundle.json",
+          "dest_path": "sae_concept_lab/fixtures/gemma_stub_bundle.json",
+          "sha256": "e5f5d13997e4a8734bf639e7854f53a24217c2de7563cbaf225cb76a886c6f67"
+        },
+        {
+          "source_path": "sae_concept_lab/fixtures/loader.py",
+          "dest_path": "sae_concept_lab/fixtures/loader.py",
+          "sha256": "1708a507865dac8ddc6ff0d2e8001a0c42c4caa942a5d7a496e0ee882c093999"
+        },
+        {
+          "source_path": "sae_concept_lab/fixtures/qwen_stub_bundle.json",
+          "dest_path": "sae_concept_lab/fixtures/qwen_stub_bundle.json",
+          "sha256": "814a675f9aedca6989f4054ee5b736539dc9a601424db234da17b2bbdc200304"
+        },
+        {
+          "source_path": "sae_concept_lab/i18n.py",
+          "dest_path": "sae_concept_lab/i18n.py",
+          "sha256": "aecb132c5881183a1dc3be62b30af500475f4502200451ccf4d6eb8f9d9f926e"
+        },
+        {
+          "source_path": "sae_concept_lab/ui/__init__.py",
+          "dest_path": "sae_concept_lab/ui/__init__.py",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "source_path": "sae_concept_lab/ui/app_ui.py",
+          "dest_path": "sae_concept_lab/ui/app_ui.py",
+          "sha256": "7027fc343358a575034bd0fde5509ca3c05fa55230bfa944ace231dc680e0d3f"
+        },
+        {
+          "source_path": "sae_concept_lab/ui/tab.py",
+          "dest_path": "sae_concept_lab/ui/tab.py",
+          "sha256": "180077258a8150c2fd4cda79cf618e8118b93b93ba43e7bc2175f33d05a3cf1d"
+        },
+        {
+          "source_path": "tests/test_sae_concept_lab_backend.py",
+          "dest_path": "tests/test_sae_concept_lab_backend.py",
+          "sha256": "d3875d3dcfb2b1f535a552c9404a7cdacbb9f3d275341fed09796234796cb9e6"
+        },
+        {
+          "source_path": "tests/test_sae_concept_lab_compare.py",
+          "dest_path": "tests/test_sae_concept_lab_compare.py",
+          "sha256": "df46ef5b077e0e3c4a9b88bd6ec5c38c86391c0c12985dd0eebbc18fea89b506"
+        },
+        {
+          "source_path": "tests/test_sae_concept_lab_config.py",
+          "dest_path": "tests/test_sae_concept_lab_config.py",
+          "sha256": "067aae13acf4f9fd5eb517c642859ccfc1a5c19c143a9559ce7114303dbf8b48"
+        },
+        {
+          "source_path": "tests/test_sae_concept_lab_i18n.py",
+          "dest_path": "tests/test_sae_concept_lab_i18n.py",
+          "sha256": "860514f09507c391a44ad0a72d67ceb1af050839955767383df15f34e1ed9937"
+        },
+        {
+          "source_path": "tests/test_sae_concept_lab_public_vs_advanced.py",
+          "dest_path": "tests/test_sae_concept_lab_public_vs_advanced.py",
+          "sha256": "6f38122fb69f1ecdad457647838b06f362bd4873fbba27b859ce895e625eaa98"
+        },
+        {
+          "source_path": "tests/test_sae_concept_lab_release_gate.py",
+          "dest_path": "tests/test_sae_concept_lab_release_gate.py",
+          "sha256": "80211bac87d490030e52188fe3630c3f52e32f76e805bb5b77eb2f4c10121998"
+        },
+        {
+          "source_path": "tests/test_sae_concept_lab_reset.py",
+          "dest_path": "tests/test_sae_concept_lab_reset.py",
+          "sha256": "a808437b550e2b033bbf93250d233dd0c47e5b188f227d30c6f8b2cae3ea6457"
+        },
+        {
+          "source_path": "tests/test_sae_concept_lab_ui_smoke.py",
+          "dest_path": "tests/test_sae_concept_lab_ui_smoke.py",
+          "sha256": "141f3f9a1e03b00a00372f70efa1570c02693804f53fc3217fd55f421ed4bb1a"
+        }
+      ],
+      "statement": "No scientific runtime, no real model weights, no real SAE, no real feature manifest, and no real concept bundle were imported. Every file above was copied verbatim (byte-for-byte, hash-verified at import time) from the single source commit recorded in source_repository.commit. The two fixture bundles included in sae_concept_lab/fixtures/ are entirely invented data, explicitly marked is_synthetic=true and release_blocked=true in their own JSON, and every id/label/coefficient in them is a placeholder. This repository's only backend is StubConceptLabBackend, a deterministic, GPU-free stand-in that tags every response '[FAKE STUB -- UI TEST ONLY]'. qwen-sae-interp's real interplab/**, scripts/legacy/**, scientific manifests, results, model files, SAE files, and real bundles were not imported, are not referenced, and are not reachable from this repository's import graph."
     },
     {
-      "source_path": "sae_concept_lab/__init__.py",
-      "dest_path": "sae_concept_lab/__init__.py",
-      "sha256": "bb951438c7487f207485c0a9e283c940b2ef14a6ea66f66d84ce295b9f7cbcb4"
-    },
-    {
-      "source_path": "sae_concept_lab/app.py",
-      "dest_path": "sae_concept_lab/app.py",
-      "sha256": "3b13a88fb1027365b71320ff6a9aaad2727ae9d8f1f0ff15506bcd29afc3f57d"
-    },
-    {
-      "source_path": "sae_concept_lab/core/__init__.py",
-      "dest_path": "sae_concept_lab/core/__init__.py",
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-    },
-    {
-      "source_path": "sae_concept_lab/core/config.py",
-      "dest_path": "sae_concept_lab/core/config.py",
-      "sha256": "0622982000158cdc17089e7102916c77d3289a608a119bb627a8da494b8b9f59"
-    },
-    {
-      "source_path": "sae_concept_lab/core/logic.py",
-      "dest_path": "sae_concept_lab/core/logic.py",
-      "sha256": "dc41268f9ea06fbe20bdabaf6673f5b79504a1a27e9006245e75eea98222faa5"
-    },
-    {
-      "source_path": "sae_concept_lab/core/protocol.py",
-      "dest_path": "sae_concept_lab/core/protocol.py",
-      "sha256": "9b917bbe03d668e26fda05431033420ef42d78706f06011eecac1d9ea10df017"
-    },
-    {
-      "source_path": "sae_concept_lab/core/stub_backend.py",
-      "dest_path": "sae_concept_lab/core/stub_backend.py",
-      "sha256": "2eb9fbd5df2095ea45957f70165de436ea38a5bf6baa4b839f17c6937e95033d"
-    },
-    {
-      "source_path": "sae_concept_lab/fixtures/__init__.py",
-      "dest_path": "sae_concept_lab/fixtures/__init__.py",
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-    },
-    {
-      "source_path": "sae_concept_lab/fixtures/gemma_stub_bundle.json",
-      "dest_path": "sae_concept_lab/fixtures/gemma_stub_bundle.json",
-      "sha256": "e5f5d13997e4a8734bf639e7854f53a24217c2de7563cbaf225cb76a886c6f67"
-    },
-    {
-      "source_path": "sae_concept_lab/fixtures/loader.py",
-      "dest_path": "sae_concept_lab/fixtures/loader.py",
-      "sha256": "1708a507865dac8ddc6ff0d2e8001a0c42c4caa942a5d7a496e0ee882c093999"
-    },
-    {
-      "source_path": "sae_concept_lab/fixtures/qwen_stub_bundle.json",
-      "dest_path": "sae_concept_lab/fixtures/qwen_stub_bundle.json",
-      "sha256": "814a675f9aedca6989f4054ee5b736539dc9a601424db234da17b2bbdc200304"
-    },
-    {
-      "source_path": "sae_concept_lab/i18n.py",
-      "dest_path": "sae_concept_lab/i18n.py",
-      "sha256": "aecb132c5881183a1dc3be62b30af500475f4502200451ccf4d6eb8f9d9f926e"
-    },
-    {
-      "source_path": "sae_concept_lab/ui/__init__.py",
-      "dest_path": "sae_concept_lab/ui/__init__.py",
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-    },
-    {
-      "source_path": "sae_concept_lab/ui/app_ui.py",
-      "dest_path": "sae_concept_lab/ui/app_ui.py",
-      "sha256": "7027fc343358a575034bd0fde5509ca3c05fa55230bfa944ace231dc680e0d3f"
-    },
-    {
-      "source_path": "sae_concept_lab/ui/tab.py",
-      "dest_path": "sae_concept_lab/ui/tab.py",
-      "sha256": "180077258a8150c2fd4cda79cf618e8118b93b93ba43e7bc2175f33d05a3cf1d"
-    },
-    {
-      "source_path": "tests/test_sae_concept_lab_backend.py",
-      "dest_path": "tests/test_sae_concept_lab_backend.py",
-      "sha256": "d3875d3dcfb2b1f535a552c9404a7cdacbb9f3d275341fed09796234796cb9e6"
-    },
-    {
-      "source_path": "tests/test_sae_concept_lab_compare.py",
-      "dest_path": "tests/test_sae_concept_lab_compare.py",
-      "sha256": "df46ef5b077e0e3c4a9b88bd6ec5c38c86391c0c12985dd0eebbc18fea89b506"
-    },
-    {
-      "source_path": "tests/test_sae_concept_lab_config.py",
-      "dest_path": "tests/test_sae_concept_lab_config.py",
-      "sha256": "067aae13acf4f9fd5eb517c642859ccfc1a5c19c143a9559ce7114303dbf8b48"
-    },
-    {
-      "source_path": "tests/test_sae_concept_lab_i18n.py",
-      "dest_path": "tests/test_sae_concept_lab_i18n.py",
-      "sha256": "860514f09507c391a44ad0a72d67ceb1af050839955767383df15f34e1ed9937"
-    },
-    {
-      "source_path": "tests/test_sae_concept_lab_public_vs_advanced.py",
-      "dest_path": "tests/test_sae_concept_lab_public_vs_advanced.py",
-      "sha256": "6f38122fb69f1ecdad457647838b06f362bd4873fbba27b859ce895e625eaa98"
-    },
-    {
-      "source_path": "tests/test_sae_concept_lab_release_gate.py",
-      "dest_path": "tests/test_sae_concept_lab_release_gate.py",
-      "sha256": "80211bac87d490030e52188fe3630c3f52e32f76e805bb5b77eb2f4c10121998"
-    },
-    {
-      "source_path": "tests/test_sae_concept_lab_reset.py",
-      "dest_path": "tests/test_sae_concept_lab_reset.py",
-      "sha256": "a808437b550e2b033bbf93250d233dd0c47e5b188f227d30c6f8b2cae3ea6457"
-    },
-    {
-      "source_path": "tests/test_sae_concept_lab_ui_smoke.py",
-      "dest_path": "tests/test_sae_concept_lab_ui_smoke.py",
-      "sha256": "141f3f9a1e03b00a00372f70efa1570c02693804f53fc3217fd55f421ed4bb1a"
+      "extraction_id": "concept_bundle_contract",
+      "schema_note": "Provenance record for the mechanical extraction of the eight-module concept-bundle contract, certified against Engineer 3's frozen conformance pack. See BOUNDARY.md, provenance/verify_provenance.py, and provenance/runtime_extractions/concept_bundle/.",
+      "source_repository": {
+        "identity": "qwen-sae-interp",
+        "remote_url": "https://github.com/mo-dev-x/qwen-sae-interp.git",
+        "branch": "eng3/concept-bundle",
+        "canonical_package": "interplab.concept_bundle",
+        "checkout_commit": "cdae9c7a1c450f5187c235503e1c4a4a84f59190",
+        "checkout_commit_short": "cdae9c7",
+        "checkout_commit_subject": "Stamp the export inventory with the commit that froze the pack",
+        "contract_base_commit": "4675def305d7af3a9234dc2999d23d5d996b8115",
+        "contract_base_commit_short": "4675def",
+        "contract_base_commit_subject": "One calibrated direction is enough to publish a concept",
+        "contract_base_commit_note": "The commit whose tree the eight module hashes below were taken from. All eight are unchanged across contract_base_commit, frozen_pack_commit, and checkout_commit -- verified independently at import time against conformance/concept_bundle/export_inventory.json's own declared hashes, not merely copied from it.",
+        "frozen_pack_commit": "fabf702f21276a6b518629a64389fc7fb358eaf0",
+        "frozen_pack_commit_short": "fabf702",
+        "frozen_pack_commit_subject": "Freeze the concept-bundle contract behind a conformance pack"
+      },
+      "import_timestamp_utc": "2026-08-11T18:08:17Z",
+      "import_path_roots": [
+        "sae_concept_lab/canonical/concept_bundle",
+        "provenance/runtime_extractions/concept_bundle"
+      ],
+      "imported_modules": [
+        {
+          "source_path": "interplab/concept_bundle/__init__.py",
+          "dest_path": "sae_concept_lab/canonical/concept_bundle/__init__.py",
+          "sha256": "a027b44061c8ed833e76563b3e6fb964d9d41be394fd0c5fe5d850ac9983c543"
+        },
+        {
+          "source_path": "interplab/concept_bundle/errors.py",
+          "dest_path": "sae_concept_lab/canonical/concept_bundle/errors.py",
+          "sha256": "eaedef72876c2a706290ee4bb96e833ef886516d80c2406e42ff6b666cc2e25d"
+        },
+        {
+          "source_path": "interplab/concept_bundle/schema.py",
+          "dest_path": "sae_concept_lab/canonical/concept_bundle/schema.py",
+          "sha256": "896e267d0efdeb8afae476aee2ff25e89872a3c777b1aea47f737076cd051044"
+        },
+        {
+          "source_path": "interplab/concept_bundle/codec.py",
+          "dest_path": "sae_concept_lab/canonical/concept_bundle/codec.py",
+          "sha256": "90a7849a13de8b1a63c480f3b40409e59831b0bb488bfb9a1261e16390a1cb00"
+        },
+        {
+          "source_path": "interplab/concept_bundle/runtime.py",
+          "dest_path": "sae_concept_lab/canonical/concept_bundle/runtime.py",
+          "sha256": "2b478eddf83376e31cd326c4fe0ee992019f4038f799bc337fd8897671c4a267"
+        },
+        {
+          "source_path": "interplab/concept_bundle/resolver.py",
+          "dest_path": "sae_concept_lab/canonical/concept_bundle/resolver.py",
+          "sha256": "8e456d6d28446fc1c2b3804446bebbd1d362db34ebcbba9121a875dce411306a"
+        },
+        {
+          "source_path": "interplab/concept_bundle/evidence.py",
+          "dest_path": "sae_concept_lab/canonical/concept_bundle/evidence.py",
+          "sha256": "af6b93e3cce9e6456bcc5dc17cea922f3b9bb5e7fe8fb334ed8635dfcf0e2ac6"
+        },
+        {
+          "source_path": "interplab/concept_bundle/release.py",
+          "dest_path": "sae_concept_lab/canonical/concept_bundle/release.py",
+          "sha256": "22881fbdba3b48d5bd07fbaa582774295d243188ecc67c3f8927da841bfa2df1"
+        }
+      ],
+      "extracted_artifacts": [
+        {
+          "source_path": "conformance/concept_bundle/vectors.json",
+          "dest_path": "provenance/runtime_extractions/concept_bundle/vectors.json",
+          "sha256": "d8bece7d16b8abe07d055dd412a09fdae15b898ab41f1102ab1221b59b31664a"
+        },
+        {
+          "source_path": "conformance/concept_bundle/export_inventory.json",
+          "dest_path": "provenance/runtime_extractions/concept_bundle/export_inventory.json",
+          "sha256": "abbf3fc1d53e7afad862b58c00916b60aed16efcd7222d251d03db6bb1bd18b8"
+        },
+        {
+          "source_path": "scripts/concept_bundle_conformance.py",
+          "dest_path": "provenance/runtime_extractions/concept_bundle/concept_bundle_conformance.py",
+          "sha256": "b1045ecd39ee42f1e6b71136cae7079939725a30fdd14251b52cef782becf927"
+        }
+      ],
+      "scaffolding_added": [
+        {
+          "path": "sae_concept_lab/canonical/__init__.py",
+          "reason": "Parent-package marker only, required so the extracted concept_bundle subpackage is importable at sae_concept_lab.canonical.concept_bundle. Not extracted from any source commit; carries no canonical content; excluded from hash verification and from the unrecorded-file scan by being listed here explicitly rather than silently ignored."
+        }
+      ],
+      "mechanical_adaptations": {
+        "count": 0,
+        "note": "Zero byte-level adaptations. All eight canonical modules use package-relative imports exclusively (dot-prefixed, e.g. 'from .schema import ...', never an absolute 'interplab.concept_bundle.schema' form) for every internal cross-reference, confirmed by grepping the extracted source for absolute interplab.concept_bundle.* imports before extraction (zero found). A relative import resolves within its own package regardless of that package's dotted path, so the eight files import correctly unmodified under sae_concept_lab.canonical.concept_bundle exactly as they did under interplab.concept_bundle. This is recorded explicitly (not left as an empty list with no explanation) because absence of adaptation is itself a claim that needs to be checkable, not assumed.",
+        "behavioral_consequences_of_unchanged_bytes": [
+          {
+            "path": "sae_concept_lab/canonical/concept_bundle/evidence.py",
+            "constant": "REGISTRY_ROOT",
+            "description": "REGISTRY_ROOT is computed as Path(__file__).resolve().parents[2] / 'registry' -- an absolute default relative to the file's own location, found by grepping all eight files for Path(__file__)/parents[ usage (the only such occurrence; codec.py's BUNDLES_DIR is a plain relative path, unaffected by relocation). Under interplab/concept_bundle/evidence.py, parents[2] is the qwen-sae-interp repository root, so the unqualified default resolves to the real, populated registry/ tree. Under sae_concept_lab/canonical/concept_bundle/evidence.py, parents[2] is sae_concept_lab/ (the package directory, not the product repository root), so the identical, byte-for-byte-unchanged code now resolves this default to sae_concept_lab/registry -- a path that does not exist in this repository and never will, since no registry data is ever shipped here. RepositoryEvidenceRegistry() called with no explicit root therefore resolves every reference UNRESOLVABLE (fail-closed by construction, matching the module's own documented behavior for 'no registry available'), never accidentally resolving against a directory that happens to exist. Every caller in this repository's tests passes an explicit root (or uses InMemoryEvidenceRegistry/NullEvidenceRegistry), so nothing here depends on this default in practice -- recorded because the byte-identical file now has a different DEFAULT ARGUMENT VALUE at a different nesting depth, which is a real behavioral fact about relocation even though no line of code was changed."
+          }
+        ]
+      },
+      "cross_check_against_canonical_export_inventory": {
+        "performed": true,
+        "compared_against": "provenance/runtime_extractions/concept_bundle/export_inventory.json",
+        "all_eight_module_hashes_matched": true,
+        "vectors_and_runner_hashes_matched": true
+      },
+      "conformance_check": {
+        "command": "python scripts/concept_bundle_conformance.py --check --package sae_concept_lab.canonical.concept_bundle",
+        "how_run": "Run twice, independently: (1) verify_pack() called directly in-process against the copied runner and the copied vectors.json (no qwen-sae-interp checkout required -- this is the path the standalone test suite uses); (2) the exact documented CLI form, executed from a detached git worktree of qwen-sae-interp at commit cdae9c7 (created and removed via 'git worktree add/remove', which never touches the main qwen-sae-interp checkout's HEAD, index, or tracked files), using this repository's own installed package as --package. Both runs agree.",
+        "vectors_checked": 50,
+        "failures": 0,
+        "result": "conformant"
+      },
+      "statement": "No scientific concept, feature membership, calibration value, or evidence artifact was imported. The eight modules extracted here are the concept-bundle CONTRACT ONLY -- schema, codec, typed refusals, execution grouping, resolution arithmetic, evidence-reference resolution, and the publication gate -- not any concept data. interplab/concept_bundle/fixtures.py (invented data), scripts/concept_bundle_conformance.py's role as a verification harness (copied here for the record and to run the check, not as runtime surface), and tests/concept_bundle_helpers.py (test-only construction) were deliberately excluded, matching export_inventory.json's own excluded_from_minimum_surface list. The extracted package is standard-library-only (confirmed both by the canonical export_inventory.json's runtime_dependencies list and by this repository's own isolation tests) and has no import-time dependency on qwen-sae-interp, interplab, torch, numpy, sae_lens, or transformer_lens."
     }
-  ],
-  "statement": "No scientific runtime, no real model weights, no real SAE, no real feature manifest, and no real concept bundle were imported. Every file above was copied verbatim (byte-for-byte, hash-verified at import time) from the single source commit recorded in source_repository.commit. The two fixture bundles included in sae_concept_lab/fixtures/ are entirely invented data, explicitly marked is_synthetic=true and release_blocked=true in their own JSON, and every id/label/coefficient in them is a placeholder. This repository's only backend is StubConceptLabBackend, a deterministic, GPU-free stand-in that tags every response '[FAKE STUB -- UI TEST ONLY]'. qwen-sae-interp's real interplab/**, scripts/legacy/**, scientific manifests, results, model files, SAE files, and real bundles were not imported, are not referenced, and are not reachable from this repository's import graph."
+  ]
 }

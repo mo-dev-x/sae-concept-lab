@@ -1,0 +1,1011 @@
+{
+  "canonical_package": "interplab.concept_bundle",
+  "canonical_repository": "qwen-sae-interp",
+  "comparison": {
+    "byte_for_byte": [
+      "canonical_json",
+      "execution_dict",
+      "public_view",
+      "advanced_view",
+      "every fingerprint"
+    ],
+    "exceptions": "compared by class NAME, classification and message",
+    "structural": [
+      "execution grouping",
+      "direction availability",
+      "publishability reasons",
+      "evidence resolution"
+    ]
+  },
+  "contract_base_commit": "4675def305d7af3a9234dc2999d23d5d996b8115",
+  "determinism": "no clock, no random source, no network, no model weights",
+  "fixture_status": "Every entry here is scientifically meaningless. Most carry provenance 'fake' and are refused outright. The attested vectors resolve their evidence only against the in-memory registry each vector declares; those artifacts are absent from the repository registry, so no vector can publish in a real build.",
+  "generator": "scripts/concept_bundle_conformance.py",
+  "pack_version": "1.0",
+  "schema_version": "1.0",
+  "vector_count": 50,
+  "vectors": [
+    {
+      "description": "a fake entry renders only under development exposure",
+      "expected": {
+        "available_directions": [
+          "amplify",
+          "suppress"
+        ],
+        "block_reasons": [
+          "provenance is 'fake', must be exactly 'attested'",
+          "evidence fake_artifact_do_not_ship:0123456789ab is unresolvable: no artifact of type 'fake_artifact_do_not_ship' with hash12 '0123456789ab' in this registry",
+          "calibration_provenance.calibrated_by contains placeholder marker(s) ['fake']",
+          "concept_id contains placeholder marker(s) ['fake', 'do_not_ship']",
+          "pairing_id contains placeholder marker(s) ['fake', 'do-not-ship']",
+          "target sae_id 'fake-sae-do-not-ship' contains placeholder marker(s) ['fake', 'do-not-ship']",
+          "amplify/low unit_source 'FAKE maximum -- invented, measured over nothing' contains placeholder marker(s) ['fake']",
+          "amplify/medium unit_source 'FAKE maximum -- invented, measured over nothing' contains placeholder marker(s) ['fake']",
+          "amplify/high unit_source 'FAKE maximum -- invented, measured over nothing' contains placeholder marker(s) ['fake']",
+          "suppress/low unit_source 'FAKE maximum -- invented, measured over nothing' contains placeholder marker(s) ['fake']",
+          "suppress/medium unit_source 'FAKE maximum -- invented, measured over nothing' contains placeholder marker(s) ['fake']",
+          "suppress/high unit_source 'FAKE maximum -- invented, measured over nothing' contains placeholder marker(s) ['fake']"
+        ],
+        "in_public_catalog": false,
+        "is_development_stub": true,
+        "unavailable_directions": []
+      },
+      "id": "availability.both_null_development_only",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_alpha\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.5},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.25},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.75}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}",
+        "evidence_registry": []
+      },
+      "kind": "availability",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "a one-direction concept stays in the public catalog with the other control disabled",
+      "expected": {
+        "available_directions": [
+          "amplify"
+        ],
+        "block_reasons": [],
+        "in_public_catalog": true,
+        "is_development_stub": false,
+        "unavailable_directions": [
+          "suppress"
+        ]
+      },
+      "id": "availability.one_direction_public",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2026-01-01T00:00:00+00:00\",\"calibrated_by\":\"conformance harness\",\"evidence\":[{\"artifact_hash\":\"sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\"}]},\"concept_id\":\"conformance.vector.one.direction\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]},\"suppress\":null},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"positions\":\"generated_only\",\"provenance\":\"attested\",\"schema_version\":\"1.0\"}",
+        "evidence_registry": [
+          {
+            "artifact_type": "conformance_artifact_not_in_the_registry",
+            "self_hash": "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
+          }
+        ]
+      },
+      "kind": "availability",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "nothing disabled",
+      "expected": {
+        "available_directions": [
+          "amplify",
+          "suppress"
+        ],
+        "block_reasons": [],
+        "in_public_catalog": true,
+        "is_development_stub": false,
+        "unavailable_directions": []
+      },
+      "id": "availability.two_direction_public",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2026-01-01T00:00:00+00:00\",\"calibrated_by\":\"conformance harness\",\"evidence\":[{\"artifact_hash\":\"sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\"}]},\"concept_id\":\"conformance.vector.attested\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]}},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"positions\":\"generated_only\",\"provenance\":\"attested\",\"schema_version\":\"1.0\"}",
+        "evidence_registry": [
+          {
+            "artifact_type": "conformance_artifact_not_in_the_registry",
+            "self_hash": "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
+          }
+        ]
+      },
+      "kind": "availability",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "an ablating direction: value, unit and unit_source all null",
+      "expected": {
+        "audit_fingerprint": "516c37c447e6fac234cc4402143a8fc31542404ee2562784b819e26b966fe626",
+        "calibrated_directions": [
+          "amplify",
+          "suppress"
+        ],
+        "canonical_json": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_ablation\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"ablate\",\"unit\":null,\"unit_source\":null,\"value\":null},\"low\":{\"operation\":\"ablate\",\"unit\":null,\"unit_source\":null,\"value\":null},\"medium\":{\"operation\":\"ablate\",\"unit\":null,\"unit_source\":null,\"value\":null}},\"targets\":[{\"feature_idx\":1000,\"layer\":12,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":12,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1200,\"layer\":12,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}"
+      },
+      "id": "codec.accept.ablate_direction",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_ablation\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"ablate\",\"unit\":null,\"unit_source\":null,\"value\":null},\"low\":{\"operation\":\"ablate\",\"unit\":null,\"unit_source\":null,\"value\":null},\"medium\":{\"operation\":\"ablate\",\"unit\":null,\"unit_source\":null,\"value\":null}},\"targets\":[{\"feature_idx\":1000,\"layer\":12,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":12,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1200,\"layer\":12,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}"
+      },
+      "kind": "codec_accept",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "clamp in raw activation units: unit_source prohibited",
+      "expected": {
+        "audit_fingerprint": "1ff669101796abafd6ce991e3d7b80e5949dfe2a352b295e40a155168d4af682",
+        "calibrated_directions": [
+          "amplify",
+          "suppress"
+        ],
+        "canonical_json": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_absolute\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"absolute_activation\",\"unit_source\":null,\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"absolute_activation\",\"unit_source\":null,\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"absolute_activation\",\"unit_source\":null,\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":9,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":9,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"absolute_activation\",\"unit_source\":null,\"value\":1.5},\"low\":{\"operation\":\"clamp\",\"unit\":\"absolute_activation\",\"unit_source\":null,\"value\":0.25},\"medium\":{\"operation\":\"clamp\",\"unit\":\"absolute_activation\",\"unit_source\":null,\"value\":0.75}},\"targets\":[{\"feature_idx\":1000,\"layer\":9,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":9,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}"
+      },
+      "id": "codec.accept.absolute_activation",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_absolute\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"absolute_activation\",\"unit_source\":null,\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"absolute_activation\",\"unit_source\":null,\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"absolute_activation\",\"unit_source\":null,\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":9,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":9,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"absolute_activation\",\"unit_source\":null,\"value\":1.5},\"low\":{\"operation\":\"clamp\",\"unit\":\"absolute_activation\",\"unit_source\":null,\"value\":0.25},\"medium\":{\"operation\":\"clamp\",\"unit\":\"absolute_activation\",\"unit_source\":null,\"value\":0.75}},\"targets\":[{\"feature_idx\":1000,\"layer\":9,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":9,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}"
+      },
+      "kind": "codec_accept",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "an authoring skeleton: valid, inert, unpublishable",
+      "expected": {
+        "audit_fingerprint": "177285fbe759d74ea7cfe790340c40b3c6ea57a88579a272b6158011b6f7af09",
+        "calibrated_directions": [],
+        "canonical_json": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_uncalibrated\",\"directions\":{\"amplify\":null,\"suppress\":null},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}"
+      },
+      "id": "codec.accept.both_directions_null",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_uncalibrated\",\"directions\":{\"amplify\":null,\"suppress\":null},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}"
+      },
+      "kind": "codec_accept",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "the two directions drive different features",
+      "expected": {
+        "audit_fingerprint": "01e6be3900de166dfd0778985a86606405b16bfb47ef9dc1ff83eaeb10daf76b",
+        "calibrated_directions": [
+          "amplify",
+          "suppress"
+        ],
+        "canonical_json": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_divergent\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":4,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":4,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.5},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.25},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.75}},\"targets\":[{\"feature_idx\":2200,\"layer\":4,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}"
+      },
+      "id": "codec.accept.divergent_memberships",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_divergent\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":4,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":4,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.5},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.25},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.75}},\"targets\":[{\"feature_idx\":2200,\"layer\":4,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}"
+      },
+      "kind": "codec_accept",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "targets on two layers: valid schema, refused by runtime v1",
+      "expected": {
+        "audit_fingerprint": "ca72c106d64d33ac8eb7b3aaa0b5d73cdc5b76d0563d5485861ee9a2a7a71d37",
+        "calibrated_directions": [
+          "amplify",
+          "suppress"
+        ],
+        "canonical_json": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_multigroup\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":5,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1200,\"layer\":5,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":9,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1300,\"layer\":9,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.5},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.25},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.75}},\"targets\":[{\"feature_idx\":1000,\"layer\":5,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1200,\"layer\":5,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":9,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1300,\"layer\":9,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}"
+      },
+      "id": "codec.accept.multi_group",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_multigroup\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":5,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1200,\"layer\":5,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":9,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1300,\"layer\":9,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.5},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.25},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.75}},\"targets\":[{\"feature_idx\":1000,\"layer\":5,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1200,\"layer\":5,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":9,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1300,\"layer\":9,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}"
+      },
+      "kind": "codec_accept",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "one calibrated direction; the other is explicitly null",
+      "expected": {
+        "audit_fingerprint": "6aade98b9f6bdc6a41ecb90acaffb86cfcd41cf74b4ad185f898fb94db14e560",
+        "calibrated_directions": [
+          "amplify"
+        ],
+        "canonical_json": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_amplify_only\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":null},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}"
+      },
+      "id": "codec.accept.null_suppress",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_amplify_only\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":null},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}"
+      },
+      "kind": "codec_accept",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "both directions calibrated, clamp in multiple units",
+      "expected": {
+        "audit_fingerprint": "df90337e50c9857b3e911f4ff8b0fa039586fd231b352cbec4be250d29bb8263",
+        "calibrated_directions": [
+          "amplify",
+          "suppress"
+        ],
+        "canonical_json": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_alpha\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.5},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.25},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.75}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}"
+      },
+      "id": "codec.accept.two_direction_clamp",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_alpha\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.5},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.25},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.75}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}"
+      },
+      "kind": "codec_accept",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "two SAE identities at one layer: valid schema, prohibited at runtime",
+      "expected": {
+        "audit_fingerprint": "4ffeac0a4318faca55c1cb28c4f8cc0a135adfd426df865ce0a44d011f8ea447",
+        "calibrated_directions": [
+          "amplify",
+          "suppress"
+        ],
+        "canonical_json": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_two_saes\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship-A\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship-B\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship-A\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship-B\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}"
+      },
+      "id": "codec.accept.two_saes_at_one_layer",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_two_saes\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship-A\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship-B\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship-A\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship-B\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}"
+      },
+      "kind": "codec_accept",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "ablation has no dose",
+      "expected": {
+        "classification": null,
+        "exception": "SchemaValidationError",
+        "message": "Spec.value is prohibited when operation is 'ablate': ablation has no dose, so a value here would describe a quantity nothing applies. Got 2.0"
+      },
+      "id": "codec.reject.ablate_with_a_value",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_ablation\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"ablate\",\"unit\":null,\"unit_source\":null,\"value\":2.0},\"low\":{\"operation\":\"ablate\",\"unit\":null,\"unit_source\":null,\"value\":null},\"medium\":{\"operation\":\"ablate\",\"unit\":null,\"unit_source\":null,\"value\":null}},\"targets\":[{\"feature_idx\":1000,\"layer\":12,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":12,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1200,\"layer\":12,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}"
+      },
+      "kind": "codec_reject",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "evidence digests must match the contract pattern",
+      "expected": {
+        "classification": null,
+        "exception": "SchemaValidationError",
+        "message": "EvidenceRef.artifact_hash must match ^(sha256:)?[0-9a-f]{12,64}$ (a 12-to-64 character lowercase hex digest, optionally 'sha256:'-prefixed), got 'NOTAHASH'"
+      },
+      "id": "codec.reject.bad_artifact_hash",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2026-01-01T00:00:00+00:00\",\"calibrated_by\":\"conformance harness\",\"evidence\":[{\"artifact_hash\":\"NOTAHASH\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\"}]},\"concept_id\":\"conformance.vector.attested\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]}},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"positions\":\"generated_only\",\"provenance\":\"attested\",\"schema_version\":\"1.0\"}"
+      },
+      "kind": "codec_reject",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "operations are a closed set",
+      "expected": {
+        "classification": null,
+        "exception": "BundleDecodeError",
+        "message": "<string>.directions['amplify'].specs['low'].operation: 'teleport' is not a valid Operation; valid: ['clamp', 'ablate']"
+      },
+      "id": "codec.reject.invalid_operation",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_alpha\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"teleport\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.5},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.25},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.75}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}"
+      },
+      "kind": "codec_reject",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "position modes are a closed set",
+      "expected": {
+        "classification": null,
+        "exception": "BundleDecodeError",
+        "message": "<string>.positions: 'prompt_only' is not a valid PositionMode; valid: ['all', 'generated_only']"
+      },
+      "id": "codec.reject.invalid_position_mode",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_alpha\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.5},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.25},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.75}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"prompt_only\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}"
+      },
+      "kind": "codec_reject",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "units are a closed set",
+      "expected": {
+        "classification": null,
+        "exception": "BundleDecodeError",
+        "message": "<string>.directions['amplify'].specs['low'].unit: 'maxact_relative' is not a valid Unit; valid: ['sample_max_multiple', 'corpus_max_multiple', 'absolute_activation']"
+      },
+      "id": "codec.reject.invalid_unit",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_alpha\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"maxact_relative\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.5},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.25},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.75}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}"
+      },
+      "kind": "codec_reject",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "unparseable input",
+      "expected": {
+        "classification": null,
+        "exception": "BundleDecodeError",
+        "message": "<string>: not valid JSON: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)"
+      },
+      "id": "codec.reject.malformed_json",
+      "input": {
+        "document": "{not json"
+      },
+      "kind": "codec_reject",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "nullable is not optional: the key is required, the value may be null",
+      "expected": {
+        "classification": null,
+        "exception": "BundleDecodeError",
+        "message": "<string>.directions['amplify'].specs['low']: missing required field(s) ['unit_source']"
+      },
+      "id": "codec.reject.missing_conditional_spec_field",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_alpha\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.5},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.25},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.75}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}"
+      },
+      "kind": "codec_reject",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "an uncalibrated direction must be written explicitly as null",
+      "expected": {
+        "classification": null,
+        "exception": "BundleDecodeError",
+        "message": "<string>.directions: missing required field(s) ['suppress']; a direction that is not calibrated must be written explicitly as null"
+      },
+      "id": "codec.reject.missing_direction_key",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_alpha\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}"
+      },
+      "kind": "codec_reject",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "a missing required field is refused, not defaulted",
+      "expected": {
+        "classification": null,
+        "exception": "BundleDecodeError",
+        "message": "<string>: missing required field(s) ['provenance']"
+      },
+      "id": "codec.reject.missing_required_field",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_alpha\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.5},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.25},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.75}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"schema_version\":\"1.0\"}"
+      },
+      "kind": "codec_reject",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "the version is required",
+      "expected": {
+        "classification": null,
+        "exception": "BundleDecodeError",
+        "message": "<string>: missing required field 'schema_version'"
+      },
+      "id": "codec.reject.missing_schema_version",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_alpha\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.5},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.25},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.75}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\"}"
+      },
+      "kind": "codec_reject",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "all three control positions must be authored",
+      "expected": {
+        "classification": null,
+        "exception": "BundleDecodeError",
+        "message": "<string>.directions['amplify'].specs: missing required field(s) ['medium']"
+      },
+      "id": "codec.reject.missing_strength",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_alpha\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.5},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.25},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.75}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}"
+      },
+      "kind": "codec_reject",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "a typo must not read as 'no opinion' and inherit a default",
+      "expected": {
+        "classification": null,
+        "exception": "BundleDecodeError",
+        "message": "<string>: unknown field(s) ['provenence']. Unknown fields are refused, not ignored: a misspelled field would otherwise silently fall back to a default nobody chose."
+      },
+      "id": "codec.reject.misspelled_field",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_alpha\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.5},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.25},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.75}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"provenence\":\"attested\",\"schema_version\":\"1.0\"}"
+      },
+      "kind": "codec_reject",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "no numeric field may be negative",
+      "expected": {
+        "classification": null,
+        "exception": "SchemaValidationError",
+        "message": "Target.layer must be a non-negative int, got -3"
+      },
+      "id": "codec.reject.negative_layer",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_alpha\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":-3,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.5},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.25},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.75}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}"
+      },
+      "kind": "codec_reject",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "no numeric field may be negative",
+      "expected": {
+        "classification": null,
+        "exception": "SchemaValidationError",
+        "message": "Target.weight must be > 0, got -1.0. A zero weight would silently contribute nothing; a negative weight would invert the direction of one target against the direction the entry names."
+      },
+      "id": "codec.reject.negative_weight",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_alpha\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":-1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.5},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.25},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.75}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}"
+      },
+      "kind": "codec_reject",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "the top level is an object",
+      "expected": {
+        "classification": null,
+        "exception": "BundleDecodeError",
+        "message": "<string>: top level must be an object"
+      },
+      "id": "codec.reject.non_object_top_level",
+      "input": {
+        "document": "[]"
+      },
+      "kind": "codec_reject",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "exactly amplify and suppress",
+      "expected": {
+        "classification": null,
+        "exception": "BundleDecodeError",
+        "message": "<string>.directions: unknown field(s) ['sideways']"
+      },
+      "id": "codec.reject.unknown_direction_key",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_alpha\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"sideways\":null,\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.5},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.25},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.75}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}"
+      },
+      "kind": "codec_reject",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "an unknown version is refused, not decoded on the assumption of compatibility",
+      "expected": {
+        "classification": null,
+        "exception": "SchemaVersionError",
+        "message": "<string>: schema_version '2.0' is not supported by this build (supported: ['1.0']). Refused rather than decoded on the assumption of compatibility."
+      },
+      "id": "codec.reject.unknown_schema_version",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_alpha\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.5},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.25},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.75}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"2.0\"}"
+      },
+      "kind": "codec_reject",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "strictness applies at every object level, not only the top",
+      "expected": {
+        "classification": null,
+        "exception": "BundleDecodeError",
+        "message": "<string>.directions['amplify'].targets[0]: unknown field(s) ['extra']. Unknown fields are refused, not ignored: a misspelled field would otherwise silently fall back to a default nobody chose."
+      },
+      "id": "codec.reject.unknown_target_field",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_alpha\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"extra\":1,\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.5},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.25},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.75}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}"
+      },
+      "kind": "codec_reject",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "unknown fields are refused, not ignored",
+      "expected": {
+        "classification": null,
+        "exception": "BundleDecodeError",
+        "message": "<string>: unknown field(s) ['surprise']. Unknown fields are refused, not ignored: a misspelled field would otherwise silently fall back to a default nobody chose."
+      },
+      "id": "codec.reject.unknown_top_level_field",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_alpha\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.5},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.25},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.75}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\",\"surprise\":true}"
+      },
+      "kind": "codec_reject",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "a local wall clock is not a point in time",
+      "expected": {
+        "classification": null,
+        "exception": "SchemaValidationError",
+        "message": "CalibrationProvenance.calibrated_at must be offset-qualified or end in 'Z': a local wall-clock time is not a point in time and cannot be ordered against another lab's record. Got '2026-01-01T00:00:00'"
+      },
+      "id": "codec.reject.unqualified_timestamp",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2026-01-01T00:00:00\",\"calibrated_by\":\"conformance harness\",\"evidence\":[{\"artifact_hash\":\"sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\"}]},\"concept_id\":\"conformance.vector.attested\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]}},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"positions\":\"generated_only\",\"provenance\":\"attested\",\"schema_version\":\"1.0\"}"
+      },
+      "kind": "codec_reject",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "a zero-weight target would contribute nothing silently",
+      "expected": {
+        "classification": null,
+        "exception": "SchemaValidationError",
+        "message": "Target.weight must be > 0, got 0.0. A zero weight would silently contribute nothing; a negative weight would invert the direction of one target against the direction the entry names."
+      },
+      "id": "codec.reject.zero_weight",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_alpha\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":0.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.5},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.25},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.75}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}"
+      },
+      "kind": "codec_reject",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "two different entries have three different identities",
+      "expected": {
+        "audit_fingerprints_equal": false,
+        "execution_fingerprints_equal": false,
+        "left": {
+          "audit": "df90337e50c9857b3e911f4ff8b0fa039586fd231b352cbec4be250d29bb8263",
+          "execution": "6e0c0427abe95a74bcfc72c0b3e68165f9412f74171053580345e37131317ec1",
+          "state": "8734ecd3e3ce5581f99de754c87ab21a77809652119ec0c12e2940887d9274a4"
+        },
+        "right": {
+          "audit": "516c37c447e6fac234cc4402143a8fc31542404ee2562784b819e26b966fe626",
+          "execution": "223a1a23091a09addab84f4c0043f3703115d5d75c07bf3b84e99ef2f90e62a9",
+          "state": "36920cb589819ab28bc13ea61bd868ded5e97339b4d4808e7ab045d396d8342c"
+        },
+        "state_fingerprints_equal": false
+      },
+      "id": "fingerprints.audit_identity_separates_entries",
+      "input": {
+        "denominators": [
+          {
+            "denominator": 10.0,
+            "feature_idx": 1000,
+            "layer": 7,
+            "sae_id": "fake-sae-do-not-ship",
+            "unit": "corpus_max_multiple",
+            "unit_source": "FAKE maximum -- invented, measured over nothing"
+          },
+          {
+            "denominator": 20.0,
+            "feature_idx": 1100,
+            "layer": 7,
+            "sae_id": "fake-sae-do-not-ship",
+            "unit": "corpus_max_multiple",
+            "unit_source": "FAKE maximum -- invented, measured over nothing"
+          }
+        ],
+        "direction": "suppress",
+        "left_document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_alpha\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.5},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.25},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.75}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}",
+        "right_document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_ablation\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"ablate\",\"unit\":null,\"unit_source\":null,\"value\":null},\"low\":{\"operation\":\"ablate\",\"unit\":null,\"unit_source\":null,\"value\":null},\"medium\":{\"operation\":\"ablate\",\"unit\":null,\"unit_source\":null,\"value\":null}},\"targets\":[{\"feature_idx\":1000,\"layer\":12,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":12,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1200,\"layer\":12,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}",
+        "strength": "high"
+      },
+      "kind": "fingerprint_relation",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "correcting a calibrator changes the audit identity and nothing the model computes",
+      "expected": {
+        "audit_fingerprints_equal": false,
+        "execution_fingerprints_equal": true,
+        "left": {
+          "audit": "6f06c4f8d688b5609b14a5bb37260c8e2310cb28ed21ef9e56ce2c01620003dc",
+          "execution": "171bcab7b269fc7a956e1129136813f2a3b4888fc6da91910fe9702878dba16f",
+          "state": "1979b3f4a51e0b93744c704e0a073e58a32e0d3c6066b4c9d3853c1957bd615f"
+        },
+        "right": {
+          "audit": "c5a0a8df50ea453705537674a2333587ce7330878dd7f37b1af4239c16cacbfe",
+          "execution": "171bcab7b269fc7a956e1129136813f2a3b4888fc6da91910fe9702878dba16f",
+          "state": "89bed7b77a984c2a7d7cfc34bcc3295f8d5dfd01d98cc5da16bf77e9cb00f75f"
+        },
+        "state_fingerprints_equal": false
+      },
+      "id": "fingerprints.execution_identity_ignores_provenance",
+      "input": {
+        "denominators": [
+          {
+            "denominator": 3.0,
+            "feature_idx": 4242,
+            "layer": 11,
+            "sae_id": "conformance-sae-not-a-real-sae",
+            "unit": "corpus_max_multiple",
+            "unit_source": "corpus maximum, conformance vector"
+          }
+        ],
+        "direction": "amplify",
+        "left_document": "{\"calibration_provenance\":{\"calibrated_at\":\"2026-01-01T00:00:00+00:00\",\"calibrated_by\":\"conformance harness\",\"evidence\":[{\"artifact_hash\":\"sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\"}]},\"concept_id\":\"conformance.vector.attested\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]}},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"positions\":\"generated_only\",\"provenance\":\"attested\",\"schema_version\":\"1.0\"}",
+        "right_document": "{\"calibration_provenance\":{\"calibrated_at\":\"2026-01-01T00:00:00+00:00\",\"calibrated_by\":\"a corrected name\",\"evidence\":[{\"artifact_hash\":\"sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\"}]},\"concept_id\":\"conformance.vector.attested\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]}},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"positions\":\"generated_only\",\"provenance\":\"attested\",\"schema_version\":\"1.0\"}",
+        "strength": "medium"
+      },
+      "kind": "fingerprint_relation",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "ATTESTED provenance plus evidence that resolves: the only way to publish",
+      "expected": {
+        "evidence": [
+          {
+            "artifact_hash": "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789",
+            "artifact_type": "conformance_artifact_not_in_the_registry",
+            "resolved": true,
+            "status": "resolved"
+          }
+        ],
+        "publishable": true,
+        "reasons": []
+      },
+      "id": "publish.accept.attested_with_resolvable_evidence",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2026-01-01T00:00:00+00:00\",\"calibrated_by\":\"conformance harness\",\"evidence\":[{\"artifact_hash\":\"sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\"}]},\"concept_id\":\"conformance.vector.attested\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]}},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"positions\":\"generated_only\",\"provenance\":\"attested\",\"schema_version\":\"1.0\"}",
+        "evidence_registry": [
+          {
+            "artifact_type": "conformance_artifact_not_in_the_registry",
+            "self_hash": "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
+          }
+        ]
+      },
+      "kind": "publish",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "one calibrated direction is sufficient; the other stays null",
+      "expected": {
+        "evidence": [
+          {
+            "artifact_hash": "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789",
+            "artifact_type": "conformance_artifact_not_in_the_registry",
+            "resolved": true,
+            "status": "resolved"
+          }
+        ],
+        "publishable": true,
+        "reasons": []
+      },
+      "id": "publish.accept.one_calibrated_direction",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2026-01-01T00:00:00+00:00\",\"calibrated_by\":\"conformance harness\",\"evidence\":[{\"artifact_hash\":\"sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\"}]},\"concept_id\":\"conformance.vector.one.direction\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]},\"suppress\":null},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"positions\":\"generated_only\",\"provenance\":\"attested\",\"schema_version\":\"1.0\"}",
+        "evidence_registry": [
+          {
+            "artifact_type": "conformance_artifact_not_in_the_registry",
+            "self_hash": "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
+          }
+        ]
+      },
+      "kind": "publish",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "attested, evidence resolving, and nothing to operate",
+      "expected": {
+        "evidence": [
+          {
+            "artifact_hash": "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789",
+            "artifact_type": "conformance_artifact_not_in_the_registry",
+            "resolved": true,
+            "status": "resolved"
+          }
+        ],
+        "publishable": false,
+        "reasons": [
+          "no direction is calibrated: both 'amplify' and 'suppress' are null, so there is no control to operate. Publishing needs at least 1 calibrated direction -- not both, and an entry with one is published with the other disabled."
+        ]
+      },
+      "id": "publish.reject.both_directions_null",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2026-01-01T00:00:00+00:00\",\"calibrated_by\":\"conformance harness\",\"evidence\":[{\"artifact_hash\":\"sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\"}]},\"concept_id\":\"conformance.vector.attested\",\"directions\":{\"amplify\":null,\"suppress\":null},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"positions\":\"generated_only\",\"provenance\":\"attested\",\"schema_version\":\"1.0\"}",
+        "evidence_registry": [
+          {
+            "artifact_type": "conformance_artifact_not_in_the_registry",
+            "self_hash": "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
+          }
+        ]
+      },
+      "kind": "publish",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "a fixture is refused on provenance and on its own marker text",
+      "expected": {
+        "evidence": [
+          {
+            "artifact_hash": "0123456789ab",
+            "artifact_type": "fake_artifact_do_not_ship",
+            "resolved": false,
+            "status": "unresolvable"
+          }
+        ],
+        "publishable": false,
+        "reasons": [
+          "provenance is 'fake', must be exactly 'attested'",
+          "evidence fake_artifact_do_not_ship:0123456789ab is unresolvable: no artifact of type 'fake_artifact_do_not_ship' with hash12 '0123456789ab' in this registry",
+          "calibration_provenance.calibrated_by contains placeholder marker(s) ['fake']",
+          "concept_id contains placeholder marker(s) ['fake', 'do_not_ship']",
+          "pairing_id contains placeholder marker(s) ['fake', 'do-not-ship']",
+          "target sae_id 'fake-sae-do-not-ship' contains placeholder marker(s) ['fake', 'do-not-ship']",
+          "amplify/low unit_source 'FAKE maximum -- invented, measured over nothing' contains placeholder marker(s) ['fake']",
+          "amplify/medium unit_source 'FAKE maximum -- invented, measured over nothing' contains placeholder marker(s) ['fake']",
+          "amplify/high unit_source 'FAKE maximum -- invented, measured over nothing' contains placeholder marker(s) ['fake']",
+          "suppress/low unit_source 'FAKE maximum -- invented, measured over nothing' contains placeholder marker(s) ['fake']",
+          "suppress/medium unit_source 'FAKE maximum -- invented, measured over nothing' contains placeholder marker(s) ['fake']",
+          "suppress/high unit_source 'FAKE maximum -- invented, measured over nothing' contains placeholder marker(s) ['fake']"
+        ]
+      },
+      "id": "publish.reject.fake_provenance",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_alpha\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.5},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.25},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.75}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}",
+        "evidence_registry": [
+          {
+            "artifact_type": "conformance_artifact_not_in_the_registry",
+            "self_hash": "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
+          }
+        ]
+      },
+      "kind": "publish",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "attested, and still refused: the cited artifact is not in the registry",
+      "expected": {
+        "evidence": [
+          {
+            "artifact_hash": "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789",
+            "artifact_type": "conformance_artifact_not_in_the_registry",
+            "resolved": false,
+            "status": "unresolvable"
+          }
+        ],
+        "publishable": false,
+        "reasons": [
+          "evidence conformance_artifact_not_in_the_registry:sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789 is unresolvable: no artifact of type 'conformance_artifact_not_in_the_registry' with hash12 'abcdef012345' in this registry"
+        ]
+      },
+      "id": "publish.reject.unresolvable_evidence",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2026-01-01T00:00:00+00:00\",\"calibrated_by\":\"conformance harness\",\"evidence\":[{\"artifact_hash\":\"sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\"}]},\"concept_id\":\"conformance.vector.attested\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]}},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"positions\":\"generated_only\",\"provenance\":\"attested\",\"schema_version\":\"1.0\"}",
+        "evidence_registry": []
+      },
+      "kind": "publish",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "ablation carries no value, unit or denominator",
+      "expected": {
+        "advanced_view": "{\"authored_value\":null,\"available_directions\":[\"amplify\",\"suppress\"],\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_ablation\",\"direction\":\"suppress\",\"entry_audit_fingerprint\":\"516c37c447e6fac234cc4402143a8fc31542404ee2562784b819e26b966fe626\",\"evidence_identity\":[[\"fake_artifact_do_not_ship\",\"0123456789ab\"]],\"execution_fingerprint\":\"223a1a23091a09addab84f4c0043f3703115d5d75c07bf3b84e99ef2f90e62a9\",\"groups\":[[\"fake-sae-do-not-ship\",12]],\"is_ablation\":true,\"layers\":[12],\"n_targets\":3,\"operation\":\"ablate\",\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"sae_ids\":[\"fake-sae-do-not-ship\"],\"schema_version\":\"1.0\",\"state_fingerprint\":\"36920cb589819ab28bc13ea61bd868ded5e97339b4d4808e7ab045d396d8342c\",\"strength\":\"high\",\"targets\":[{\"absolute_value\":null,\"denominator\":null,\"feature_idx\":1000,\"layer\":12,\"operation\":\"ablate\",\"sae_id\":\"fake-sae-do-not-ship\",\"unit\":null,\"unit_source\":null,\"weight\":1.0},{\"absolute_value\":null,\"denominator\":null,\"feature_idx\":1100,\"layer\":12,\"operation\":\"ablate\",\"sae_id\":\"fake-sae-do-not-ship\",\"unit\":null,\"unit_source\":null,\"weight\":1.0},{\"absolute_value\":null,\"denominator\":null,\"feature_idx\":1200,\"layer\":12,\"operation\":\"ablate\",\"sae_id\":\"fake-sae-do-not-ship\",\"unit\":null,\"unit_source\":null,\"weight\":1.0}],\"unavailable_directions\":[],\"unit\":null,\"unit_caveat\":\"A multiple-unit value is a multiple of THAT target's own measured maximum, on THAT pairing, from the source named in unit_source. The same number does NOT mean the same thing across pairings, across SAEs, or between a sample maximum and a corpus maximum: each is interpretable only against the specific maximum it was divided by, and those maxima differ in how they were estimated. Do not compare values across entries.\",\"unit_source\":null}",
+        "entry_audit_fingerprint": "516c37c447e6fac234cc4402143a8fc31542404ee2562784b819e26b966fe626",
+        "execution_dict": "{\"direction\":\"suppress\",\"operation\":\"ablate\",\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"targets\":[{\"absolute_value\":null,\"feature_idx\":1000,\"layer\":12,\"sae_id\":\"fake-sae-do-not-ship\"},{\"absolute_value\":null,\"feature_idx\":1100,\"layer\":12,\"sae_id\":\"fake-sae-do-not-ship\"},{\"absolute_value\":null,\"feature_idx\":1200,\"layer\":12,\"sae_id\":\"fake-sae-do-not-ship\"}]}",
+        "execution_fingerprint": "223a1a23091a09addab84f4c0043f3703115d5d75c07bf3b84e99ef2f90e62a9",
+        "n_targets": 3,
+        "public_view": "{\"available_directions\":[\"amplify\",\"suppress\"],\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_ablation\",\"direction\":\"suppress\",\"pairing_id\":\"fake-pairing/do-not-ship\",\"strength\":\"high\",\"unavailable_directions\":[]}",
+        "state_fingerprint": "36920cb589819ab28bc13ea61bd868ded5e97339b4d4808e7ab045d396d8342c"
+      },
+      "id": "resolve.ablate.no_arithmetic",
+      "input": {
+        "denominators": [],
+        "direction": "suppress",
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_ablation\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"ablate\",\"unit\":null,\"unit_source\":null,\"value\":null},\"low\":{\"operation\":\"ablate\",\"unit\":null,\"unit_source\":null,\"value\":null},\"medium\":{\"operation\":\"ablate\",\"unit\":null,\"unit_source\":null,\"value\":null}},\"targets\":[{\"feature_idx\":1000,\"layer\":12,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":12,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1200,\"layer\":12,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}",
+        "strength": "high"
+      },
+      "kind": "resolve",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "absolute activation needs no denominator source at all",
+      "expected": {
+        "advanced_view": "{\"authored_value\":1.0,\"available_directions\":[\"amplify\",\"suppress\"],\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_absolute\",\"direction\":\"amplify\",\"entry_audit_fingerprint\":\"1ff669101796abafd6ce991e3d7b80e5949dfe2a352b295e40a155168d4af682\",\"evidence_identity\":[[\"fake_artifact_do_not_ship\",\"0123456789ab\"]],\"execution_fingerprint\":\"a97e1f7ef5ad20ef30f28edd511066fac44ed4b4e92fc885bebbfcb1ec0f1b5f\",\"groups\":[[\"fake-sae-do-not-ship\",9]],\"is_ablation\":false,\"layers\":[9],\"n_targets\":2,\"operation\":\"clamp\",\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"sae_ids\":[\"fake-sae-do-not-ship\"],\"schema_version\":\"1.0\",\"state_fingerprint\":\"c498b694c685cb794ecca8f56cd1ee8d34081c1a009808af7cc3b9363b536890\",\"strength\":\"medium\",\"targets\":[{\"absolute_value\":1.0,\"denominator\":1.0,\"feature_idx\":1000,\"layer\":9,\"operation\":\"clamp\",\"sae_id\":\"fake-sae-do-not-ship\",\"unit\":\"absolute_activation\",\"unit_source\":null,\"weight\":1.0},{\"absolute_value\":1.0,\"denominator\":1.0,\"feature_idx\":1100,\"layer\":9,\"operation\":\"clamp\",\"sae_id\":\"fake-sae-do-not-ship\",\"unit\":\"absolute_activation\",\"unit_source\":null,\"weight\":1.0}],\"unavailable_directions\":[],\"unit\":\"absolute_activation\",\"unit_caveat\":\"A multiple-unit value is a multiple of THAT target's own measured maximum, on THAT pairing, from the source named in unit_source. The same number does NOT mean the same thing across pairings, across SAEs, or between a sample maximum and a corpus maximum: each is interpretable only against the specific maximum it was divided by, and those maxima differ in how they were estimated. Do not compare values across entries.\",\"unit_source\":null}",
+        "entry_audit_fingerprint": "1ff669101796abafd6ce991e3d7b80e5949dfe2a352b295e40a155168d4af682",
+        "execution_dict": "{\"direction\":\"amplify\",\"operation\":\"clamp\",\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"targets\":[{\"absolute_value\":1.0,\"feature_idx\":1000,\"layer\":9,\"sae_id\":\"fake-sae-do-not-ship\"},{\"absolute_value\":1.0,\"feature_idx\":1100,\"layer\":9,\"sae_id\":\"fake-sae-do-not-ship\"}]}",
+        "execution_fingerprint": "a97e1f7ef5ad20ef30f28edd511066fac44ed4b4e92fc885bebbfcb1ec0f1b5f",
+        "n_targets": 2,
+        "public_view": "{\"available_directions\":[\"amplify\",\"suppress\"],\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_absolute\",\"direction\":\"amplify\",\"pairing_id\":\"fake-pairing/do-not-ship\",\"strength\":\"medium\",\"unavailable_directions\":[]}",
+        "state_fingerprint": "c498b694c685cb794ecca8f56cd1ee8d34081c1a009808af7cc3b9363b536890"
+      },
+      "id": "resolve.clamp.absolute_activation",
+      "input": {
+        "denominators": [],
+        "direction": "amplify",
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_absolute\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"absolute_activation\",\"unit_source\":null,\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"absolute_activation\",\"unit_source\":null,\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"absolute_activation\",\"unit_source\":null,\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":9,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":9,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"absolute_activation\",\"unit_source\":null,\"value\":1.5},\"low\":{\"operation\":\"clamp\",\"unit\":\"absolute_activation\",\"unit_source\":null,\"value\":0.25},\"medium\":{\"operation\":\"clamp\",\"unit\":\"absolute_activation\",\"unit_source\":null,\"value\":0.75}},\"targets\":[{\"feature_idx\":1000,\"layer\":9,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":9,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}",
+        "strength": "medium"
+      },
+      "kind": "resolve",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "clamp resolved as value x weight x the measured maximum",
+      "expected": {
+        "advanced_view": "{\"authored_value\":2.0,\"available_directions\":[\"amplify\",\"suppress\"],\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_alpha\",\"direction\":\"amplify\",\"entry_audit_fingerprint\":\"df90337e50c9857b3e911f4ff8b0fa039586fd231b352cbec4be250d29bb8263\",\"evidence_identity\":[[\"fake_artifact_do_not_ship\",\"0123456789ab\"]],\"execution_fingerprint\":\"b969b98a1d913d721c8ea559feaeb8696f852d1b24cfc4ea53264cc475cd97c5\",\"groups\":[[\"fake-sae-do-not-ship\",7]],\"is_ablation\":false,\"layers\":[7],\"n_targets\":2,\"operation\":\"clamp\",\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"sae_ids\":[\"fake-sae-do-not-ship\"],\"schema_version\":\"1.0\",\"state_fingerprint\":\"f9d2ab1cec0b1e39ca1c8d24801f95470570ce79fff54971ce67fb197d540f7e\",\"strength\":\"high\",\"targets\":[{\"absolute_value\":8.0,\"denominator\":4.0,\"feature_idx\":1000,\"layer\":7,\"operation\":\"clamp\",\"sae_id\":\"fake-sae-do-not-ship\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"weight\":1.0},{\"absolute_value\":4.0,\"denominator\":2.0,\"feature_idx\":1100,\"layer\":7,\"operation\":\"clamp\",\"sae_id\":\"fake-sae-do-not-ship\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"weight\":1.0}],\"unavailable_directions\":[],\"unit\":\"sample_max_multiple\",\"unit_caveat\":\"A multiple-unit value is a multiple of THAT target's own measured maximum, on THAT pairing, from the source named in unit_source. The same number does NOT mean the same thing across pairings, across SAEs, or between a sample maximum and a corpus maximum: each is interpretable only against the specific maximum it was divided by, and those maxima differ in how they were estimated. Do not compare values across entries.\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\"}",
+        "entry_audit_fingerprint": "df90337e50c9857b3e911f4ff8b0fa039586fd231b352cbec4be250d29bb8263",
+        "execution_dict": "{\"direction\":\"amplify\",\"operation\":\"clamp\",\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"targets\":[{\"absolute_value\":8.0,\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\"},{\"absolute_value\":4.0,\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\"}]}",
+        "execution_fingerprint": "b969b98a1d913d721c8ea559feaeb8696f852d1b24cfc4ea53264cc475cd97c5",
+        "n_targets": 2,
+        "public_view": "{\"available_directions\":[\"amplify\",\"suppress\"],\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_alpha\",\"direction\":\"amplify\",\"pairing_id\":\"fake-pairing/do-not-ship\",\"strength\":\"high\",\"unavailable_directions\":[]}",
+        "state_fingerprint": "f9d2ab1cec0b1e39ca1c8d24801f95470570ce79fff54971ce67fb197d540f7e"
+      },
+      "id": "resolve.clamp.sample_max_multiple",
+      "input": {
+        "denominators": [
+          {
+            "denominator": 4.0,
+            "feature_idx": 1000,
+            "layer": 7,
+            "sae_id": "fake-sae-do-not-ship",
+            "unit": "sample_max_multiple",
+            "unit_source": "FAKE maximum -- invented, measured over nothing"
+          },
+          {
+            "denominator": 2.0,
+            "feature_idx": 1100,
+            "layer": 7,
+            "sae_id": "fake-sae-do-not-ship",
+            "unit": "sample_max_multiple",
+            "unit_source": "FAKE maximum -- invented, measured over nothing"
+          }
+        ],
+        "direction": "amplify",
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_alpha\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.5},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.25},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.75}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}",
+        "strength": "high"
+      },
+      "kind": "resolve",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "the calibrated direction of a one-direction concept resolves normally",
+      "expected": {
+        "advanced_view": "{\"authored_value\":0.5,\"available_directions\":[\"amplify\"],\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_amplify_only\",\"direction\":\"amplify\",\"entry_audit_fingerprint\":\"6aade98b9f6bdc6a41ecb90acaffb86cfcd41cf74b4ad185f898fb94db14e560\",\"evidence_identity\":[[\"fake_artifact_do_not_ship\",\"0123456789ab\"]],\"execution_fingerprint\":\"f95e5901d0e625a0791e71110551bd78e7900ed354d130291e9fee01d0be46f9\",\"groups\":[[\"fake-sae-do-not-ship\",7]],\"is_ablation\":false,\"layers\":[7],\"n_targets\":2,\"operation\":\"clamp\",\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"sae_ids\":[\"fake-sae-do-not-ship\"],\"schema_version\":\"1.0\",\"state_fingerprint\":\"c52ca2814257416acfa43c98651108ab8a6d8417d010b01fb07898bafebc0d0e\",\"strength\":\"low\",\"targets\":[{\"absolute_value\":2.0,\"denominator\":4.0,\"feature_idx\":1000,\"layer\":7,\"operation\":\"clamp\",\"sae_id\":\"fake-sae-do-not-ship\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"weight\":1.0},{\"absolute_value\":1.0,\"denominator\":2.0,\"feature_idx\":1100,\"layer\":7,\"operation\":\"clamp\",\"sae_id\":\"fake-sae-do-not-ship\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"weight\":1.0}],\"unavailable_directions\":[\"suppress\"],\"unit\":\"sample_max_multiple\",\"unit_caveat\":\"A multiple-unit value is a multiple of THAT target's own measured maximum, on THAT pairing, from the source named in unit_source. The same number does NOT mean the same thing across pairings, across SAEs, or between a sample maximum and a corpus maximum: each is interpretable only against the specific maximum it was divided by, and those maxima differ in how they were estimated. Do not compare values across entries.\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\"}",
+        "entry_audit_fingerprint": "6aade98b9f6bdc6a41ecb90acaffb86cfcd41cf74b4ad185f898fb94db14e560",
+        "execution_dict": "{\"direction\":\"amplify\",\"operation\":\"clamp\",\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"targets\":[{\"absolute_value\":2.0,\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\"},{\"absolute_value\":1.0,\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\"}]}",
+        "execution_fingerprint": "f95e5901d0e625a0791e71110551bd78e7900ed354d130291e9fee01d0be46f9",
+        "n_targets": 2,
+        "public_view": "{\"available_directions\":[\"amplify\"],\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_amplify_only\",\"direction\":\"amplify\",\"pairing_id\":\"fake-pairing/do-not-ship\",\"strength\":\"low\",\"unavailable_directions\":[\"suppress\"]}",
+        "state_fingerprint": "c52ca2814257416acfa43c98651108ab8a6d8417d010b01fb07898bafebc0d0e"
+      },
+      "id": "resolve.one_direction.amplify_only",
+      "input": {
+        "denominators": [
+          {
+            "denominator": 4.0,
+            "feature_idx": 1000,
+            "layer": 7,
+            "sae_id": "fake-sae-do-not-ship",
+            "unit": "sample_max_multiple",
+            "unit_source": "FAKE maximum -- invented, measured over nothing"
+          },
+          {
+            "denominator": 2.0,
+            "feature_idx": 1100,
+            "layer": 7,
+            "sae_id": "fake-sae-do-not-ship",
+            "unit": "sample_max_multiple",
+            "unit_source": "FAKE maximum -- invented, measured over nothing"
+          }
+        ],
+        "direction": "amplify",
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_amplify_only\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":null},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}",
+        "strength": "low"
+      },
+      "kind": "resolve",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "an authoring skeleton executes in neither direction",
+      "expected": {
+        "classification": null,
+        "exception": "DirectionNotCalibratedError",
+        "message": "this direction is not calibrated for this concept on this model"
+      },
+      "id": "resolve.reject.both_directions_null",
+      "input": {
+        "direction": "amplify",
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_uncalibrated\",\"directions\":{\"amplify\":null,\"suppress\":null},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}",
+        "strength": "low"
+      },
+      "kind": "resolve_reject",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "selecting an uncalibrated direction is refused, never resolved into a request that intervenes on nothing",
+      "expected": {
+        "classification": null,
+        "exception": "DirectionNotCalibratedError",
+        "message": "this direction is not calibrated for this concept on this model"
+      },
+      "id": "resolve.reject.null_direction",
+      "input": {
+        "direction": "suppress",
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_amplify_only\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":null},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}",
+        "strength": "low"
+      },
+      "kind": "resolve_reject",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "one SAE at one layer: every target executes in one batch",
+      "expected": {
+        "executable_directions": [
+          "amplify",
+          "suppress"
+        ],
+        "feature_indices": [
+          1000,
+          1100
+        ],
+        "layer": 7,
+        "sae_id": "fake-sae-do-not-ship"
+      },
+      "id": "runtime.accept.single_group",
+      "input": {
+        "direction": "amplify",
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_alpha\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.5},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.25},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.75}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}"
+      },
+      "kind": "runtime_accept",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "ablation groups exactly like a clamp",
+      "expected": {
+        "executable_directions": [
+          "amplify",
+          "suppress"
+        ],
+        "feature_indices": [
+          1000,
+          1100,
+          1200
+        ],
+        "layer": 12,
+        "sae_id": "fake-sae-do-not-ship"
+      },
+      "id": "runtime.accept.single_group_ablate",
+      "input": {
+        "direction": "suppress",
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_ablation\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"ablate\",\"unit\":null,\"unit_source\":null,\"value\":null},\"low\":{\"operation\":\"ablate\",\"unit\":null,\"unit_source\":null,\"value\":null},\"medium\":{\"operation\":\"ablate\",\"unit\":null,\"unit_source\":null,\"value\":null}},\"targets\":[{\"feature_idx\":1000,\"layer\":12,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":12,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1200,\"layer\":12,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}"
+      },
+      "kind": "runtime_accept",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "CAPABILITY_LIMIT: runtime v1 attaches one group per pass",
+      "expected": {
+        "classification": "CAPABILITY_LIMIT",
+        "exception": "MultipleExecutionGroupsError",
+        "message": "runtime v1 executes one (sae_id, layer) group; this bundle resolves to 2"
+      },
+      "id": "runtime.reject.multiple_execution_groups",
+      "input": {
+        "direction": "amplify",
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_multigroup\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":5,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1200,\"layer\":5,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":9,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1300,\"layer\":9,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.5},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.25},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.75}},\"targets\":[{\"feature_idx\":1000,\"layer\":5,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1200,\"layer\":5,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":9,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1300,\"layer\":9,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}",
+        "strength": "low"
+      },
+      "kind": "runtime_reject",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "PROHIBITED: composing two reconstructions of one residual stream is undefined",
+      "expected": {
+        "classification": "PROHIBITED",
+        "exception": "MultipleSaeIdentitiesAtLayerError",
+        "message": "multiple SAE identities at layer 7: reconstruction-error composition is undefined"
+      },
+      "id": "runtime.reject.multiple_sae_identities_at_one_layer",
+      "input": {
+        "direction": "amplify",
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_two_saes\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship-A\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship-B\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship-A\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship-B\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}",
+        "strength": "low"
+      },
+      "kind": "runtime_reject",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "the same refusal on the executor's pre-flight path",
+      "expected": {
+        "classification": null,
+        "exception": "DirectionNotCalibratedError",
+        "message": "this direction is not calibrated for this concept on this model"
+      },
+      "id": "runtime.reject.null_direction",
+      "input": {
+        "direction": "suppress",
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_amplify_only\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":null},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}",
+        "strength": "low"
+      },
+      "kind": "runtime_reject",
+      "schema_version": "1.0"
+    }
+  ]
+}

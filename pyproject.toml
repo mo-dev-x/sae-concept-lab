@@ -5,9 +5,13 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "sae-concept-lab"
 version = "0.1.0"
-description = "SAE Concept Lab -- standalone product UI (Gradio, stub-backed). Extracted from qwen-sae-interp@9a9f3b7 under recorded provenance; see BOUNDARY.md and provenance/source_import.json."
+description = "SAE Concept Lab -- standalone product UI (Gradio, stub-backed) plus the extracted concept-bundle contract. Extracted from qwen-sae-interp under recorded provenance; see BOUNDARY.md and provenance/source_import.json."
 readme = "README.md"
-requires-python = ">=3.10"
+# Raised from >=3.10 by the concept_bundle contract extraction
+# (sae_concept_lab/canonical/concept_bundle/), which requires enum.StrEnum
+# and datetime.fromisoformat's trailing-Z support -- both 3.11+, per the
+# canonical export_inventory.json's own python.requires field.
+requires-python = ">=3.11,<4"
 dependencies = [
     # Pinned to the exact compatibility range this UI was built and tested
     # against in the source repo (qwen-sae-interp's own pyproject.toml pin
@@ -29,3 +33,18 @@ include = ["sae_concept_lab*", "provenance*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+# Matches qwen-sae-interp's own selected rule set (pyproject.toml [tool.ruff.lint]),
+# so files extracted byte-for-byte from there are not re-litigated against a
+# different, stricter default here. sae_concept_lab/canonical/concept_bundle/
+# and tests/test_sae_concept_lab_*.py are hash-verified extractions (see
+# provenance/source_import.json) and must never be edited to satisfy a lint
+# rule -- if one of those files ever fails this exact rule set, that is a
+# real finding to report, not something to silence here.
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+ignore = ["E501"]
