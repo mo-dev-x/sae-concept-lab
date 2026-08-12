@@ -148,24 +148,31 @@
     },
     {
       "extraction_id": "concept_bundle_contract",
-      "schema_note": "Provenance record for the mechanical extraction of the eight-module concept-bundle contract, certified against Engineer 3's frozen conformance pack. See BOUNDARY.md, provenance/verify_provenance.py, and provenance/runtime_extractions/concept_bundle/.",
+      "schema_note": "Provenance record for the mechanical extraction of the eight-module concept-bundle contract, certified against the frozen conformance pack current as of this extraction. See BOUNDARY.md, provenance/verify_provenance.py, and provenance/runtime_extractions/concept_bundle/.",
       "source_repository": {
         "identity": "qwen-sae-interp",
         "remote_url": "https://github.com/mo-dev-x/qwen-sae-interp.git",
         "branch": "eng3/concept-bundle",
         "canonical_package": "interplab.concept_bundle",
-        "checkout_commit": "cdae9c7a1c450f5187c235503e1c4a4a84f59190",
-        "checkout_commit_short": "cdae9c7",
-        "checkout_commit_subject": "Stamp the export inventory with the commit that froze the pack",
-        "contract_base_commit": "4675def305d7af3a9234dc2999d23d5d996b8115",
-        "contract_base_commit_short": "4675def",
-        "contract_base_commit_subject": "One calibrated direction is enough to publish a concept",
-        "contract_base_commit_note": "The commit whose tree the eight module hashes below were taken from. All eight are unchanged across contract_base_commit, frozen_pack_commit, and checkout_commit -- verified independently at import time against conformance/concept_bundle/export_inventory.json's own declared hashes, not merely copied from it.",
-        "frozen_pack_commit": "fabf702f21276a6b518629a64389fc7fb358eaf0",
-        "frozen_pack_commit_short": "fabf702",
-        "frozen_pack_commit_subject": "Freeze the concept-bundle contract behind a conformance pack"
+        "checkout_commit": "3a9c15318882d85d270cb7331df32ae3a3204a6b",
+        "checkout_commit_short": "3a9c153",
+        "checkout_commit_subject": "Finalize what a public release may claim, and what it may claim it about",
+        "contract_base_commit": "1f617f30e6272dd1cdb344948120acb844c6f459",
+        "contract_base_commit_short": "1f617f3",
+        "contract_base_commit_subject": "Stamp the export inventory with the commit that froze the corrected pack",
+        "contract_base_commit_note": "Copied directly from this pack's own export_inventory.json (canonical_repository.contract_base_commit), not independently derived: the predecessor pack THIS pack succeeds, per that field's own documented meaning ('the predecessor this pack succeeds, not where the hashes come from'). The eight module hashes below come from checkout_commit's tree (3a9c153), verified independently against conformance/concept_bundle/export_inventory.json's own declared hashes at import time, not merely copied from it.",
+        "frozen_pack_commit": "2a95a496c5ae87e214f83e95543c8fc7b49d7605",
+        "frozen_pack_commit_short": "2a95a49",
+        "frozen_pack_commit_subject": "Stamp the export inventory with the commit that froze the final pack"
       },
-      "import_timestamp_utc": "2026-08-11T18:08:17Z",
+      "supersedes_previous_extraction": {
+        "previous_checkout_commit_short": "cdae9c7",
+        "previous_frozen_pack_commit_short": "fabf702",
+        "reason": "Deliberate re-extraction to the final evidence contract, per the Engineer 4 P0 dispatch that also required product-side full-digest-publication enforcement. Between the previous frozen pack (fabf702) and this one, qwen-sae-interp corrected RepositoryEvidenceRegistry.resolve() at commit 5332963 ('Verify evidence by content, not by what the artifact says about itself') to read a registry artifact's bytes and recompute its content digest, rather than trusting the artifact's own self-declared self_hash field -- this closes the exact canonical-source gap this repository's provenance/BOUNDARY.md previously disclosed as a known limitation of the mirrored fabf702 pack. Commit 3a9c153 additionally ratified REQUIRE_FULL_DIGEST_FOR_PUBLICATION (publication needs the full sha256:<64 lowercase hex> form; a 12-hex prefix still resolves in development but never publishes), constrained artifact_type to a case-canonical lowercase registry directory name (ARTIFACT_TYPE_RE), and shipped the mandatory RELEASE_EVIDENCE_STATEMENT wording and its inline digest labels as canonical constants.",
+        "history_preserved_via": "This repository's own git history, not this file: the previous extraction's record (frozen_pack_commit fabf702, checkout cdae9c7) remains readable at commit d7e4577 and earlier via `git show d7e4577:provenance/source_import.json`. This is a new commit superseding that record, never a rewrite of it."
+      },
+      "import_timestamp_utc": "2026-08-12T05:08:40Z",
+      "import_timestamp_utc_note": "Timestamp of this deliberate re-extraction (checkout 3a9c153 / frozen pack 2a95a49), superseding the 2026-08-11T18:08:17Z timestamp of the original extraction (checkout cdae9c7 / frozen pack fabf702) recorded in this repository's history at commit d7e4577.",
       "import_path_roots": [
         "sae_concept_lab/canonical/concept_bundle",
         "provenance/runtime_extractions/concept_bundle"
@@ -174,7 +181,7 @@
         {
           "source_path": "interplab/concept_bundle/__init__.py",
           "dest_path": "sae_concept_lab/canonical/concept_bundle/__init__.py",
-          "sha256": "a027b44061c8ed833e76563b3e6fb964d9d41be394fd0c5fe5d850ac9983c543"
+          "sha256": "abe74f253e96a61ad9cd925189c85e7b6785fe6c57cbcb50b83e31e4049f1933"
         },
         {
           "source_path": "interplab/concept_bundle/errors.py",
@@ -184,12 +191,12 @@
         {
           "source_path": "interplab/concept_bundle/schema.py",
           "dest_path": "sae_concept_lab/canonical/concept_bundle/schema.py",
-          "sha256": "896e267d0efdeb8afae476aee2ff25e89872a3c777b1aea47f737076cd051044"
+          "sha256": "c2e3fe5ce602ac92551761fbc384a7ef57c950d7eaaf916b68c6b9bd87f359e8"
         },
         {
           "source_path": "interplab/concept_bundle/codec.py",
           "dest_path": "sae_concept_lab/canonical/concept_bundle/codec.py",
-          "sha256": "90a7849a13de8b1a63c480f3b40409e59831b0bb488bfb9a1261e16390a1cb00"
+          "sha256": "70c91bafbef51bf12b5c724e3bb58efebd6b0ac1fe2c2207f71a750763632580"
         },
         {
           "source_path": "interplab/concept_bundle/runtime.py",
@@ -204,29 +211,31 @@
         {
           "source_path": "interplab/concept_bundle/evidence.py",
           "dest_path": "sae_concept_lab/canonical/concept_bundle/evidence.py",
-          "sha256": "af6b93e3cce9e6456bcc5dc17cea922f3b9bb5e7fe8fb334ed8635dfcf0e2ac6"
+          "sha256": "78bda100881e56370958f258d111b5f86d6a52e9b7ff1a369a60d9a08f76392c"
         },
         {
           "source_path": "interplab/concept_bundle/release.py",
           "dest_path": "sae_concept_lab/canonical/concept_bundle/release.py",
-          "sha256": "22881fbdba3b48d5bd07fbaa582774295d243188ecc67c3f8927da841bfa2df1"
+          "sha256": "63a378a346f2b13ceda6aefce82275ecbf60fb01325ea860bbca235fd4469b2d"
         }
       ],
       "extracted_artifacts": [
         {
           "source_path": "conformance/concept_bundle/vectors.json",
           "dest_path": "provenance/runtime_extractions/concept_bundle/vectors.json",
-          "sha256": "d8bece7d16b8abe07d055dd412a09fdae15b898ab41f1102ab1221b59b31664a"
+          "sha256": "e33ce6b46279551025f6777403c0a3068631a0c46ce21b2238972c04a7a45718"
         },
         {
           "source_path": "conformance/concept_bundle/export_inventory.json",
           "dest_path": "provenance/runtime_extractions/concept_bundle/export_inventory.json",
-          "sha256": "abbf3fc1d53e7afad862b58c00916b60aed16efcd7222d251d03db6bb1bd18b8"
+          "sha256": "f9b34fe10c2dba6ed5b7d73040a2eae95b0bb486359495e83bb151ff36da00fa",
+          "source_commit": "2a95a496c5ae87e214f83e95543c8fc7b49d7605",
+          "source_commit_note": "Overrides source_repository.checkout_commit (3a9c153) for THIS entry only: export_inventory.json's frozen_at_commit field is stamped by the immediately-following commit, since a commit cannot name its own hash inside a file it contains, so the byte-for-byte source for this one file is frozen_pack_commit (2a95a49), not checkout_commit. vectors.json and all eight modules are byte-identical at both commits (verified independently at import time), so checkout_commit is the correct, unoverridden source for every other entry in this extraction. provenance/verify_provenance.py reads this per-entry source_commit field when present."
         },
         {
           "source_path": "scripts/concept_bundle_conformance.py",
           "dest_path": "provenance/runtime_extractions/concept_bundle/concept_bundle_conformance.py",
-          "sha256": "b1045ecd39ee42f1e6b71136cae7079939725a30fdd14251b52cef782becf927"
+          "sha256": "d18e431bcc16e0863dc1e48b94198e13ddb00592756aca14f68467d122b3375c"
         }
       ],
       "scaffolding_added": [
@@ -254,14 +263,14 @@
       },
       "conformance_check": {
         "command": "python scripts/concept_bundle_conformance.py --check --package sae_concept_lab.canonical.concept_bundle",
-        "how_run": "Run twice, independently: (1) verify_pack() called directly in-process against the copied runner and the copied vectors.json (no qwen-sae-interp checkout required -- this is the path the standalone test suite uses); (2) the exact documented CLI form, executed from a detached git worktree of qwen-sae-interp at commit cdae9c7 (created and removed via 'git worktree add/remove', which never touches the main qwen-sae-interp checkout's HEAD, index, or tracked files), using this repository's own installed package as --package. Both runs agree.",
-        "vectors_checked": 50,
+        "how_run": "Run twice, independently: (1) verify_pack() called directly in-process against the copied runner and the copied vectors.json (no qwen-sae-interp checkout required -- this is the path the standalone test suite uses); (2) the exact documented CLI form, executed from a detached git worktree of qwen-sae-interp at commit 3a9c153 (created and removed via 'git worktree add/remove', which never touches the main qwen-sae-interp checkout's HEAD, index, or tracked files), using this repository's own installed package as --package. Both runs agree.",
+        "vectors_checked": 75,
         "failures": 0,
         "result": "conformant"
       },
       "statement": "No scientific concept, feature membership, calibration value, or evidence artifact was imported. The eight modules extracted here are the concept-bundle CONTRACT ONLY -- schema, codec, typed refusals, execution grouping, resolution arithmetic, evidence-reference resolution, and the publication gate -- not any concept data. interplab/concept_bundle/fixtures.py (invented data), scripts/concept_bundle_conformance.py's role as a verification harness (copied here for the record and to run the check, not as runtime surface), and tests/concept_bundle_helpers.py (test-only construction) were deliberately excluded, matching export_inventory.json's own excluded_from_minimum_surface list. The extracted package is standard-library-only (confirmed both by the canonical export_inventory.json's runtime_dependencies list and by this repository's own isolation tests) and has no import-time dependency on qwen-sae-interp, interplab, torch, numpy, sae_lens, or transformer_lens.",
       "extraction_class": "CANONICAL_MIRROR",
-      "canonical_mirror_note": "Membership in CANONICAL_MIRROR is derived from frozen pack fabf702's own export_inventory.json minimum_export_surface list (the eight canonical source paths), not merely asserted by this field. CANONICAL_MIRROR verification checks CURRENT bytes (never permitted to evolve) against the manifest hash AND against a live qwen-sae-interp checkout, and re-runs all 50 frozen conformance vectors -- see provenance/verify_provenance.py."
+      "canonical_mirror_note": "Membership in CANONICAL_MIRROR is derived from the CURRENT frozen pack's own export_inventory.json minimum_export_surface list (the eight canonical source paths), not merely asserted by this field -- currently frozen pack commit 2a95a49 (superseding fabf702; see supersedes_previous_extraction above). CANONICAL_MIRROR verification checks CURRENT bytes (never permitted to evolve) against the manifest hash AND against a live qwen-sae-interp checkout, and re-runs every frozen conformance vector (75, as of this pack) -- see provenance/verify_provenance.py."
     }
   ]
 }

@@ -131,6 +131,33 @@ _PAIRING_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.:/+-]*$")
 #: the full 64-hex form is the content hash itself.
 ARTIFACT_HASH_RE = re.compile(r"^(sha256:)?[0-9a-f]{12,64}$")
 
+#: An `artifact_type` names a registry DIRECTORY. Constrained here, at authoring
+#: time, rather than only where a path is built from it.
+#:
+#: Lowercase is part of the rule, not tidiness. Windows and macOS filesystems are
+#: case-insensitive, so `Census_Report` and `census_report` are the same
+#: directory there and two different directories on Linux: an entry authored on
+#: one platform would resolve against a different artifact on another, or fail to
+#: resolve at all. Refusing the collision at construction is the only place it
+#: can be refused once for every consumer.
+#:
+#: Not an enum. The registry's artifact types are the canonical repository's to
+#: extend, and a closed set here would make this contract the thing that has to
+#: be edited before a new evidence type can be cited.
+ARTIFACT_TYPE_RE = re.compile(r"^[a-z0-9][a-z0-9_]*$")
+
+#: The ONLY form an evidence reference may take in a PUBLIC RELEASE: the
+#: algorithm prefix and all 64 lowercase hex characters.
+#:
+#: `ARTIFACT_HASH_RE` above stays wider on purpose -- a 12-hex prefix is what the
+#: registry names files by, and development and inspection must keep working
+#: against it. Publication is the one place where a prefix is not a content
+#: address: twelve hex characters is 48 bits, and a second artifact colliding
+#: with it is findable. The algorithm prefix is mandatory because a bare digest
+#: does not say what produced it, and "the algorithm was obvious at the time" is
+#: not a property a published artefact can rely on.
+PUBLICATION_ARTIFACT_HASH_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
+
 
 def _require(condition: bool, message: str) -> None:
     if not condition:
@@ -183,6 +210,14 @@ class EvidenceRef:
 
     def __post_init__(self) -> None:
         _require_non_empty_str(self.artifact_type, "EvidenceRef.artifact_type")
+        _require(bool(ARTIFACT_TYPE_RE.match(self.artifact_type)),
+                 f"EvidenceRef.artifact_type must match "
+                 f"{ARTIFACT_TYPE_RE.pattern} -- lowercase letters, digits and "
+                 f"underscores only, because it names a registry directory. "
+                 f"Uppercase is refused so that a type cannot mean one directory "
+                 f"on a case-insensitive filesystem and another on Linux; "
+                 f"separators and dots are refused so that it cannot be a path. "
+                 f"Got {self.artifact_type!r}")
         _require(isinstance(self.artifact_hash, str)
                  and bool(ARTIFACT_HASH_RE.match(self.artifact_hash)),
                  f"EvidenceRef.artifact_hash must match "
@@ -199,6 +234,16 @@ class EvidenceRef:
     def hash12(self) -> str:
         """The 12-character prefix the registry names files by."""
         return self.bare_hash[:12]
+
+    @property
+    def is_publication_digest(self) -> bool:
+        """True iff this reference is written in the form a public release
+        requires: `sha256:` followed by all 64 hex characters.
+
+        A reference that is not is still resolvable, still verifiable by content,
+        and still perfectly usable in development. It is only unpublishable.
+        """
+        return bool(PUBLICATION_ARTIFACT_HASH_RE.match(self.artifact_hash))
 
     def as_dict(self) -> dict[str, Any]:
         return {"artifact_type": self.artifact_type,

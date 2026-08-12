@@ -1,9 +1,9 @@
 {
   "canonical_repository": {
     "branch": "eng3/concept-bundle",
-    "contract_base_commit": "4675def305d7af3a9234dc2999d23d5d996b8115",
-    "frozen_at_commit": "fabf702f21276a6b518629a64389fc7fb358eaf0",
-    "frozen_at_commit_note": "The commit that adds this pack cannot name itself: a file cannot contain the hash of the commit containing it. This field is stamped by an immediately following commit. contract_base_commit is the commit the module hashes below were taken from, and those files are unchanged by either.",
+    "contract_base_commit": "1f617f30e6272dd1cdb344948120acb844c6f459",
+    "frozen_at_commit": "3a9c15318882d85d270cb7331df32ae3a3204a6b",
+    "frozen_at_commit_note": "The module hashes below are of the tree of frozen_at_commit. The commit that regenerates this pack cannot name itself -- a file cannot contain the hash of the commit containing it -- so that field is stamped by an immediately following commit whose only change is this line. contract_base_commit is the predecessor this pack succeeds, not where the hashes come from.",
     "name": "qwen-sae-interp",
     "package": "interplab.concept_bundle",
     "role": "canonical scientific source of the concept-bundle contract"
@@ -17,14 +17,14 @@
       "no_model_weights"
     ],
     "runner": {
-      "bytes": 49661,
+      "bytes": 73825,
       "path": "scripts/concept_bundle_conformance.py",
-      "sha256": "b1045ecd39ee42f1e6b71136cae7079939725a30fdd14251b52cef782becf927"
+      "sha256": "d18e431bcc16e0863dc1e48b94198e13ddb00592756aca14f68467d122b3375c"
     },
     "vectors": {
-      "bytes": 136236,
+      "bytes": 267893,
       "path": "conformance/concept_bundle/vectors.json",
-      "sha256": "d8bece7d16b8abe07d055dd412a09fdae15b898ab41f1102ab1221b59b31664a"
+      "sha256": "e33ce6b46279551025f6777403c0a3068631a0c46ce21b2238972c04a7a45718"
     }
   },
   "excluded_from_minimum_surface": [
@@ -44,10 +44,10 @@
   "inventory_version": "1.0",
   "minimum_export_surface": [
     {
-      "bytes": 5166,
+      "bytes": 6530,
       "path": "interplab/concept_bundle/__init__.py",
       "role": "public surface; re-exports every name the runtime and UI use",
-      "sha256": "a027b44061c8ed833e76563b3e6fb964d9d41be394fd0c5fe5d850ac9983c543"
+      "sha256": "abe74f253e96a61ad9cd925189c85e7b6785fe6c57cbcb50b83e31e4049f1933"
     },
     {
       "bytes": 7362,
@@ -56,16 +56,16 @@
       "sha256": "eaedef72876c2a706290ee4bb96e833ef886516d80c2406e42ff6b666cc2e25d"
     },
     {
-      "bytes": 26225,
+      "bytes": 28825,
       "path": "interplab/concept_bundle/schema.py",
       "role": "BundleEntry, DirectionRecord, Spec, Target, provenance and evidence types",
-      "sha256": "896e267d0efdeb8afae476aee2ff25e89872a3c777b1aea47f737076cd051044"
+      "sha256": "c2e3fe5ce602ac92551761fbc384a7ef57c950d7eaaf916b68c6b9bd87f359e8"
     },
     {
-      "bytes": 9198,
+      "bytes": 10172,
       "path": "interplab/concept_bundle/codec.py",
       "role": "strict versioned JSON for explicitly named files; no directory scanning",
-      "sha256": "90a7849a13de8b1a63c480f3b40409e59831b0bb488bfb9a1261e16390a1cb00"
+      "sha256": "70c91bafbef51bf12b5c724e3bb58efebd6b0ac1fe2c2207f71a750763632580"
     },
     {
       "bytes": 8602,
@@ -80,16 +80,16 @@
       "sha256": "8e456d6d28446fc1c2b3804446bebbd1d362db34ebcbba9121a875dce411306a"
     },
     {
-      "bytes": 8974,
+      "bytes": 41841,
       "path": "interplab/concept_bundle/evidence.py",
       "role": "evidence-reference resolution against a registry tree",
-      "sha256": "af6b93e3cce9e6456bcc5dc17cea922f3b9bb5e7fe8fb334ed8635dfcf0e2ac6"
+      "sha256": "78bda100881e56370958f258d111b5f86d6a52e9b7ff1a369a60d9a08f76392c"
     },
     {
-      "bytes": 11765,
+      "bytes": 24949,
       "path": "interplab/concept_bundle/release.py",
       "role": "fail-closed publication gate and development-stub exposure",
-      "sha256": "22881fbdba3b48d5bd07fbaa582774295d243188ecc67c3f8927da841bfa2df1"
+      "sha256": "63a378a346f2b13ceda6aefce82275ecbf60fb01325ea860bbca235fd4469b2d"
     }
   ],
   "product_repository": {

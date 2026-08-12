@@ -1,6 +1,8 @@
-"""Certifies sae_concept_lab.canonical.concept_bundle against Engineer 3's
-frozen 50-vector conformance pack (qwen-sae-interp commit cdae9c7,
-contract base 4675def, frozen at fabf702).
+"""Certifies sae_concept_lab.canonical.concept_bundle against the frozen
+75-vector conformance pack current as of this extraction (qwen-sae-interp
+checkout 3a9c153, frozen pack content 2a95a49; supersedes the earlier
+50-vector pack from checkout cdae9c7 / frozen at fabf702 -- see
+provenance/source_import.json's concept_bundle_contract.supersedes_previous_extraction).
 
 Loads the pack and calls verify_pack() from the COPIED runner
 (provenance/runtime_extractions/concept_bundle/concept_bundle_conformance.py)
@@ -49,11 +51,11 @@ runner = _load_runner()
 pack = _load_pack()
 
 
-def test_pack_has_exactly_fifty_vectors():
-    """Pinned per the dispatch and per fabf702's own commit message --
-    a pack that silently grew or shrank would invalidate 'all 50 vectors
+def test_pack_has_exactly_seventy_five_vectors():
+    """Pinned per the dispatch and per the frozen pack's own commit message --
+    a pack that silently grew or shrank would invalidate 'all 75 vectors
     conform' as a claim."""
-    assert len(pack["vectors"]) == 50
+    assert len(pack["vectors"]) == 75
 
 
 def test_pack_schema_version_matches_extracted_codec_supported_versions():
@@ -62,16 +64,16 @@ def test_pack_schema_version_matches_extracted_codec_supported_versions():
     assert pack["schema_version"] in SUPPORTED_SCHEMA_VERSIONS
 
 
-def test_all_fifty_vectors_conform_against_the_extracted_package():
+def test_all_seventy_five_vectors_conform_against_the_extracted_package():
     failures = runner.verify_pack(pack, package=EXTRACTED_PACKAGE)
     assert failures == [], f"{len(failures)} conformance failure(s): {failures}"
 
 
 @pytest.mark.parametrize("vector", pack["vectors"], ids=lambda v: v["id"])
 def test_each_vector_conforms_individually(vector):
-    """The aggregate check above proves 'all 50 pass'; this parametrized
+    """The aggregate check above proves 'all 75 pass'; this parametrized
     form additionally proves 'no vector was silently skipped' -- each of
-    the 50 ids actually reached the checker and reported no failure,
+    the 75 ids actually reached the checker and reported no failure,
     visible individually in a test report rather than folded into one
     assertion."""
     single_vector_pack = {**pack, "vectors": [vector]}
@@ -80,8 +82,8 @@ def test_each_vector_conforms_individually(vector):
 
 
 def test_conformance_mutation_self_test_the_checker_can_actually_fail():
-    """Adversarial check on the checker itself, mirroring fabf702's own
-    'the checker is tested for being able to fail' discipline: corrupt one
+    """Adversarial check on the checker itself, mirroring the frozen pack's
+    own 'the checker is tested for being able to fail' discipline: corrupt one
     expected value in a real vector and confirm verify_pack names it,
     rather than trusting a checker that always reports conformance."""
     vector = next(v for v in pack["vectors"] if v["kind"] == "codec_accept")

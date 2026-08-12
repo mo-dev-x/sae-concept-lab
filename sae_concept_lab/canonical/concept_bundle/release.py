@@ -6,36 +6,68 @@ the schema default for `provenance` is UNKNOWN and why the default evidence
 registry resolves nothing. An entry authored by someone who never thought about
 publication is blocked by construction.
 
-TWO CONDITIONS, BOTH POSITIVE:
+FOUR CONDITIONS, ALL POSITIVE:
 
   1. `provenance` is exactly ATTESTED. CANDIDATE, DRAFT, FAKE and UNKNOWN are
      all inspectable in development and none of them publishes. There is no
      "attested enough".
 
-  2. Every evidence reference RESOLVES against the repository registry.
-     Missing, malformed, mismatched and unresolvable are four distinct failures
-     and all four block. An attestation whose evidence cannot be found is a
-     claim about a document nobody can read.
+  2. Every evidence reference is RESOLVED AND VERIFIED BY CONTENT against the
+     registry: the artifact is read, its digest is recomputed here, and the
+     recomputation matches the reference. Existence does not attest, and neither
+     does the artifact's own claim about its digest. Missing, out of root,
+     malformed, mismatched, digest-mismatched, self-contradictory, invalid and
+     ambiguous are distinct failures and every one of them blocks. An attestation
+     whose evidence cannot be found -- or can be found and does not hash to what
+     was cited -- is a claim about a document nobody can read.
+
+  3. Every cited artifact is a VALID REGISTRY RECORD, field by field. A correct
+     digest says these are the bytes that were cited; it does not say they are an
+     artifact. See `evidence.PUBLICATION_RECORD_FIELDS`, which is derived from
+     what this module and the resolver actually read.
+
+  4. Every reference is written in the PUBLISHABLE FORM: `sha256:` and all 64
+     hex characters. Applied unconditionally, with no override anywhere.
 
 The gate also sniffs ids for placeholder markers, because the likeliest
 publication accident is not a mis-set enum -- it is real-looking metadata
 attached to fixture data somebody forgot to replace. That check is what keeps
 fixture quarantine a property of the data rather than of a flag.
+
+WHAT THE RELEASE SAYS IT CHECKED. One registry record was read and rehashed.
+The corpora, checkpoints and directories that record POINTS AT were not, and
+`RELEASE_EVIDENCE_STATEMENT` says so in the same breath as the positive claim,
+because a positive claim shipped on its own is read as covering everything
+downstream of it. `prohibited_release_claims` refuses the phrasings that would
+make that larger claim, and is applied to the rendered output rather than left
+as a style note.
 """
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from enum import StrEnum
 
 from .errors import ReleaseBlockedError, ReleaseBuildError
 from .evidence import (
+    CONTENT_DIGEST_DOMAIN,
+    CONTENT_DIGEST_LABEL,
     NO_EVIDENCE_REGISTRY,
+    PAYLOAD_HASH_LABEL,
+    PUBLICATION_RECORD_FIELDS,
+    RAW_SHA256_LABEL,
     EvidenceRegistry,
     EvidenceResolution,
     resolve_all,
 )
-from .schema import PLACEHOLDER_MARKERS, BundleEntry, Direction, Provenance
+from .schema import (
+    PLACEHOLDER_MARKERS,
+    PUBLICATION_ARTIFACT_HASH_RE,
+    BundleEntry,
+    Direction,
+    Provenance,
+)
 
 #: The only provenance that may be published. Named as a constant so the rule is
 #: greppable and so no caller can widen it by writing `in (...)` at a call site.
@@ -56,6 +88,123 @@ PUBLISHABLE_PROVENANCE = Provenance.ATTESTED
 #: still be ATTESTED with evidence that resolves.
 MIN_PUBLISHED_DIRECTIONS = 1
 
+#: A PUBLIC-RELEASE INVARIANT, ratified: an evidence reference may be published
+#: only as `sha256:` followed by all 64 lowercase hex characters.
+#:
+#: This constant is a DECLARATION, not a switch. `evaluate_publishability` does
+#: not branch on it -- it applies `PUBLICATION_ARTIFACT_HASH_RE` unconditionally
+#: -- so setting it to False, patching it at import time, or shadowing it from
+#: another module changes nothing about what publishes. There is deliberately no
+#: configuration file, environment variable, CLI flag or call-site keyword that
+#: weakens the gate, because a gate with an override is a gate that will be
+#: found switched off in the build that mattered. A test asserts the constant is
+#: True, and a second test asserts that forcing it False still blocks a prefix
+#: reference.
+#:
+#: Prefix references remain fully supported everywhere else: the registry names
+#: files by a 12-hex prefix, and resolution reads the artifact and recomputes its
+#: digest for a prefix reference exactly as for a full one, reporting
+#: `digest_comparison == "prefix"`. Development and inspection are unaffected.
+#: Publication is the one place a prefix is not a content address -- twelve hex
+#: characters is 48 bits, and a colliding artifact is findable.
+REQUIRE_FULL_DIGEST_FOR_PUBLICATION = True
+
+#: Stated in the release record so an auditor does not have to read a regex.
+PUBLICATION_DIGEST_FORM = "sha256:<64 lowercase hexadecimal characters>"
+
+
+# ---------------------------------------------------------------------------
+# MANDATORY RELEASE WORDING
+# ---------------------------------------------------------------------------
+# Ruled by the PM and shipped verbatim. The two sentences are ONE string, joined
+# by a single space, because the second is what stops the first from being read
+# as a claim about the corpora, datasets and checkpoints the evidence record
+# points at -- none of which is read or rehashed by anything in this package.
+# Keeping them as separate constants that a caller assembles would make the
+# negative sentence droppable by a caller who found it inconvenient; keeping
+# them as one string means dropping it is an edit to this file.
+
+EVIDENCE_VERIFICATION_SENTENCE = (
+    "Evidence registry record resolved and content-verified "
+    "(SHA-256 over canonical JSON, self_hash excluded).")
+
+PAYLOAD_LIMIT_SENTENCE = (
+    "Payload targets referenced by this record were not resolved or verified.")
+
+#: The exact text every public and release rendering must carry, in this order,
+#: adjacent, with nothing between them.
+RELEASE_EVIDENCE_STATEMENT = (
+    f"{EVIDENCE_VERIFICATION_SENTENCE} {PAYLOAD_LIMIT_SENTENCE}")
+
+#: Phrasings that are forbidden in public and release output because each one
+#: asserts more than was checked. The first four are the ruled list; the fifth is
+#: the general rule they are instances of.
+PROHIBITED_RELEASE_CLAIMS: tuple[str, ...] = (
+    "evidence verified",
+    "artifacts verified",
+    "verified against the corpus",
+    "verified against the dataset",
+    "fully verified",
+)
+
+#: The trip-wire. If a public claim ever asserts verification against one of
+#: these, transitive verification stops being deferred work and becomes required
+#: work -- so the claim is refused instead.
+_TRANSITIVE_CLAIM_RE = re.compile(
+    r"verif\w*\s+(?:against|of)\s+(?:the\s+|a\s+|an\s+|this\s+|its\s+|these\s+)?"
+    r"(corpus|corpora|dataset|datasets|checkpoint|checkpoints)", re.IGNORECASE)
+
+#: What an affirmative verification claim must name, so that it says WHAT was
+#: verified rather than that something was.
+_VERIFICATION_ANCHOR = "registry record"
+_NEGATIONS = ("not ", "never ", "no ", "cannot ", "without ", "neither ")
+_SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?])\s+|\n+")
+
+
+def prohibited_release_claims(text: str) -> tuple[str, ...]:
+    """Every over-claim in `text`, or an empty tuple.
+
+    Three rules, all applied:
+
+      1. the ruled literal phrases, case-insensitively;
+      2. any claim of verification against a corpus, dataset or checkpoint,
+         which is the trip-wire: this package verifies none of them;
+      3. any AFFIRMATIVE sentence claiming verification that does not name the
+         registry record. "Verified" on its own is the whole problem -- a reader
+         supplies the object, and the object they supply is the science.
+
+    A negated sentence is not a claim, which is what lets the mandatory wording's
+    second sentence -- "were not resolved or verified" -- pass a checker whose
+    whole purpose is to catch the word it contains.
+    """
+    lowered = text.lower()
+    found: list[str] = []
+    found += [f"prohibited phrase: {phrase!r}"
+              for phrase in PROHIBITED_RELEASE_CLAIMS if phrase in lowered]
+    found += [f"claims verification against {match.group(1)!r}, which this "
+              f"package does not read: {match.group(0)!r}"
+              for match in _TRANSITIVE_CLAIM_RE.finditer(text)]
+    for sentence in _SENTENCE_SPLIT_RE.split(text):
+        low = sentence.lower()
+        if "verif" not in low or _VERIFICATION_ANCHOR in low:
+            continue
+        if any(negation in low for negation in _NEGATIONS):
+            continue
+        found.append(
+            f"verification claimed without naming the {_VERIFICATION_ANCHOR}: "
+            f"{sentence.strip()!r}")
+    return tuple(dict.fromkeys(found))
+
+
+def assert_release_text_clean(text: str) -> None:
+    """Fail-closed check for anything a build shows the public."""
+    claims = prohibited_release_claims(text)
+    if claims:
+        raise ReleaseBuildError(
+            f"release text makes {len(claims)} claim(s) larger than what was "
+            f"checked: {list(claims)}. Only the registry record is read and "
+            f"rehashed; the corpora, datasets and checkpoints it names are not.")
+
 
 @dataclass(frozen=True, slots=True)
 class ReleaseDecision:
@@ -70,6 +219,94 @@ class ReleaseDecision:
     @property
     def unresolved_evidence(self) -> tuple[EvidenceResolution, ...]:
         return tuple(r for r in self.evidence if not r.resolved)
+
+    @property
+    def evidence_content_verified(self) -> bool:
+        """Every cited artifact was read and its digest recomputed from content.
+
+        False when there is no evidence at all: "nothing was cited" must not
+        read as "everything checked out".
+        """
+        return bool(self.evidence) and all(r.resolved for r in self.evidence)
+
+    @property
+    def prefix_verified_evidence(self) -> tuple[EvidenceResolution, ...]:
+        """Verified by content, but not cited in the publishable form."""
+        return tuple(r for r in self.evidence
+                     if r.resolved and not r.is_publication_digest)
+
+    @property
+    def payload_hash_claims(self) -> tuple[tuple[str, str, str], ...]:
+        """(reference, path, value) for every hash the records merely CARRY.
+
+        Flattened here so a release build can render them all without walking
+        into the resolutions and losing the labels on the way out.
+        """
+        return tuple(
+            (f"{r.ref.artifact_type}:{r.ref.artifact_hash}", claim.path, claim.value)
+            for r in self.evidence for claim in r.payload_hash_claims)
+
+    def content_verification_record(self) -> dict[str, object]:
+        """What was verified, for the release record.
+
+        Emitted whether or not the entry passes, because "we checked and it
+        failed" and "we never checked" are different facts about a build.
+
+        Carries the mandatory statement, and every digest carries what it is
+        worth: the recomputed content digest is labelled authoritative, the
+        literal-byte digest non-authoritative, and every hash a record merely
+        points with is labelled "recorded, not revalidated".
+        """
+        return {
+            "statement": RELEASE_EVIDENCE_STATEMENT,
+            "concept_id": self.concept_id,
+            "pairing_id": self.pairing_id,
+            "publishable": self.publishable,
+            "evidence_refs": len(self.evidence),
+            "all_registry_records_content_verified": self.evidence_content_verified,
+            "digest_domain": CONTENT_DIGEST_DOMAIN,
+            "publication_digest_form": PUBLICATION_DIGEST_FORM,
+            "full_digest_required": REQUIRE_FULL_DIGEST_FOR_PUBLICATION,
+            "record_validity_fields": [f.as_dict() for f in PUBLICATION_RECORD_FIELDS],
+            "labels": {"content_digest": CONTENT_DIGEST_LABEL,
+                       "raw_sha256": RAW_SHA256_LABEL,
+                       "payload_hashes": PAYLOAD_HASH_LABEL},
+            "evidence": [r.as_record() for r in self.evidence],
+        }
+
+    def render_release_evidence_note(self) -> str:
+        """The human-readable release note.
+
+        Opens with the mandatory statement -- both sentences, adjacent, nothing
+        between them -- and then attaches a label to every number it prints. A
+        renderer downstream may reformat this; it cannot reformat away a label
+        that is inside the line the value is on.
+        """
+        lines = [RELEASE_EVIDENCE_STATEMENT, ""]
+        lines.append(f"concept {self.concept_id} on pairing {self.pairing_id}: "
+                     f"{'publishable' if self.publishable else 'blocked'}")
+        lines.append(f"digest domain: {CONTENT_DIGEST_DOMAIN}")
+        lines.append(f"publication reference form: {PUBLICATION_DIGEST_FORM}")
+        if not self.evidence:
+            lines.append("registry records cited: none")
+        for resolution in self.evidence:
+            lines.append(
+                f"registry record {resolution.ref.artifact_type}:"
+                f"{resolution.ref.artifact_hash} [{resolution.status.value}]")
+            lines.append(f"  content digest ({CONTENT_DIGEST_LABEL}): "
+                         f"{resolution.recomputed_digest or 'not computed'}")
+            lines.append(f"  literal-byte sha256 ({RAW_SHA256_LABEL}): "
+                         f"{resolution.raw_sha256 or 'not computed'}")
+            for problem in resolution.record_validity_problems:
+                lines.append(f"  record field problem: {problem}")
+            if not resolution.payload_hash_claims:
+                lines.append("  payload targets carried by this record: none")
+            for claim in resolution.payload_hash_claims:
+                lines.append(f"  payload target {claim.path}: {claim.value} "
+                             f"({claim.label})")
+        for reason in self.reasons:
+            lines.append(f"blocked: {reason}")
+        return "\n".join(lines)
 
     def raise_if_blocked(self) -> None:
         if not self.publishable:
@@ -123,6 +360,26 @@ def evaluate_publishability(
         for resolution in resolutions:
             if not resolution.resolved:
                 reasons.append(resolution.as_reason())
+            # NOT `if REQUIRE_FULL_DIGEST_FOR_PUBLICATION`. The pattern is applied
+            # unconditionally, so there is no state anywhere -- module constant,
+            # environment, config, argument -- that can turn this branch off.
+            elif not PUBLICATION_ARTIFACT_HASH_RE.match(resolution.ref.artifact_hash):
+                reasons.append(
+                    f"evidence registry record {resolution.ref.artifact_type}:"
+                    f"{resolution.ref.artifact_hash} was resolved and "
+                    f"content-verified, and its reference is not in the form a "
+                    f"public release requires. Publication needs "
+                    f"{PUBLICATION_DIGEST_FORM}: the algorithm prefix is "
+                    f"mandatory, and a 12-to-63 character prefix is 48-to-252 "
+                    f"bits of address rather than a full one. Cite "
+                    f"{resolution.recomputed_digest or 'the full digest'}")
+        if resolutions and not all(r.resolved for r in resolutions):
+            # Redundant with the per-reference reasons above, and deliberately
+            # so: this is the invariant publication actually depends on, stated
+            # once where it cannot be lost by editing the loop.
+            reasons.append(
+                "not every evidence registry record was resolved AND verified by "
+                "content; existence and a self-declared digest do not attest")
         hits = _placeholder_hits(cp.calibrated_by)
         if hits:
             reasons.append(

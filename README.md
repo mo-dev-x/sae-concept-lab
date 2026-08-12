@@ -56,8 +56,10 @@ deliberate, structural refusal rather than a flag someone forgot to flip.
 
 `sae_concept_lab/canonical/concept_bundle/` carries the eight-module
 concept-bundle contract, mechanically extracted from qwen-sae-interp and
-certified against Engineer 3's frozen 50-vector conformance pack. It is
-standard-library-only, has zero import-time dependency on
+certified against the frozen 75-vector conformance pack current as of
+this extraction (this mirror has been deliberately re-extracted once
+already -- see `provenance/source_import.json`'s `concept_bundle_contract`
+entry). It is standard-library-only, has zero import-time dependency on
 qwen-sae-interp, and every control this UI renders -- concept selection,
 direction availability, resolved dose, execution payload, fingerprints --
 is computed by this package directly (see
@@ -80,8 +82,10 @@ print(f"{len(pack['vectors'])} vectors, {len(failures)} failures")
 PY
 ```
 
-Or, from a qwen-sae-interp checkout at commit `cdae9c7` (this repository
-must be installed and importable from that Python environment):
+Or, from a qwen-sae-interp checkout at the commit named in
+`provenance/source_import.json`'s `concept_bundle_contract.source_repository.checkout_commit`
+(currently `3a9c153`; this repository must be installed and importable
+from that Python environment):
 
 ```bash
 python scripts/concept_bundle_conformance.py --check --package sae_concept_lab.canonical.concept_bundle
@@ -90,8 +94,9 @@ python scripts/concept_bundle_conformance.py --check --package sae_concept_lab.c
 ## Provenance
 
 Every extraction into this repository -- the UI import from commit
-`9a9f3b7` and the concept-bundle contract extraction from commit
-`cdae9c7` -- is recorded in
+`9a9f3b7` and the concept-bundle contract extraction currently mirroring
+checkout `3a9c153` (deliberately re-extracted once already, superseding
+an earlier mirror at `cdae9c7`) -- is recorded in
 [`provenance/source_import.json`](provenance/source_import.json): source
 repository identity, source commit(s), the exact source-to-destination
 path mapping, a SHA-256 per imported file, the import timestamp, and an
@@ -100,8 +105,8 @@ explicit statement of what was and was not imported.
 Each extraction also carries an `extraction_class` -- `HISTORICAL_SEED`
 (a past import permitted to evolve, verified against this repository's
 own frozen import commit) or `CANONICAL_MIRROR` (a byte-for-byte mirror
-that may never evolve, verified against current bytes AND all 50 frozen
-conformance vectors). This is a code-provenance axis, entirely separate
+that may never evolve, verified against current bytes AND every frozen
+conformance vector). This is a code-provenance axis, entirely separate
 from the scientific `Provenance` field (`ATTESTED`/`CANDIDATE`/`DRAFT`/
 `FAKE`/`UNKNOWN`) a `BundleEntry` carries -- see
 [`BOUNDARY.md`](BOUNDARY.md) for the full statement.

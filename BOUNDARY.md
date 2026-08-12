@@ -63,11 +63,18 @@ runtime surface of the concept-bundle contract (schema, codec, typed
 refusals, execution grouping, resolution arithmetic, evidence-reference
 resolution, and the fail-closed publication gate), mechanically copied
 byte-for-byte from qwen-sae-interp's `interplab/concept_bundle/` at
-commit `cdae9c7` and certified against Engineer 3's frozen 50-vector
-conformance pack. See `provenance/source_import.json`'s
-`concept_bundle_contract` entry for the full source-to-destination
-mapping and hash table, and `provenance/runtime_extractions/concept_bundle/`
-for the copied vectors, export inventory, and check-mode runner.
+commit `3a9c153` and certified against the frozen 75-vector conformance
+pack current as of this extraction (frozen pack content `2a95a49`). This
+mirror has been deliberately re-extracted once already, superseding an
+earlier mirror at checkout `cdae9c7` / frozen pack `fabf702` -- see
+`provenance/source_import.json`'s `concept_bundle_contract` entry (in
+particular its `supersedes_previous_extraction` field) for the full
+source-to-destination mapping, hash table, and the reason for the
+replacement, and `provenance/runtime_extractions/concept_bundle/` for the
+copied vectors, export inventory, and check-mode runner. The superseded
+extraction's own record remains readable in this repository's git history
+at commit `d7e4577` and earlier -- replacing the manifest's *current*
+record is not the same as erasing the *prior* one.
 
 This is the CONTRACT only -- what a bundle entry is, what runtime v1 can
 execute, how resolution and publication work -- never any scientific
@@ -128,8 +135,13 @@ a code-extraction field or verdict.
 - **CANONICAL_MIRROR** (`concept_bundle_contract`): a byte-for-byte
   mirror that may NEVER evolve. Verified by hash-comparing CURRENT bytes
   against both the manifest and a live qwen-sae-interp checkout, AND by
-  re-running all 50 frozen conformance vectors, printing:
-  `CANONICAL_MIRROR fabf702 current bytes match canonical source; conformance vectors pass`.
+  re-running every frozen conformance vector (75, as of the currently
+  mirrored pack), printing:
+  `CANONICAL_MIRROR 2a95a49 current bytes match canonical source; conformance vectors pass`.
+  The short commit named in this verdict is always the CURRENTLY mirrored
+  frozen pack's commit -- it changes on a deliberate re-extraction (this
+  repository has had one: `fabf702` superseded by `2a95a49`), which is a
+  property of the pack being replaced whole, never a partial drift.
 
 `provenance/verify_provenance.py` rejects reclassification: a
 HISTORICAL_SEED extraction naming a source_path that the frozen pack's

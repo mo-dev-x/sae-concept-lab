@@ -52,10 +52,12 @@ from __future__ import annotations
 
 import argparse
 import ast
+import contextlib
 import hashlib
 import importlib
 import json
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -76,11 +78,12 @@ CANONICAL_PACKAGE = "interplab.concept_bundle"
 CANONICAL_REPOSITORY = "qwen-sae-interp"
 CANONICAL_BRANCH = "eng3/concept-bundle"
 
-#: The commit whose tree the minimum-surface hashes below were taken from. The
-#: commit that ADDS this pack cannot be named inside the pack (a file cannot
-#: contain the hash of the commit containing it), so the inventory carries this
-#: base plus a `frozen_at_commit` field stamped by a follow-up commit.
-CONTRACT_BASE_COMMIT = "4675def305d7af3a9234dc2999d23d5d996b8115"
+#: The commit this pack succeeds. It is NOT where the module hashes below come
+#: from: those belong to the tree of the commit that adds or regenerates the
+#: pack, which cannot be named inside the pack (a file cannot contain the hash of
+#: the commit containing it). `frozen_at_commit` carries that, stamped by an
+#: immediately following commit.
+CONTRACT_BASE_COMMIT = "1f617f30e6272dd1cdb344948120acb844c6f459"
 
 PACK_VERSION = "1.0"
 #: The codec/schema version every vector in this pack is written against.
@@ -163,8 +166,102 @@ REQUIRED_API: tuple[str, ...] = (
     "resolve_control", "require_single_execution_group",
     "check_direction_executable", "executable_directions",
     "evaluate_publishability", "select_layout_entries",
-    "InMemoryEvidenceRegistry",
+    # Evidence must be resolved by reading content and recomputing its digest.
+    # `InMemoryEvidenceRegistry` is deliberately NOT required: it is a test
+    # double, and a product is not obliged to ship one.
+    "EvidenceRef", "RepositoryEvidenceRegistry", "content_digest",
+    # A record that hashes correctly is not thereby a record.
+    "record_validity_problems", "PUBLICATION_RECORD_FIELDS",
+    # The mandatory release wording and the two labels. An extracted package that
+    # renders its own words about what was checked is not this contract.
+    "RELEASE_EVIDENCE_STATEMENT", "EVIDENCE_VERIFICATION_SENTENCE",
+    "PAYLOAD_LIMIT_SENTENCE", "RAW_SHA256_LABEL", "PAYLOAD_HASH_LABEL",
+    "PROHIBITED_RELEASE_CLAIMS", "prohibited_release_claims",
 )
+
+
+# ---------------------------------------------------------------------------
+# registry trees, materialized from the vector's own declaration
+# ---------------------------------------------------------------------------
+# Evidence vectors describe FILES, not digests, because the property under test
+# is that the resolver reads bytes and hashes them. A vector that handed the
+# resolver a digest could not distinguish verification from transcription -- which
+# is the defect this pack was extended to catch.
+
+def _safe_relative(path: str) -> Path:
+    """Refuses a vector that would write outside the directory it is given.
+
+    The pack is data, and a harness that writes data-driven paths without
+    checking them is the same class of defect as a resolver that joins an
+    unchecked artifact_type.
+    """
+    candidate = Path(path)
+    if candidate.is_absolute() or ".." in candidate.parts:
+        raise ValueError(f"unsafe vector file path: {path!r}")
+    return candidate
+
+
+@contextlib.contextmanager
+def materialized_registry(api, data: dict[str, Any]):
+    """Writes the vector's declared files and yields a registry over the root.
+
+    `files` land under the registry root. `outside_files` land in a sibling
+    directory, which is how the path-escape vector places a correctly sealed
+    artifact somewhere the resolver must refuse to read.
+    """
+    with tempfile.TemporaryDirectory(prefix="cb-conformance-") as temporary:
+        base = Path(temporary)
+        for key, subdirectory in (("files", "registry"), ("outside_files", "outside")):
+            for entry in data.get(key) or ():
+                target = base / subdirectory / _safe_relative(entry["path"])
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(entry["text"].encode("utf-8"))
+        yield api.RepositoryEvidenceRegistry(base / "registry")
+
+
+def _unvalidated_evidence_ref(api, ref: dict[str, str]):
+    """An `EvidenceRef` assembled WITHOUT the schema's validation.
+
+    The schema refuses a traversing or uppercase `artifact_type` at construction
+    and the codec refuses it at decoding, which is where they should be caught.
+    The resolver's own barrier still has to be exercised, because a reference can
+    reach it without having passed either -- so these vectors reach past
+    validation deliberately, and say so in their input.
+    """
+    instance = object.__new__(api.EvidenceRef)
+    for field, value in ref.items():
+        object.__setattr__(instance, field, value)
+    return instance
+
+
+def _evidence_ref(api, data: dict[str, Any]):
+    if data.get("unvalidated_ref"):
+        return _unvalidated_evidence_ref(api, data["ref"])
+    return api.EvidenceRef(**data["ref"])
+
+
+def _resolution_record(resolution) -> dict[str, Any]:
+    """Every field of a resolution except the root, which is a temporary path.
+
+    `location` is root-relative by contract, so it IS comparable; the root is
+    not, and is excluded rather than normalized away.
+    """
+    identity = resolution.record_identity
+    return {
+        "status": str(resolution.status),
+        "resolved": resolution.resolved,
+        "content_verified": resolution.content_verified,
+        "location": resolution.location,
+        "detail": resolution.detail,
+        "recomputed_digest": resolution.recomputed_digest,
+        "declared_digest": resolution.declared_digest,
+        "raw_sha256": resolution.raw_sha256,
+        "digest_comparison": resolution.digest_comparison,
+        "record_validity_problems": list(resolution.record_validity_problems),
+        "record_identity": None if identity is None else identity.as_dict(),
+        "payload_hashes": [c.as_dict() for c in resolution.payload_hash_claims],
+        "as_record": canonical_json(resolution.as_record()),
+    }
 
 
 def load_api(package: str):
@@ -223,15 +320,36 @@ def _exception_record(exc: BaseException) -> dict[str, Any]:
 # vector construction -- CANONICAL REPOSITORY ONLY
 # ---------------------------------------------------------------------------
 
-def _fake_registry_payload() -> list[dict[str, str]]:
-    """The in-memory evidence registry the attested vectors resolve against.
+FAKE_ARTIFACT_TYPE = "conformance_artifact_not_in_the_registry"
 
-    Invented artifact type, invented digest. Deliberately absent from the
+
+def _fake_evidence_record(api, *, artifact_type: str = FAKE_ARTIFACT_TYPE,
+                          note: str = "meaningless conformance content") -> dict:
+    """A registry-envelope-shaped artifact whose digest is COMPUTED, not typed.
+
+    Invented content under an artifact type that has no directory in the
     repository registry, so a vector that passes the gate here cannot pass it in
     a real build.
     """
-    return [{"artifact_type": "conformance_artifact_not_in_the_registry",
-             "self_hash": "sha256:" + ("abcdef0123456789" * 4)}]
+    record = {
+        "artifact_type": artifact_type,
+        "schema_version": 1,
+        "created_at": "2000-01-01T00:00:00Z",
+        "created_by": {"run_id": "r20000101-0000-fake", "code_commit": "0" * 40,
+                       "entrypoint": "scripts.concept_bundle_conformance",
+                       "host": "conformance"},
+        "subject": [],
+        "payload": {"note": note},
+    }
+    record["self_hash"] = api.content_digest(record)
+    return record
+
+
+def _registry_files(api, record: dict) -> list[dict[str, str]]:
+    """One artifact, written where its own content digest says it belongs."""
+    hash12 = api.content_digest(record).removeprefix("sha256:")[:12]
+    return [{"path": f"{record['artifact_type']}/{hash12}.json",
+             "text": canonical_json(record)}]
 
 
 def _attested_entry_document(api, *, concept_id: str, one_direction: bool) -> str:
@@ -262,8 +380,11 @@ def _attested_entry_document(api, *, concept_id: str, one_direction: bool) -> st
         "calibration_provenance": {
             "calibrated_by": "conformance harness",
             "calibrated_at": "2026-01-01T00:00:00+00:00",
-            "evidence": [{"artifact_type": "conformance_artifact_not_in_the_registry",
-                          "artifact_hash": "sha256:" + ("abcdef0123456789" * 4)}],
+            # The FULL 64-hex content digest of the evidence record, recomputed
+            # rather than typed. Publication refuses a prefix reference.
+            "evidence": [{"artifact_type": FAKE_ARTIFACT_TYPE,
+                          "artifact_hash": api.content_digest(
+                              _fake_evidence_record(api))}],
         },
         "directions": {"amplify": direction,
                        "suppress": None if one_direction else direction},
@@ -399,6 +520,21 @@ def build_pack() -> dict[str, Any]:
          lambda raw: raw["calibration_provenance"]["evidence"][0]
          .__setitem__("artifact_hash", "NOTAHASH"),
          "evidence digests must match the contract pattern"),
+        ("codec.reject.uppercase_artifact_type", attested_doc,
+         lambda raw: raw["calibration_provenance"]["evidence"][0]
+         .__setitem__("artifact_type", "Census_Report"),
+         "an artifact_type names a registry directory: on a case-insensitive "
+         "filesystem this is the same directory as its lowercase twin and a "
+         "different one on Linux"),
+        ("codec.reject.artifact_type_with_a_separator", attested_doc,
+         lambda raw: raw["calibration_provenance"]["evidence"][0]
+         .__setitem__("artifact_type", "../outside/run_card"),
+         "a decoder that passed this through would hand the resolver a path "
+         "component out of an untrusted document"),
+        ("codec.reject.artifact_type_with_a_hyphen", attested_doc,
+         lambda raw: raw["calibration_provenance"]["evidence"][0]
+         .__setitem__("artifact_type", "census-report"),
+         "one spelling of a registry directory name, not two"),
         ("codec.reject.unqualified_timestamp", attested_doc,
          lambda raw: raw["calibration_provenance"]
          .__setitem__("calibrated_at", "2026-01-01T00:00:00"),
@@ -538,75 +674,253 @@ def build_pack() -> dict[str, Any]:
                              [d.value for d in api.executable_directions(entry)]},
         })
 
-    # -- publication and evidence resolution -----------------------------
-    registry_payload = _fake_registry_payload()
+    # -- evidence resolution: read the bytes, recompute the digest -------
+    good_record = _fake_evidence_record(api)
+    good_files = _registry_files(api, good_record)
+    good_digest = api.content_digest(good_record)
+    good_hash12 = good_digest.removeprefix("sha256:")[:12]
+    good_ref = {"artifact_type": FAKE_ARTIFACT_TYPE, "artifact_hash": good_digest}
+
+    tampered_record = {**good_record, "payload": {"note": "edited after writing"}}
+    other_type_record = _fake_evidence_record(
+        api, artifact_type="conformance_other_type", note="a different artifact")
+
+    # Hashes to exactly what its reference cites, and is still not a record.
+    invalid_record = {k: v for k, v in good_record.items()
+                      if k not in ("created_at", "self_hash")}
+    invalid_digest = api.content_digest(invalid_record)
+    invalid_record["self_hash"] = invalid_digest
+    invalid_files = _registry_files(api, invalid_record)
+
+    # A record carrying hashes of things nothing here reads.
+    pointing_record = {k: v for k, v in good_record.items() if k != "self_hash"}
+    pointing_record["subject"] = [
+        {"content_hash": "sha256:" + "c" * 64,
+         "location": "local:data/raw/not_read_by_this_package",
+         "role": "corpus_manifest"}]
+    pointing_record["self_hash"] = api.content_digest(pointing_record)
+    pointing_files = _registry_files(api, pointing_record)
+
+    evidence_cases = [
+        ("evidence.accept.correct_content", good_files, [], good_ref,
+         "content read, digest recomputed here, and it matches the reference"),
+        ("evidence.accept.prefix_reference", good_files, [],
+         {"artifact_type": FAKE_ARTIFACT_TYPE, "artifact_hash": good_hash12},
+         "a 12-character reference is still verified against content, and is "
+         "marked as a prefix match rather than a full one"),
+        ("evidence.accept.payload_targets_are_labelled_not_verified",
+         pointing_files, [],
+         {"artifact_type": FAKE_ARTIFACT_TYPE,
+          "artifact_hash": pointing_record["self_hash"]},
+         "the record points at a corpus. That hash is emitted labelled "
+         "'recorded, not revalidated' -- nothing here reads or rehashes it"),
+        ("evidence.reject.invalid_record_missing_created_at", invalid_files, [],
+         {"artifact_type": FAKE_ARTIFACT_TYPE, "artifact_hash": invalid_digest},
+         "the digest matches the reference EXACTLY and the record is still "
+         "refused: a correct digest says these are the bytes that were cited, "
+         "not that they are an artifact"),
+        ("evidence.reject.tampered_content_same_self_hash",
+         [{"path": good_files[0]["path"], "text": canonical_json(tampered_record)}],
+         [], good_ref,
+         "the defect: payload edited, self_hash left untouched, file left where "
+         "it was. A resolver that read the declaration would publish this"),
+        ("evidence.reject.self_hash_typed_to_match",
+         [{"path": good_files[0]["path"],
+           "text": canonical_json({"artifact_type": FAKE_ARTIFACT_TYPE,
+                                   "payload": {"note": "unrelated"},
+                                   "self_hash": good_digest})}],
+         [], good_ref,
+         "unrelated content whose self_hash was simply typed to match"),
+        ("evidence.reject.wrong_but_readable_artifact",
+         [{"path": good_files[0]["path"],
+           "text": canonical_json(other_type_record)}], [], good_ref,
+         "a valid, self-consistent artifact of another type sitting exactly "
+         "where this reference looks"),
+        ("evidence.reject.missing_content", [], [], good_ref,
+         "nothing at the address the reference names"),
+        ("evidence.reject.empty_content",
+         [{"path": good_files[0]["path"], "text": ""}], [], good_ref,
+         "an empty file has no content to attest with"),
+        ("evidence.reject.no_self_hash",
+         [{"path": good_files[0]["path"],
+           "text": canonical_json({k: v for k, v in good_record.items()
+                                   if k != "self_hash"})}], [], good_ref,
+         "declares no identity at all, which is not the same as declaring the "
+         "wrong one"),
+        ("evidence.reject.path_escape", [], good_files,
+         {"artifact_type": f"../outside/{FAKE_ARTIFACT_TYPE}",
+          "artifact_hash": good_digest},
+         "a correctly sealed artifact outside the root, reachable only by "
+         "traversal. The root is an access path, not a trust anchor. The "
+         "reference reaches past schema validation deliberately: the resolver's "
+         "barrier is the one being tested here", True),
+        ("evidence.reject.uppercase_artifact_type", good_files, [],
+         {"artifact_type": FAKE_ARTIFACT_TYPE.upper(),
+          "artifact_hash": good_digest},
+         "the same directory as its lowercase twin on Windows and macOS, a "
+         "different one on Linux. Refused independently of the schema", True),
+        ("evidence.reject.ambiguous_across_types",
+         [*good_files,
+          {"path": f"conformance_second_type/{good_hash12}.json",
+           "text": canonical_json(good_record)}], [], good_ref,
+         "one content address filed under two artifact types: the registry "
+         "contradicting itself about what the content is"),
+    ]
+    for case in evidence_cases:
+        vector_id, files, outside, ref, description = case[:5]
+        data: dict[str, Any] = {"files": files, "outside_files": outside, "ref": ref}
+        if len(case) > 5 and case[5]:
+            data["unvalidated_ref"] = True
+        with materialized_registry(api, data) as registry:
+            resolution = registry.resolve(_evidence_ref(api, data))
+        vectors.append({
+            "id": vector_id, "kind": "evidence", "schema_version": SCHEMA_VERSION,
+            "description": description,
+            "input": data,
+            "expected": _resolution_record(resolution),
+        })
+
+    # The other half of the same rule: the schema and the codec refuse these
+    # references at construction, so a document carrying one never reaches the
+    # resolver in the first place.
+    for vector_id, ref, description in [
+        ("schema.reject.traversing_artifact_type",
+         {"artifact_type": f"../outside/{FAKE_ARTIFACT_TYPE}",
+          "artifact_hash": good_digest},
+         "refused before it can be a path"),
+        ("schema.reject.uppercase_artifact_type",
+         {"artifact_type": "Census_Report", "artifact_hash": good_digest},
+         "refused before it can be a case collision"),
+    ]:
+        try:
+            api.EvidenceRef(**ref)
+        except Exception as exc:
+            record = _exception_record(exc)
+        else:
+            raise AssertionError(f"{vector_id} did not raise")
+        vectors.append({
+            "id": vector_id, "kind": "schema_reject",
+            "schema_version": SCHEMA_VERSION, "description": description,
+            "input": {"evidence_ref": ref},
+            "expected": record,
+        })
+
+    # -- publication: exact acceptance and rejection consequences --------
     one_direction_doc = _attested_entry_document(
         api, concept_id="conformance.vector.one.direction", one_direction=True)
+    prefix_doc = _mutate(
+        attested_doc,
+        lambda raw: raw["calibration_provenance"]["evidence"][0].__setitem__(
+            "artifact_hash", good_hash12))
+    unprefixed_doc = _mutate(
+        attested_doc,
+        lambda raw: raw["calibration_provenance"]["evidence"][0].__setitem__(
+            "artifact_hash", good_digest.removeprefix("sha256:")))
+    invalid_record_doc = _mutate(
+        attested_doc,
+        lambda raw: raw["calibration_provenance"]["evidence"][0].__setitem__(
+            "artifact_hash", invalid_digest))
+    pointing_doc = _mutate(
+        attested_doc,
+        lambda raw: raw["calibration_provenance"]["evidence"][0].__setitem__(
+            "artifact_hash", pointing_record["self_hash"]))
     publications = [
-        ("publish.accept.attested_with_resolvable_evidence", attested_doc,
-         registry_payload,
-         "ATTESTED provenance plus evidence that resolves: the only way to "
+        ("publish.accept.attested_with_verified_evidence", attested_doc,
+         good_files,
+         "ATTESTED provenance plus evidence read and hashed: the only way to "
          "publish"),
-        ("publish.accept.one_calibrated_direction", one_direction_doc,
-         registry_payload,
+        ("publish.accept.one_calibrated_direction", one_direction_doc, good_files,
          "one calibrated direction is sufficient; the other stays null"),
-        ("publish.reject.unresolvable_evidence", attested_doc, [],
-         "attested, and still refused: the cited artifact is not in the "
-         "registry"),
-        ("publish.reject.fake_provenance", base, registry_payload,
+        ("publish.reject.missing_evidence", attested_doc, [],
+         "attested, and still refused: the cited artifact is not there to hash"),
+        ("publish.reject.tampered_evidence", attested_doc,
+         [{"path": good_files[0]["path"], "text": canonical_json(tampered_record)}],
+         "attested, the artifact is present, its self_hash still matches the "
+         "reference -- and its content does not hash to it"),
+        ("publish.accept.record_pointing_at_unread_targets", pointing_doc,
+         pointing_files,
+         "the record names a corpus this package never reads. It publishes, and "
+         "the release output labels that hash 'recorded, not revalidated' rather "
+         "than omitting it"),
+        ("publish.reject.prefix_digest_reference", prefix_doc, good_files,
+         "verified by content, but cited by a 12-character prefix; publication "
+         "requires the full digest"),
+        ("publish.reject.digest_without_algorithm_prefix", unprefixed_doc,
+         good_files,
+         "all 64 characters and no 'sha256:'. A bare digest does not say what "
+         "produced it"),
+        ("publish.reject.invalid_evidence_record", invalid_record_doc,
+         invalid_files,
+         "the cited content hashes to exactly what the reference names, and the "
+         "record is missing created_at. Integrity does not substitute for "
+         "validity"),
+        ("publish.reject.fake_provenance", base, good_files,
          "a fixture is refused on provenance and on its own marker text"),
         ("publish.reject.both_directions_null",
          _mutate(attested_doc,
                  lambda raw: raw["directions"].update({"amplify": None,
                                                        "suppress": None})),
-         registry_payload,
-         "attested, evidence resolving, and nothing to operate"),
+         good_files,
+         "attested, evidence verified, and nothing to operate"),
     ]
-    for vector_id, document, payload, description in publications:
+    for vector_id, document, files, description in publications:
         entry = api.decode_entry(document)
-        registry = api.InMemoryEvidenceRegistry()
-        for record in payload:
-            registry.add(record["artifact_type"], record["self_hash"])
-        decision = api.evaluate_publishability(entry, evidence_registry=registry)
+        data = {"files": files, "outside_files": [], "document": document}
+        with materialized_registry(api, data) as registry:
+            decision = api.evaluate_publishability(entry, evidence_registry=registry)
         vectors.append({
             "id": vector_id, "kind": "publish", "schema_version": SCHEMA_VERSION,
             "description": description,
-            "input": {"document": document, "evidence_registry": payload},
+            "input": data,
             "expected": {
                 "publishable": decision.publishable,
                 "reasons": list(decision.reasons),
-                "evidence": [{"artifact_type": r.ref.artifact_type,
-                              "artifact_hash": r.ref.artifact_hash,
-                              "status": str(r.status), "resolved": r.resolved}
-                             for r in decision.evidence],
+                "evidence_content_verified": decision.evidence_content_verified,
+                "evidence": [
+                    {"artifact_type": r.ref.artifact_type,
+                     "artifact_hash": r.ref.artifact_hash,
+                     "status": str(r.status),
+                     "resolved": r.resolved,
+                     "content_verified": r.content_verified,
+                     "recomputed_digest": r.recomputed_digest,
+                     "digest_comparison": r.digest_comparison,
+                     "record_validity_problems": list(r.record_validity_problems)}
+                    for r in decision.evidence],
+                # Byte-for-byte: the release output is part of the contract, not
+                # a presentation detail. The mandatory wording and both labels
+                # are inside these two.
+                "verification_record":
+                    canonical_json(decision.content_verification_record()),
+                "release_note": decision.render_release_evidence_note(),
             },
         })
 
     # -- catalog availability --------------------------------------------
     availability = [
-        ("availability.one_direction_public", one_direction_doc, registry_payload,
+        ("availability.one_direction_public", one_direction_doc, good_files,
          "a one-direction concept stays in the public catalog with the other "
          "control disabled"),
-        ("availability.two_direction_public", attested_doc, registry_payload,
+        ("availability.two_direction_public", attested_doc, good_files,
          "nothing disabled"),
+        ("availability.tampered_evidence_is_development_only", attested_doc,
+         [{"path": good_files[0]["path"], "text": canonical_json(tampered_record)}],
+         "unverifiable evidence keeps a concept out of the public catalog"),
         ("availability.both_null_development_only", base, [],
          "a fake entry renders only under development exposure"),
     ]
-    for vector_id, document, payload, description in availability:
+    for vector_id, document, files, description in availability:
         entry = api.decode_entry(document)
-        registry = api.InMemoryEvidenceRegistry()
-        for record in payload:
-            registry.add(record["artifact_type"], record["self_hash"])
-        public = api.select_layout_entries(
-            (entry,), exposure=api.Exposure.RELEASE, evidence_registry=registry)
-        development = api.select_layout_entries(
-            (entry,), exposure=api.Exposure.DEVELOPMENT_STUBS,
-            evidence_registry=registry)
-        (layout,) = development
+        data = {"files": files, "outside_files": [], "document": document}
+        with materialized_registry(api, data) as registry:
+            public = api.select_layout_entries(
+                (entry,), exposure=api.Exposure.RELEASE, evidence_registry=registry)
+            (layout,) = api.select_layout_entries(
+                (entry,), exposure=api.Exposure.DEVELOPMENT_STUBS,
+                evidence_registry=registry)
         vectors.append({
             "id": vector_id, "kind": "availability",
             "schema_version": SCHEMA_VERSION, "description": description,
-            "input": {"document": document, "evidence_registry": payload},
+            "input": data,
             "expected": {
                 "in_public_catalog": len(public) == 1,
                 "available_directions":
@@ -676,6 +990,49 @@ def build_pack() -> dict[str, Any]:
             },
         })
 
+    # -- mandatory release wording ---------------------------------------
+    # Frozen as data because it is data: the sentences are ruled, not authored,
+    # and an extracted package that renders its own words about what was checked
+    # is not this contract however well its resolver behaves.
+    vectors.append({
+        "id": "wording.mandatory_release_statement", "kind": "release_wording",
+        "schema_version": SCHEMA_VERSION,
+        "description": (
+            "the exact sentences every public and release rendering carries, "
+            "adjacent and in this order, plus the two inline labels and the "
+            "phrasings that are refused"),
+        "input": {},
+        "expected": {
+            "statement": api.RELEASE_EVIDENCE_STATEMENT,
+            "verification_sentence": api.EVIDENCE_VERIFICATION_SENTENCE,
+            "payload_limit_sentence": api.PAYLOAD_LIMIT_SENTENCE,
+            "separator_between_sentences": " ",
+            "raw_sha256_label": api.RAW_SHA256_LABEL,
+            "payload_hash_label": api.PAYLOAD_HASH_LABEL,
+            "prohibited_claims": list(api.PROHIBITED_RELEASE_CLAIMS),
+            # Refused phrasings, and the fact that the mandatory wording itself
+            # passes the same checker -- a checker its own required text failed
+            # would be deleted within a week.
+            "refused_examples": [
+                "All evidence verified.",
+                "Artifacts verified against the registry.",
+                "Content verified against the corpus.",
+                "Hashes verified against the dataset.",
+                "Evidence fully verified.",
+                "The checkpoint was verified.",
+                "Everything was verified.",
+            ],
+            "accepted_examples": [
+                api.RELEASE_EVIDENCE_STATEMENT,
+                api.PAYLOAD_LIMIT_SENTENCE,
+                "The registry record was content-verified.",
+                "The corpus was never verified.",
+            ],
+            "record_validity_fields": [f.as_dict()
+                                       for f in api.PUBLICATION_RECORD_FIELDS],
+        },
+    })
+
     ids = [v["id"] for v in vectors]
     duplicates = sorted({i for i in ids if ids.count(i) > 1})
     if duplicates:
@@ -692,14 +1049,43 @@ def build_pack() -> dict[str, Any]:
         "fixture_status": (
             "Every entry here is scientifically meaningless. Most carry "
             "provenance 'fake' and are refused outright. The attested vectors "
-            "resolve their evidence only against the in-memory registry each "
-            "vector declares; those artifacts are absent from the repository "
-            "registry, so no vector can publish in a real build."),
+            "cite evidence artifacts whose content each vector declares and "
+            "which are written into a temporary registry at verification time; "
+            "that content is invented and its artifact types have no directory "
+            "in the repository registry, so no vector can publish in a real "
+            "build."),
+        "evidence_verification": (
+            "Evidence vectors declare FILES, not digests. Resolution reads the "
+            "bytes and recomputes the content digest in the artifact's own "
+            "domain -- sha256 over canonical JSON of the artifact without its "
+            "self_hash field -- and compares that to the reference. A "
+            "self-declared self_hash never attests."),
+        "record_validity": (
+            "A correct digest says the bytes are the bytes that were cited. It "
+            "does not say they are an artifact. Every canonical field the "
+            "release path reads is checked separately for presence, type and "
+            "emptiness, and a record that hashes correctly and fails that check "
+            "is invalid_record -- not resolved, not publishable."),
+        "publication_digest": (
+            "A public release requires sha256: followed by all 64 lowercase hex "
+            "characters. Prefix references stay fully supported for development "
+            "and inspection and are verified by content exactly as full ones "
+            "are; they are only unpublishable. The rule is applied "
+            "unconditionally: no configuration, environment variable, CLI flag "
+            "or call-site argument weakens it."),
+        "scope_of_the_claim": (
+            "ONE registry record is read and rehashed per reference. The "
+            "corpora, datasets, checkpoints and directories that record points "
+            "at are NOT read or rehashed, every hash of them is emitted "
+            "labelled 'recorded, not revalidated', and the digest of the "
+            "literal file bytes is emitted labelled 'non-authoritative'. The "
+            "mandatory release wording states both halves together."),
         "comparison": {
             "byte_for_byte": ["canonical_json", "execution_dict", "public_view",
                               "advanced_view", "every fingerprint"],
             "structural": ["execution grouping", "direction availability",
-                           "publishability reasons", "evidence resolution"],
+                           "publishability reasons",
+                           "evidence resolution, field by field"],
             "exceptions": "compared by class NAME, classification and message",
         },
         "vector_count": len(vectors),
@@ -774,37 +1160,92 @@ def _verify_runtime_accept(api, vector, failures):
              [d.value for d in api.executable_directions(entry)])
 
 
-def _registry_from(api, payload):
-    registry = api.InMemoryEvidenceRegistry()
-    for record in payload:
-        registry.add(record["artifact_type"], record["self_hash"])
-    return registry
+def _verify_evidence(api, vector, failures):
+    ref = _evidence_ref(api, vector["input"])
+    with materialized_registry(api, vector["input"]) as registry:
+        resolution = registry.resolve(ref)
+    actual = _resolution_record(resolution)
+    for field in sorted(vector["expected"]):
+        _compare(failures, vector["id"], field, vector["expected"][field],
+                 actual[field])
+
+
+def _verify_release_wording(api, vector, failures):
+    """The sentences are compared verbatim, their adjacency structurally, and the
+    checker is exercised in both directions.
+
+    An implementation that shipped the positive sentence and dropped the negative
+    one would pass every behavioural vector in this pack. This is the vector that
+    catches it.
+    """
+    expected = vector["expected"]
+    actual = {
+        "statement": api.RELEASE_EVIDENCE_STATEMENT,
+        "verification_sentence": api.EVIDENCE_VERIFICATION_SENTENCE,
+        "payload_limit_sentence": api.PAYLOAD_LIMIT_SENTENCE,
+        "raw_sha256_label": api.RAW_SHA256_LABEL,
+        "payload_hash_label": api.PAYLOAD_HASH_LABEL,
+        "prohibited_claims": list(api.PROHIBITED_RELEASE_CLAIMS),
+        "record_validity_fields": [f.as_dict() for f in api.PUBLICATION_RECORD_FIELDS],
+    }
+    for field in sorted(actual):
+        _compare(failures, vector["id"], field, expected[field], actual[field])
+
+    statement = api.RELEASE_EVIDENCE_STATEMENT
+    head, tail = api.EVIDENCE_VERIFICATION_SENTENCE, api.PAYLOAD_LIMIT_SENTENCE
+    _compare(failures, vector["id"], "sentence_adjacency",
+             expected["separator_between_sentences"],
+             statement[len(head):len(statement) - len(tail)]
+             if statement.startswith(head) and statement.endswith(tail)
+             else "<the two sentences are not adjacent in the statement>")
+
+    for text in expected["refused_examples"]:
+        if not api.prohibited_release_claims(text):
+            failures.append(
+                f"{vector['id']}: prohibited claim not caught: {text!r}")
+    for text in expected["accepted_examples"]:
+        found = api.prohibited_release_claims(text)
+        if found:
+            failures.append(
+                f"{vector['id']}: admissible text refused: {text!r} -> {found!r}")
 
 
 def _verify_publish(api, vector, failures):
     entry = api.decode_entry(vector["input"]["document"])
-    registry = _registry_from(api, vector["input"]["evidence_registry"])
-    decision = api.evaluate_publishability(entry, evidence_registry=registry)
+    with materialized_registry(api, vector["input"]) as registry:
+        decision = api.evaluate_publishability(entry, evidence_registry=registry)
     expected = vector["expected"]
     _compare(failures, vector["id"], "publishable", expected["publishable"],
              decision.publishable)
     _compare(failures, vector["id"], "reasons", expected["reasons"],
              list(decision.reasons))
+    _compare(failures, vector["id"], "evidence_content_verified",
+             expected["evidence_content_verified"],
+             decision.evidence_content_verified)
     _compare(failures, vector["id"], "evidence", expected["evidence"],
              [{"artifact_type": r.ref.artifact_type,
                "artifact_hash": r.ref.artifact_hash,
-               "status": str(r.status), "resolved": r.resolved}
+               "status": str(r.status), "resolved": r.resolved,
+               "content_verified": r.content_verified,
+               "recomputed_digest": r.recomputed_digest,
+               "digest_comparison": r.digest_comparison,
+               "record_validity_problems": list(r.record_validity_problems)}
               for r in decision.evidence])
+    _compare(failures, vector["id"], "verification_record",
+             expected["verification_record"],
+             canonical_json(decision.content_verification_record()))
+    _compare(failures, vector["id"], "release_note", expected["release_note"],
+             decision.render_release_evidence_note())
 
 
 def _verify_availability(api, vector, failures):
     entry = api.decode_entry(vector["input"]["document"])
-    registry = _registry_from(api, vector["input"]["evidence_registry"])
-    public = api.select_layout_entries((entry,), exposure=api.Exposure.RELEASE,
-                                       evidence_registry=registry)
-    (layout,) = api.select_layout_entries(
-        (entry,), exposure=api.Exposure.DEVELOPMENT_STUBS,
-        evidence_registry=registry)
+    with materialized_registry(api, vector["input"]) as registry:
+        public = api.select_layout_entries(
+            (entry,), exposure=api.Exposure.RELEASE, evidence_registry=registry)
+        (layout,) = api.select_layout_entries(
+            (entry,), exposure=api.Exposure.DEVELOPMENT_STUBS,
+            evidence_registry=registry)
     expected = vector["expected"]
     _compare(failures, vector["id"], "in_public_catalog",
              expected["in_public_catalog"], len(public) == 1)
@@ -858,40 +1299,62 @@ def verify_pack(pack: dict[str, Any], package: str = CANONICAL_PACKAGE) -> list[
     api = load_api(package)
     failures: list[str] = []
     for vector in pack["vectors"]:
-        kind = vector["kind"]
-        if vector.get("schema_version") not in (None, pack["schema_version"]):
-            failures.append(f"{vector['id']}: schema_version disagrees with the pack")
-        if kind == "codec_accept":
-            _verify_codec_accept(api, vector, failures)
-        elif kind == "codec_reject":
-            _verify_rejection(vector, failures,
-                              lambda v=vector: api.decode_entry(v["input"]["document"]))
-        elif kind == "resolve":
-            _verify_resolve(api, vector, failures)
-        elif kind == "resolve_reject":
-            _verify_rejection(
-                vector, failures,
-                lambda v=vector: api.resolve_control(
-                    api.decode_entry(v["input"]["document"]),
-                    direction=v["input"]["direction"],
-                    strength=v["input"]["strength"]))
-        elif kind == "runtime_reject":
-            _verify_rejection(
-                vector, failures,
-                lambda v=vector: api.require_single_execution_group(
-                    api.decode_entry(v["input"]["document"]),
-                    v["input"]["direction"]))
-        elif kind == "runtime_accept":
-            _verify_runtime_accept(api, vector, failures)
-        elif kind == "publish":
-            _verify_publish(api, vector, failures)
-        elif kind == "availability":
-            _verify_availability(api, vector, failures)
-        elif kind == "fingerprint_relation":
-            _verify_fingerprint_relation(api, vector, failures)
-        else:
-            failures.append(f"{vector['id']}: unknown vector kind {kind!r}")
+        try:
+            _verify_one(api, vector, failures, pack["schema_version"])
+        except Exception as exc:
+            # A package that RAISES where the canonical one returned has diverged,
+            # and the divergence belongs in the failure list with every other one.
+            # Letting it propagate would abandon the rest of the run and leave an
+            # extractor fixing one thing per attempt.
+            failures.append(
+                f"{vector['id']}: raised {type(exc).__name__}: {exc}, where the "
+                f"canonical implementation returned a result")
     return failures
+
+
+def _verify_one(api, vector: dict[str, Any], failures: list[str],
+                pack_schema_version: str = SCHEMA_VERSION) -> None:
+    kind = vector["kind"]
+    if vector.get("schema_version") not in (None, pack_schema_version):
+        failures.append(f"{vector['id']}: schema_version disagrees with the pack")
+    if kind == "codec_accept":
+        _verify_codec_accept(api, vector, failures)
+    elif kind == "codec_reject":
+        _verify_rejection(vector, failures,
+                          lambda v=vector: api.decode_entry(v["input"]["document"]))
+    elif kind == "schema_reject":
+        _verify_rejection(
+            vector, failures,
+            lambda v=vector: api.EvidenceRef(**v["input"]["evidence_ref"]))
+    elif kind == "release_wording":
+        _verify_release_wording(api, vector, failures)
+    elif kind == "resolve":
+        _verify_resolve(api, vector, failures)
+    elif kind == "resolve_reject":
+        _verify_rejection(
+            vector, failures,
+            lambda v=vector: api.resolve_control(
+                api.decode_entry(v["input"]["document"]),
+                direction=v["input"]["direction"],
+                strength=v["input"]["strength"]))
+    elif kind == "runtime_reject":
+        _verify_rejection(
+            vector, failures,
+            lambda v=vector: api.require_single_execution_group(
+                api.decode_entry(v["input"]["document"]),
+                v["input"]["direction"]))
+    elif kind == "runtime_accept":
+        _verify_runtime_accept(api, vector, failures)
+    elif kind == "evidence":
+        _verify_evidence(api, vector, failures)
+    elif kind == "publish":
+        _verify_publish(api, vector, failures)
+    elif kind == "availability":
+        _verify_availability(api, vector, failures)
+    elif kind == "fingerprint_relation":
+        _verify_fingerprint_relation(api, vector, failures)
+    else:
+        failures.append(f"{vector['id']}: unknown vector kind {kind!r}")
 
 
 # ---------------------------------------------------------------------------
@@ -965,11 +1428,13 @@ def build_inventory(*, vectors_sha256: str, vectors_bytes: int,
             "contract_base_commit": CONTRACT_BASE_COMMIT,
             "frozen_at_commit": frozen_at_commit,
             "frozen_at_commit_note": (
-                "The commit that adds this pack cannot name itself: a file "
-                "cannot contain the hash of the commit containing it. This "
-                "field is stamped by an immediately following commit. "
-                "contract_base_commit is the commit the module hashes below "
-                "were taken from, and those files are unchanged by either."),
+                "The module hashes below are of the tree of frozen_at_commit. "
+                "The commit that regenerates this pack cannot name itself -- a "
+                "file cannot contain the hash of the commit containing it -- so "
+                "that field is stamped by an immediately following commit whose "
+                "only change is this line. contract_base_commit is the "
+                "predecessor this pack succeeds, not where the hashes come "
+                "from."),
         },
         "product_repository": {
             "note": (

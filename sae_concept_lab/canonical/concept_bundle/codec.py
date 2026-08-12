@@ -34,6 +34,7 @@ from typing import Any
 
 from .errors import BundleDecodeError, SchemaVersionError
 from .schema import (
+    ARTIFACT_TYPE_RE,
     BundleEntry,
     CalibrationProvenance,
     Direction,
@@ -95,7 +96,21 @@ def _enum(cls, raw: Any, where: str):
 
 def _decode_evidence(raw: Any, where: str) -> EvidenceRef:
     obj = _check_keys(raw, _EVIDENCE_REQUIRED, where)
-    return EvidenceRef(artifact_type=obj["artifact_type"],
+    artifact_type = obj["artifact_type"]
+    # Checked here as well as in the schema, and deliberately not as a redundant
+    # copy: this is the boundary a FILE crosses, so the refusal names the file
+    # position, and it stays in force if the schema's own rule is ever loosened.
+    # `artifact_type` becomes a directory name at resolution time; a decoder that
+    # accepted a separator or an uppercase letter would hand the resolver a path
+    # component from an untrusted document.
+    if not isinstance(artifact_type, str) or not ARTIFACT_TYPE_RE.match(artifact_type):
+        raise BundleDecodeError(
+            f"{where}.artifact_type: {artifact_type!r} must match "
+            f"{ARTIFACT_TYPE_RE.pattern}. It names a registry directory, so it is "
+            f"lowercase (a case-insensitive filesystem would otherwise resolve it "
+            f"to a different artifact than Linux does) and carries no separator, "
+            f"dot or space.")
+    return EvidenceRef(artifact_type=artifact_type,
                        artifact_hash=obj["artifact_hash"])
 
 

@@ -250,9 +250,15 @@ Two smaller correctness fixes rode along with this pass:
    per-tab.
 5. `evidence_registry_root`'s fail-closed pre-flight (absent/missing/
    unreadable/empty) is this product's own addition; canonical
-   `RepositoryEvidenceRegistry.resolve()` verifies a registry record's
-   own declared `self_hash` field against a reference's digest -- it does
-   not independently read a separately-stored raw artifact and recompute
-   a hash from its bytes. Flagged as a canonical-source defect (not
-   duplicated or weakened here); see `../BOUNDARY.md` and
-   `fixtures/loader.py::enforce_release_gate`'s release diagnostics.
+   `RepositoryEvidenceRegistry.resolve()` reads a registry record's bytes
+   and recomputes its content digest (sha256 over canonical JSON,
+   `self_hash` excluded), comparing that recomputation to the reference --
+   see `../BOUNDARY.md` for why this was, until the final evidence
+   contract (qwen-sae-interp checkout `3a9c153`, frozen pack `2a95a49`), a
+   documented canonical-source defect (the earlier pack verified only a
+   record's own self-declared `self_hash` field, never independent
+   content). `fixtures/loader.py::enforce_release_gate` prints the
+   canonical package's own mandatory release wording
+   (`release.RELEASE_EVIDENCE_STATEMENT`) and per-reference note
+   (`ReleaseDecision.render_release_evidence_note()`) verbatim, never a
+   product-composed paraphrase of what was checked.

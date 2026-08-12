@@ -14,16 +14,20 @@
       "execution grouping",
       "direction availability",
       "publishability reasons",
-      "evidence resolution"
+      "evidence resolution, field by field"
     ]
   },
-  "contract_base_commit": "4675def305d7af3a9234dc2999d23d5d996b8115",
+  "contract_base_commit": "1f617f30e6272dd1cdb344948120acb844c6f459",
   "determinism": "no clock, no random source, no network, no model weights",
-  "fixture_status": "Every entry here is scientifically meaningless. Most carry provenance 'fake' and are refused outright. The attested vectors resolve their evidence only against the in-memory registry each vector declares; those artifacts are absent from the repository registry, so no vector can publish in a real build.",
+  "evidence_verification": "Evidence vectors declare FILES, not digests. Resolution reads the bytes and recomputes the content digest in the artifact's own domain -- sha256 over canonical JSON of the artifact without its self_hash field -- and compares that to the reference. A self-declared self_hash never attests.",
+  "fixture_status": "Every entry here is scientifically meaningless. Most carry provenance 'fake' and are refused outright. The attested vectors cite evidence artifacts whose content each vector declares and which are written into a temporary registry at verification time; that content is invented and its artifact types have no directory in the repository registry, so no vector can publish in a real build.",
   "generator": "scripts/concept_bundle_conformance.py",
   "pack_version": "1.0",
+  "publication_digest": "A public release requires sha256: followed by all 64 lowercase hex characters. Prefix references stay fully supported for development and inspection and are verified by content exactly as full ones are; they are only unpublishable. The rule is applied unconditionally: no configuration, environment variable, CLI flag or call-site argument weakens it.",
+  "record_validity": "A correct digest says the bytes are the bytes that were cited. It does not say they are an artifact. Every canonical field the release path reads is checked separately for presence, type and emptiness, and a record that hashes correctly and fails that check is invalid_record -- not resolved, not publishable.",
   "schema_version": "1.0",
-  "vector_count": 50,
+  "scope_of_the_claim": "ONE registry record is read and rehashed per reference. The corpora, datasets, checkpoints and directories that record points at are NOT read or rehashed, every hash of them is emitted labelled 'recorded, not revalidated', and the digest of the literal file bytes is emitted labelled 'non-authoritative'. The mandatory release wording states both halves together.",
+  "vector_count": 75,
   "vectors": [
     {
       "description": "a fake entry renders only under development exposure",
@@ -34,7 +38,8 @@
         ],
         "block_reasons": [
           "provenance is 'fake', must be exactly 'attested'",
-          "evidence fake_artifact_do_not_ship:0123456789ab is unresolvable: no artifact of type 'fake_artifact_do_not_ship' with hash12 '0123456789ab' in this registry",
+          "evidence fake_artifact_do_not_ship:0123456789ab is unresolvable: no registry artifact at this path",
+          "not every evidence registry record was resolved AND verified by content; existence and a self-declared digest do not attest",
           "calibration_provenance.calibrated_by contains placeholder marker(s) ['fake']",
           "concept_id contains placeholder marker(s) ['fake', 'do_not_ship']",
           "pairing_id contains placeholder marker(s) ['fake', 'do-not-ship']",
@@ -53,7 +58,8 @@
       "id": "availability.both_null_development_only",
       "input": {
         "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_alpha\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.5},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.25},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.75}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}",
-        "evidence_registry": []
+        "files": [],
+        "outside_files": []
       },
       "kind": "availability",
       "schema_version": "1.0"
@@ -73,13 +79,43 @@
       },
       "id": "availability.one_direction_public",
       "input": {
-        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2026-01-01T00:00:00+00:00\",\"calibrated_by\":\"conformance harness\",\"evidence\":[{\"artifact_hash\":\"sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\"}]},\"concept_id\":\"conformance.vector.one.direction\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]},\"suppress\":null},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"positions\":\"generated_only\",\"provenance\":\"attested\",\"schema_version\":\"1.0\"}",
-        "evidence_registry": [
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2026-01-01T00:00:00+00:00\",\"calibrated_by\":\"conformance harness\",\"evidence\":[{\"artifact_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\"}]},\"concept_id\":\"conformance.vector.one.direction\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]},\"suppress\":null},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"positions\":\"generated_only\",\"provenance\":\"attested\",\"schema_version\":\"1.0\"}",
+        "files": [
           {
-            "artifact_type": "conformance_artifact_not_in_the_registry",
-            "self_hash": "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
+            "path": "conformance_artifact_not_in_the_registry/c4e43a605f1e.json",
+            "text": "{\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"created_at\":\"2000-01-01T00:00:00Z\",\"created_by\":{\"code_commit\":\"0000000000000000000000000000000000000000\",\"entrypoint\":\"scripts.concept_bundle_conformance\",\"host\":\"conformance\",\"run_id\":\"r20000101-0000-fake\"},\"payload\":{\"note\":\"meaningless conformance content\"},\"schema_version\":1,\"self_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"subject\":[]}"
           }
-        ]
+        ],
+        "outside_files": []
+      },
+      "kind": "availability",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "unverifiable evidence keeps a concept out of the public catalog",
+      "expected": {
+        "available_directions": [
+          "amplify",
+          "suppress"
+        ],
+        "block_reasons": [
+          "evidence conformance_artifact_not_in_the_registry:sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd is digest_mismatch: content recomputes to sha256:82124d1bb80db0fad26c984caf410d0701075109575b618ffc1dd0c074f32504 which the reference sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd does not name; the artifact's own self_hash sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd also disagrees with its content, so it was edited after it was written",
+          "not every evidence registry record was resolved AND verified by content; existence and a self-declared digest do not attest"
+        ],
+        "in_public_catalog": false,
+        "is_development_stub": true,
+        "unavailable_directions": []
+      },
+      "id": "availability.tampered_evidence_is_development_only",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2026-01-01T00:00:00+00:00\",\"calibrated_by\":\"conformance harness\",\"evidence\":[{\"artifact_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\"}]},\"concept_id\":\"conformance.vector.attested\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]}},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"positions\":\"generated_only\",\"provenance\":\"attested\",\"schema_version\":\"1.0\"}",
+        "files": [
+          {
+            "path": "conformance_artifact_not_in_the_registry/c4e43a605f1e.json",
+            "text": "{\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"created_at\":\"2000-01-01T00:00:00Z\",\"created_by\":{\"code_commit\":\"0000000000000000000000000000000000000000\",\"entrypoint\":\"scripts.concept_bundle_conformance\",\"host\":\"conformance\",\"run_id\":\"r20000101-0000-fake\"},\"payload\":{\"note\":\"edited after writing\"},\"schema_version\":1,\"self_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"subject\":[]}"
+          }
+        ],
+        "outside_files": []
       },
       "kind": "availability",
       "schema_version": "1.0"
@@ -98,13 +134,14 @@
       },
       "id": "availability.two_direction_public",
       "input": {
-        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2026-01-01T00:00:00+00:00\",\"calibrated_by\":\"conformance harness\",\"evidence\":[{\"artifact_hash\":\"sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\"}]},\"concept_id\":\"conformance.vector.attested\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]}},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"positions\":\"generated_only\",\"provenance\":\"attested\",\"schema_version\":\"1.0\"}",
-        "evidence_registry": [
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2026-01-01T00:00:00+00:00\",\"calibrated_by\":\"conformance harness\",\"evidence\":[{\"artifact_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\"}]},\"concept_id\":\"conformance.vector.attested\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]}},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"positions\":\"generated_only\",\"provenance\":\"attested\",\"schema_version\":\"1.0\"}",
+        "files": [
           {
-            "artifact_type": "conformance_artifact_not_in_the_registry",
-            "self_hash": "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
+            "path": "conformance_artifact_not_in_the_registry/c4e43a605f1e.json",
+            "text": "{\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"created_at\":\"2000-01-01T00:00:00Z\",\"created_by\":{\"code_commit\":\"0000000000000000000000000000000000000000\",\"entrypoint\":\"scripts.concept_bundle_conformance\",\"host\":\"conformance\",\"run_id\":\"r20000101-0000-fake\"},\"payload\":{\"note\":\"meaningless conformance content\"},\"schema_version\":1,\"self_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"subject\":[]}"
           }
-        ]
+        ],
+        "outside_files": []
       },
       "kind": "availability",
       "schema_version": "1.0"
@@ -251,6 +288,34 @@
       "id": "codec.reject.ablate_with_a_value",
       "input": {
         "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_ablation\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"ablate\",\"unit\":null,\"unit_source\":null,\"value\":2.0},\"low\":{\"operation\":\"ablate\",\"unit\":null,\"unit_source\":null,\"value\":null},\"medium\":{\"operation\":\"ablate\",\"unit\":null,\"unit_source\":null,\"value\":null}},\"targets\":[{\"feature_idx\":1000,\"layer\":12,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":12,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1200,\"layer\":12,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}"
+      },
+      "kind": "codec_reject",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "one spelling of a registry directory name, not two",
+      "expected": {
+        "classification": null,
+        "exception": "BundleDecodeError",
+        "message": "<string>.calibration_provenance.evidence[0].artifact_type: 'census-report' must match ^[a-z0-9][a-z0-9_]*$. It names a registry directory, so it is lowercase (a case-insensitive filesystem would otherwise resolve it to a different artifact than Linux does) and carries no separator, dot or space."
+      },
+      "id": "codec.reject.artifact_type_with_a_hyphen",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2026-01-01T00:00:00+00:00\",\"calibrated_by\":\"conformance harness\",\"evidence\":[{\"artifact_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"artifact_type\":\"census-report\"}]},\"concept_id\":\"conformance.vector.attested\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]}},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"positions\":\"generated_only\",\"provenance\":\"attested\",\"schema_version\":\"1.0\"}"
+      },
+      "kind": "codec_reject",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "a decoder that passed this through would hand the resolver a path component out of an untrusted document",
+      "expected": {
+        "classification": null,
+        "exception": "BundleDecodeError",
+        "message": "<string>.calibration_provenance.evidence[0].artifact_type: '../outside/run_card' must match ^[a-z0-9][a-z0-9_]*$. It names a registry directory, so it is lowercase (a case-insensitive filesystem would otherwise resolve it to a different artifact than Linux does) and carries no separator, dot or space."
+      },
+      "id": "codec.reject.artifact_type_with_a_separator",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2026-01-01T00:00:00+00:00\",\"calibrated_by\":\"conformance harness\",\"evidence\":[{\"artifact_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"artifact_type\":\"../outside/run_card\"}]},\"concept_id\":\"conformance.vector.attested\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]}},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"positions\":\"generated_only\",\"provenance\":\"attested\",\"schema_version\":\"1.0\"}"
       },
       "kind": "codec_reject",
       "schema_version": "1.0"
@@ -516,7 +581,21 @@
       },
       "id": "codec.reject.unqualified_timestamp",
       "input": {
-        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2026-01-01T00:00:00\",\"calibrated_by\":\"conformance harness\",\"evidence\":[{\"artifact_hash\":\"sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\"}]},\"concept_id\":\"conformance.vector.attested\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]}},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"positions\":\"generated_only\",\"provenance\":\"attested\",\"schema_version\":\"1.0\"}"
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2026-01-01T00:00:00\",\"calibrated_by\":\"conformance harness\",\"evidence\":[{\"artifact_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\"}]},\"concept_id\":\"conformance.vector.attested\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]}},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"positions\":\"generated_only\",\"provenance\":\"attested\",\"schema_version\":\"1.0\"}"
+      },
+      "kind": "codec_reject",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "an artifact_type names a registry directory: on a case-insensitive filesystem this is the same directory as its lowercase twin and a different one on Linux",
+      "expected": {
+        "classification": null,
+        "exception": "BundleDecodeError",
+        "message": "<string>.calibration_provenance.evidence[0].artifact_type: 'Census_Report' must match ^[a-z0-9][a-z0-9_]*$. It names a registry directory, so it is lowercase (a case-insensitive filesystem would otherwise resolve it to a different artifact than Linux does) and carries no separator, dot or space."
+      },
+      "id": "codec.reject.uppercase_artifact_type",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2026-01-01T00:00:00+00:00\",\"calibrated_by\":\"conformance harness\",\"evidence\":[{\"artifact_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"artifact_type\":\"Census_Report\"}]},\"concept_id\":\"conformance.vector.attested\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]}},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"positions\":\"generated_only\",\"provenance\":\"attested\",\"schema_version\":\"1.0\"}"
       },
       "kind": "codec_reject",
       "schema_version": "1.0"
@@ -533,6 +612,484 @@
         "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_alpha\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":0.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.5},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.25},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.75}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}"
       },
       "kind": "codec_reject",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "content read, digest recomputed here, and it matches the reference",
+      "expected": {
+        "as_record": "{\"artifact_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"content_digest\":{\"domain\":\"sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\",\"label\":\"authoritative\",\"value\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\"},\"content_verified\":true,\"declared_self_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"detail\":\"content read and digest recomputed; matches the reference in full\",\"digest_comparison\":\"full\",\"location\":\"conformance_artifact_not_in_the_registry/c4e43a605f1e.json\",\"payload_hashes\":[],\"publication_digest_form\":true,\"raw_sha256\":{\"label\":\"non-authoritative\",\"value\":\"768b33fffc95ced6b22ef467c9a6a3c35ad0c697369a35209828bb6e98021772\"},\"record_identity\":{\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"code_commit\":\"0000000000000000000000000000000000000000\",\"created_at\":\"2000-01-01T00:00:00Z\",\"entrypoint\":\"scripts.concept_bundle_conformance\",\"host\":\"conformance\",\"run_id\":\"r20000101-0000-fake\",\"schema_version\":1,\"subject_count\":0},\"record_validity_problems\":[],\"status\":\"resolved\"}",
+        "content_verified": true,
+        "declared_digest": "sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd",
+        "detail": "content read and digest recomputed; matches the reference in full",
+        "digest_comparison": "full",
+        "location": "conformance_artifact_not_in_the_registry/c4e43a605f1e.json",
+        "payload_hashes": [],
+        "raw_sha256": "768b33fffc95ced6b22ef467c9a6a3c35ad0c697369a35209828bb6e98021772",
+        "recomputed_digest": "sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd",
+        "record_identity": {
+          "artifact_type": "conformance_artifact_not_in_the_registry",
+          "code_commit": "0000000000000000000000000000000000000000",
+          "created_at": "2000-01-01T00:00:00Z",
+          "entrypoint": "scripts.concept_bundle_conformance",
+          "host": "conformance",
+          "run_id": "r20000101-0000-fake",
+          "schema_version": 1,
+          "subject_count": 0
+        },
+        "record_validity_problems": [],
+        "resolved": true,
+        "status": "resolved"
+      },
+      "id": "evidence.accept.correct_content",
+      "input": {
+        "files": [
+          {
+            "path": "conformance_artifact_not_in_the_registry/c4e43a605f1e.json",
+            "text": "{\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"created_at\":\"2000-01-01T00:00:00Z\",\"created_by\":{\"code_commit\":\"0000000000000000000000000000000000000000\",\"entrypoint\":\"scripts.concept_bundle_conformance\",\"host\":\"conformance\",\"run_id\":\"r20000101-0000-fake\"},\"payload\":{\"note\":\"meaningless conformance content\"},\"schema_version\":1,\"self_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"subject\":[]}"
+          }
+        ],
+        "outside_files": [],
+        "ref": {
+          "artifact_hash": "sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd",
+          "artifact_type": "conformance_artifact_not_in_the_registry"
+        }
+      },
+      "kind": "evidence",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "the record points at a corpus. That hash is emitted labelled 'recorded, not revalidated' -- nothing here reads or rehashes it",
+      "expected": {
+        "as_record": "{\"artifact_hash\":\"sha256:b9d00de965c8329807766650f12abf3fc00baa9ea3685364aaaaca20ea53ef15\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"content_digest\":{\"domain\":\"sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\",\"label\":\"authoritative\",\"value\":\"sha256:b9d00de965c8329807766650f12abf3fc00baa9ea3685364aaaaca20ea53ef15\"},\"content_verified\":true,\"declared_self_hash\":\"sha256:b9d00de965c8329807766650f12abf3fc00baa9ea3685364aaaaca20ea53ef15\",\"detail\":\"content read and digest recomputed; matches the reference in full\",\"digest_comparison\":\"full\",\"location\":\"conformance_artifact_not_in_the_registry/b9d00de965c8.json\",\"payload_hashes\":[{\"label\":\"recorded, not revalidated\",\"path\":\"subject[0].content_hash\",\"value\":\"sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"}],\"publication_digest_form\":true,\"raw_sha256\":{\"label\":\"non-authoritative\",\"value\":\"54341095d09e19cec4954d3d241132a3e13c78dcbb683f9d7239feaea1ae5d85\"},\"record_identity\":{\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"code_commit\":\"0000000000000000000000000000000000000000\",\"created_at\":\"2000-01-01T00:00:00Z\",\"entrypoint\":\"scripts.concept_bundle_conformance\",\"host\":\"conformance\",\"run_id\":\"r20000101-0000-fake\",\"schema_version\":1,\"subject_count\":1},\"record_validity_problems\":[],\"status\":\"resolved\"}",
+        "content_verified": true,
+        "declared_digest": "sha256:b9d00de965c8329807766650f12abf3fc00baa9ea3685364aaaaca20ea53ef15",
+        "detail": "content read and digest recomputed; matches the reference in full",
+        "digest_comparison": "full",
+        "location": "conformance_artifact_not_in_the_registry/b9d00de965c8.json",
+        "payload_hashes": [
+          {
+            "label": "recorded, not revalidated",
+            "path": "subject[0].content_hash",
+            "value": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        ],
+        "raw_sha256": "54341095d09e19cec4954d3d241132a3e13c78dcbb683f9d7239feaea1ae5d85",
+        "recomputed_digest": "sha256:b9d00de965c8329807766650f12abf3fc00baa9ea3685364aaaaca20ea53ef15",
+        "record_identity": {
+          "artifact_type": "conformance_artifact_not_in_the_registry",
+          "code_commit": "0000000000000000000000000000000000000000",
+          "created_at": "2000-01-01T00:00:00Z",
+          "entrypoint": "scripts.concept_bundle_conformance",
+          "host": "conformance",
+          "run_id": "r20000101-0000-fake",
+          "schema_version": 1,
+          "subject_count": 1
+        },
+        "record_validity_problems": [],
+        "resolved": true,
+        "status": "resolved"
+      },
+      "id": "evidence.accept.payload_targets_are_labelled_not_verified",
+      "input": {
+        "files": [
+          {
+            "path": "conformance_artifact_not_in_the_registry/b9d00de965c8.json",
+            "text": "{\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"created_at\":\"2000-01-01T00:00:00Z\",\"created_by\":{\"code_commit\":\"0000000000000000000000000000000000000000\",\"entrypoint\":\"scripts.concept_bundle_conformance\",\"host\":\"conformance\",\"run_id\":\"r20000101-0000-fake\"},\"payload\":{\"note\":\"meaningless conformance content\"},\"schema_version\":1,\"self_hash\":\"sha256:b9d00de965c8329807766650f12abf3fc00baa9ea3685364aaaaca20ea53ef15\",\"subject\":[{\"content_hash\":\"sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"location\":\"local:data/raw/not_read_by_this_package\",\"role\":\"corpus_manifest\"}]}"
+          }
+        ],
+        "outside_files": [],
+        "ref": {
+          "artifact_hash": "sha256:b9d00de965c8329807766650f12abf3fc00baa9ea3685364aaaaca20ea53ef15",
+          "artifact_type": "conformance_artifact_not_in_the_registry"
+        }
+      },
+      "kind": "evidence",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "a 12-character reference is still verified against content, and is marked as a prefix match rather than a full one",
+      "expected": {
+        "as_record": "{\"artifact_hash\":\"c4e43a605f1e\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"content_digest\":{\"domain\":\"sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\",\"label\":\"authoritative\",\"value\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\"},\"content_verified\":true,\"declared_self_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"detail\":\"content read and digest recomputed; the reference carries only 12 of 64 hex characters, so it was matched as a prefix\",\"digest_comparison\":\"prefix\",\"location\":\"conformance_artifact_not_in_the_registry/c4e43a605f1e.json\",\"payload_hashes\":[],\"publication_digest_form\":false,\"raw_sha256\":{\"label\":\"non-authoritative\",\"value\":\"768b33fffc95ced6b22ef467c9a6a3c35ad0c697369a35209828bb6e98021772\"},\"record_identity\":{\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"code_commit\":\"0000000000000000000000000000000000000000\",\"created_at\":\"2000-01-01T00:00:00Z\",\"entrypoint\":\"scripts.concept_bundle_conformance\",\"host\":\"conformance\",\"run_id\":\"r20000101-0000-fake\",\"schema_version\":1,\"subject_count\":0},\"record_validity_problems\":[],\"status\":\"resolved\"}",
+        "content_verified": true,
+        "declared_digest": "sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd",
+        "detail": "content read and digest recomputed; the reference carries only 12 of 64 hex characters, so it was matched as a prefix",
+        "digest_comparison": "prefix",
+        "location": "conformance_artifact_not_in_the_registry/c4e43a605f1e.json",
+        "payload_hashes": [],
+        "raw_sha256": "768b33fffc95ced6b22ef467c9a6a3c35ad0c697369a35209828bb6e98021772",
+        "recomputed_digest": "sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd",
+        "record_identity": {
+          "artifact_type": "conformance_artifact_not_in_the_registry",
+          "code_commit": "0000000000000000000000000000000000000000",
+          "created_at": "2000-01-01T00:00:00Z",
+          "entrypoint": "scripts.concept_bundle_conformance",
+          "host": "conformance",
+          "run_id": "r20000101-0000-fake",
+          "schema_version": 1,
+          "subject_count": 0
+        },
+        "record_validity_problems": [],
+        "resolved": true,
+        "status": "resolved"
+      },
+      "id": "evidence.accept.prefix_reference",
+      "input": {
+        "files": [
+          {
+            "path": "conformance_artifact_not_in_the_registry/c4e43a605f1e.json",
+            "text": "{\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"created_at\":\"2000-01-01T00:00:00Z\",\"created_by\":{\"code_commit\":\"0000000000000000000000000000000000000000\",\"entrypoint\":\"scripts.concept_bundle_conformance\",\"host\":\"conformance\",\"run_id\":\"r20000101-0000-fake\"},\"payload\":{\"note\":\"meaningless conformance content\"},\"schema_version\":1,\"self_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"subject\":[]}"
+          }
+        ],
+        "outside_files": [],
+        "ref": {
+          "artifact_hash": "c4e43a605f1e",
+          "artifact_type": "conformance_artifact_not_in_the_registry"
+        }
+      },
+      "kind": "evidence",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "one content address filed under two artifact types: the registry contradicting itself about what the content is",
+      "expected": {
+        "as_record": "{\"artifact_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"content_digest\":{\"domain\":\"sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\",\"label\":\"authoritative\",\"value\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\"},\"content_verified\":false,\"declared_self_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"detail\":\"this content digest is also filed under ['conformance_second_type']; one content address naming several artifact types means the registry disagrees with itself about what the content is\",\"digest_comparison\":\"\",\"location\":\"conformance_artifact_not_in_the_registry/c4e43a605f1e.json\",\"payload_hashes\":[],\"publication_digest_form\":true,\"raw_sha256\":{\"label\":\"non-authoritative\",\"value\":\"768b33fffc95ced6b22ef467c9a6a3c35ad0c697369a35209828bb6e98021772\"},\"record_identity\":null,\"record_validity_problems\":[],\"status\":\"ambiguous\"}",
+        "content_verified": false,
+        "declared_digest": "sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd",
+        "detail": "this content digest is also filed under ['conformance_second_type']; one content address naming several artifact types means the registry disagrees with itself about what the content is",
+        "digest_comparison": "",
+        "location": "conformance_artifact_not_in_the_registry/c4e43a605f1e.json",
+        "payload_hashes": [],
+        "raw_sha256": "768b33fffc95ced6b22ef467c9a6a3c35ad0c697369a35209828bb6e98021772",
+        "recomputed_digest": "sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd",
+        "record_identity": null,
+        "record_validity_problems": [],
+        "resolved": false,
+        "status": "ambiguous"
+      },
+      "id": "evidence.reject.ambiguous_across_types",
+      "input": {
+        "files": [
+          {
+            "path": "conformance_artifact_not_in_the_registry/c4e43a605f1e.json",
+            "text": "{\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"created_at\":\"2000-01-01T00:00:00Z\",\"created_by\":{\"code_commit\":\"0000000000000000000000000000000000000000\",\"entrypoint\":\"scripts.concept_bundle_conformance\",\"host\":\"conformance\",\"run_id\":\"r20000101-0000-fake\"},\"payload\":{\"note\":\"meaningless conformance content\"},\"schema_version\":1,\"self_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"subject\":[]}"
+          },
+          {
+            "path": "conformance_second_type/c4e43a605f1e.json",
+            "text": "{\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"created_at\":\"2000-01-01T00:00:00Z\",\"created_by\":{\"code_commit\":\"0000000000000000000000000000000000000000\",\"entrypoint\":\"scripts.concept_bundle_conformance\",\"host\":\"conformance\",\"run_id\":\"r20000101-0000-fake\"},\"payload\":{\"note\":\"meaningless conformance content\"},\"schema_version\":1,\"self_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"subject\":[]}"
+          }
+        ],
+        "outside_files": [],
+        "ref": {
+          "artifact_hash": "sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd",
+          "artifact_type": "conformance_artifact_not_in_the_registry"
+        }
+      },
+      "kind": "evidence",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "an empty file has no content to attest with",
+      "expected": {
+        "as_record": "{\"artifact_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"content_digest\":{\"domain\":\"sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\",\"label\":\"authoritative\",\"value\":\"\"},\"content_verified\":false,\"declared_self_hash\":\"\",\"detail\":\"artifact is empty; an empty file has no content to attest with\",\"digest_comparison\":\"\",\"location\":\"conformance_artifact_not_in_the_registry/c4e43a605f1e.json\",\"payload_hashes\":[],\"publication_digest_form\":true,\"raw_sha256\":{\"label\":\"non-authoritative\",\"value\":\"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"},\"record_identity\":null,\"record_validity_problems\":[],\"status\":\"malformed\"}",
+        "content_verified": false,
+        "declared_digest": "",
+        "detail": "artifact is empty; an empty file has no content to attest with",
+        "digest_comparison": "",
+        "location": "conformance_artifact_not_in_the_registry/c4e43a605f1e.json",
+        "payload_hashes": [],
+        "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "recomputed_digest": "",
+        "record_identity": null,
+        "record_validity_problems": [],
+        "resolved": false,
+        "status": "malformed"
+      },
+      "id": "evidence.reject.empty_content",
+      "input": {
+        "files": [
+          {
+            "path": "conformance_artifact_not_in_the_registry/c4e43a605f1e.json",
+            "text": ""
+          }
+        ],
+        "outside_files": [],
+        "ref": {
+          "artifact_hash": "sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd",
+          "artifact_type": "conformance_artifact_not_in_the_registry"
+        }
+      },
+      "kind": "evidence",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "the digest matches the reference EXACTLY and the record is still refused: a correct digest says these are the bytes that were cited, not that they are an artifact",
+      "expected": {
+        "as_record": "{\"artifact_hash\":\"sha256:afaa825184f472d29986ab0b6943e57720a637d34937a03acbf023cc6c158129\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"content_digest\":{\"domain\":\"sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\",\"label\":\"authoritative\",\"value\":\"sha256:afaa825184f472d29986ab0b6943e57720a637d34937a03acbf023cc6c158129\"},\"content_verified\":false,\"declared_self_hash\":\"sha256:afaa825184f472d29986ab0b6943e57720a637d34937a03acbf023cc6c158129\",\"detail\":\"content read and digest recomputed, and it MATCHES the reference -- the record is still not a valid registry record: created_at is missing. A correct digest attests that these are the bytes that were cited, not that they are an artifact.\",\"digest_comparison\":\"\",\"location\":\"conformance_artifact_not_in_the_registry/afaa825184f4.json\",\"payload_hashes\":[],\"publication_digest_form\":true,\"raw_sha256\":{\"label\":\"non-authoritative\",\"value\":\"49a6b3095412b1fa4cd01f226c849c5bd7dd8e58bb0882cd200ff50a00fa1bb9\"},\"record_identity\":null,\"record_validity_problems\":[\"created_at is missing\"],\"status\":\"invalid_record\"}",
+        "content_verified": false,
+        "declared_digest": "sha256:afaa825184f472d29986ab0b6943e57720a637d34937a03acbf023cc6c158129",
+        "detail": "content read and digest recomputed, and it MATCHES the reference -- the record is still not a valid registry record: created_at is missing. A correct digest attests that these are the bytes that were cited, not that they are an artifact.",
+        "digest_comparison": "",
+        "location": "conformance_artifact_not_in_the_registry/afaa825184f4.json",
+        "payload_hashes": [],
+        "raw_sha256": "49a6b3095412b1fa4cd01f226c849c5bd7dd8e58bb0882cd200ff50a00fa1bb9",
+        "recomputed_digest": "sha256:afaa825184f472d29986ab0b6943e57720a637d34937a03acbf023cc6c158129",
+        "record_identity": null,
+        "record_validity_problems": [
+          "created_at is missing"
+        ],
+        "resolved": false,
+        "status": "invalid_record"
+      },
+      "id": "evidence.reject.invalid_record_missing_created_at",
+      "input": {
+        "files": [
+          {
+            "path": "conformance_artifact_not_in_the_registry/afaa825184f4.json",
+            "text": "{\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"created_by\":{\"code_commit\":\"0000000000000000000000000000000000000000\",\"entrypoint\":\"scripts.concept_bundle_conformance\",\"host\":\"conformance\",\"run_id\":\"r20000101-0000-fake\"},\"payload\":{\"note\":\"meaningless conformance content\"},\"schema_version\":1,\"self_hash\":\"sha256:afaa825184f472d29986ab0b6943e57720a637d34937a03acbf023cc6c158129\",\"subject\":[]}"
+          }
+        ],
+        "outside_files": [],
+        "ref": {
+          "artifact_hash": "sha256:afaa825184f472d29986ab0b6943e57720a637d34937a03acbf023cc6c158129",
+          "artifact_type": "conformance_artifact_not_in_the_registry"
+        }
+      },
+      "kind": "evidence",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "nothing at the address the reference names",
+      "expected": {
+        "as_record": "{\"artifact_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"content_digest\":{\"domain\":\"sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\",\"label\":\"authoritative\",\"value\":\"\"},\"content_verified\":false,\"declared_self_hash\":\"\",\"detail\":\"no registry artifact at this path\",\"digest_comparison\":\"\",\"location\":\"conformance_artifact_not_in_the_registry/c4e43a605f1e.json\",\"payload_hashes\":[],\"publication_digest_form\":true,\"raw_sha256\":{\"label\":\"non-authoritative\",\"value\":\"\"},\"record_identity\":null,\"record_validity_problems\":[],\"status\":\"unresolvable\"}",
+        "content_verified": false,
+        "declared_digest": "",
+        "detail": "no registry artifact at this path",
+        "digest_comparison": "",
+        "location": "conformance_artifact_not_in_the_registry/c4e43a605f1e.json",
+        "payload_hashes": [],
+        "raw_sha256": "",
+        "recomputed_digest": "",
+        "record_identity": null,
+        "record_validity_problems": [],
+        "resolved": false,
+        "status": "unresolvable"
+      },
+      "id": "evidence.reject.missing_content",
+      "input": {
+        "files": [],
+        "outside_files": [],
+        "ref": {
+          "artifact_hash": "sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd",
+          "artifact_type": "conformance_artifact_not_in_the_registry"
+        }
+      },
+      "kind": "evidence",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "declares no identity at all, which is not the same as declaring the wrong one",
+      "expected": {
+        "as_record": "{\"artifact_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"content_digest\":{\"domain\":\"sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\",\"label\":\"authoritative\",\"value\":\"\"},\"content_verified\":false,\"declared_self_hash\":\"\",\"detail\":\"artifact has no usable self_hash field, so it does not declare an identity to check its content against\",\"digest_comparison\":\"\",\"location\":\"conformance_artifact_not_in_the_registry/c4e43a605f1e.json\",\"payload_hashes\":[],\"publication_digest_form\":true,\"raw_sha256\":{\"label\":\"non-authoritative\",\"value\":\"c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\"},\"record_identity\":null,\"record_validity_problems\":[],\"status\":\"malformed\"}",
+        "content_verified": false,
+        "declared_digest": "",
+        "detail": "artifact has no usable self_hash field, so it does not declare an identity to check its content against",
+        "digest_comparison": "",
+        "location": "conformance_artifact_not_in_the_registry/c4e43a605f1e.json",
+        "payload_hashes": [],
+        "raw_sha256": "c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd",
+        "recomputed_digest": "",
+        "record_identity": null,
+        "record_validity_problems": [],
+        "resolved": false,
+        "status": "malformed"
+      },
+      "id": "evidence.reject.no_self_hash",
+      "input": {
+        "files": [
+          {
+            "path": "conformance_artifact_not_in_the_registry/c4e43a605f1e.json",
+            "text": "{\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"created_at\":\"2000-01-01T00:00:00Z\",\"created_by\":{\"code_commit\":\"0000000000000000000000000000000000000000\",\"entrypoint\":\"scripts.concept_bundle_conformance\",\"host\":\"conformance\",\"run_id\":\"r20000101-0000-fake\"},\"payload\":{\"note\":\"meaningless conformance content\"},\"schema_version\":1,\"subject\":[]}"
+          }
+        ],
+        "outside_files": [],
+        "ref": {
+          "artifact_hash": "sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd",
+          "artifact_type": "conformance_artifact_not_in_the_registry"
+        }
+      },
+      "kind": "evidence",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "a correctly sealed artifact outside the root, reachable only by traversal. The root is an access path, not a trust anchor. The reference reaches past schema validation deliberately: the resolver's barrier is the one being tested here",
+      "expected": {
+        "as_record": "{\"artifact_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"artifact_type\":\"../outside/conformance_artifact_not_in_the_registry\",\"content_digest\":{\"domain\":\"sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\",\"label\":\"authoritative\",\"value\":\"\"},\"content_verified\":false,\"declared_self_hash\":\"\",\"detail\":\"artifact_type '../outside/conformance_artifact_not_in_the_registry' is not a single safe path component; refused before any path was joined\",\"digest_comparison\":\"\",\"location\":\"\",\"payload_hashes\":[],\"publication_digest_form\":true,\"raw_sha256\":{\"label\":\"non-authoritative\",\"value\":\"\"},\"record_identity\":null,\"record_validity_problems\":[],\"status\":\"out_of_root\"}",
+        "content_verified": false,
+        "declared_digest": "",
+        "detail": "artifact_type '../outside/conformance_artifact_not_in_the_registry' is not a single safe path component; refused before any path was joined",
+        "digest_comparison": "",
+        "location": "",
+        "payload_hashes": [],
+        "raw_sha256": "",
+        "recomputed_digest": "",
+        "record_identity": null,
+        "record_validity_problems": [],
+        "resolved": false,
+        "status": "out_of_root"
+      },
+      "id": "evidence.reject.path_escape",
+      "input": {
+        "files": [],
+        "outside_files": [
+          {
+            "path": "conformance_artifact_not_in_the_registry/c4e43a605f1e.json",
+            "text": "{\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"created_at\":\"2000-01-01T00:00:00Z\",\"created_by\":{\"code_commit\":\"0000000000000000000000000000000000000000\",\"entrypoint\":\"scripts.concept_bundle_conformance\",\"host\":\"conformance\",\"run_id\":\"r20000101-0000-fake\"},\"payload\":{\"note\":\"meaningless conformance content\"},\"schema_version\":1,\"self_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"subject\":[]}"
+          }
+        ],
+        "ref": {
+          "artifact_hash": "sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd",
+          "artifact_type": "../outside/conformance_artifact_not_in_the_registry"
+        },
+        "unvalidated_ref": true
+      },
+      "kind": "evidence",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "unrelated content whose self_hash was simply typed to match",
+      "expected": {
+        "as_record": "{\"artifact_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"content_digest\":{\"domain\":\"sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\",\"label\":\"authoritative\",\"value\":\"sha256:8a2a38ef3eb42a4a7eeb6b531b14b453f78663f85cf380bd517c39ab674ff894\"},\"content_verified\":false,\"declared_self_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"detail\":\"content recomputes to sha256:8a2a38ef3eb42a4a7eeb6b531b14b453f78663f85cf380bd517c39ab674ff894 which the reference sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd does not name; the artifact's own self_hash sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd also disagrees with its content, so it was edited after it was written\",\"digest_comparison\":\"\",\"location\":\"conformance_artifact_not_in_the_registry/c4e43a605f1e.json\",\"payload_hashes\":[],\"publication_digest_form\":true,\"raw_sha256\":{\"label\":\"non-authoritative\",\"value\":\"6ba5a605a45ca2bf9fbed9941b4edd1f307bb852152d2d42aff29573b1ae1eaf\"},\"record_identity\":null,\"record_validity_problems\":[],\"status\":\"digest_mismatch\"}",
+        "content_verified": false,
+        "declared_digest": "sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd",
+        "detail": "content recomputes to sha256:8a2a38ef3eb42a4a7eeb6b531b14b453f78663f85cf380bd517c39ab674ff894 which the reference sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd does not name; the artifact's own self_hash sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd also disagrees with its content, so it was edited after it was written",
+        "digest_comparison": "",
+        "location": "conformance_artifact_not_in_the_registry/c4e43a605f1e.json",
+        "payload_hashes": [],
+        "raw_sha256": "6ba5a605a45ca2bf9fbed9941b4edd1f307bb852152d2d42aff29573b1ae1eaf",
+        "recomputed_digest": "sha256:8a2a38ef3eb42a4a7eeb6b531b14b453f78663f85cf380bd517c39ab674ff894",
+        "record_identity": null,
+        "record_validity_problems": [],
+        "resolved": false,
+        "status": "digest_mismatch"
+      },
+      "id": "evidence.reject.self_hash_typed_to_match",
+      "input": {
+        "files": [
+          {
+            "path": "conformance_artifact_not_in_the_registry/c4e43a605f1e.json",
+            "text": "{\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"payload\":{\"note\":\"unrelated\"},\"self_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\"}"
+          }
+        ],
+        "outside_files": [],
+        "ref": {
+          "artifact_hash": "sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd",
+          "artifact_type": "conformance_artifact_not_in_the_registry"
+        }
+      },
+      "kind": "evidence",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "the defect: payload edited, self_hash left untouched, file left where it was. A resolver that read the declaration would publish this",
+      "expected": {
+        "as_record": "{\"artifact_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"content_digest\":{\"domain\":\"sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\",\"label\":\"authoritative\",\"value\":\"sha256:82124d1bb80db0fad26c984caf410d0701075109575b618ffc1dd0c074f32504\"},\"content_verified\":false,\"declared_self_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"detail\":\"content recomputes to sha256:82124d1bb80db0fad26c984caf410d0701075109575b618ffc1dd0c074f32504 which the reference sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd does not name; the artifact's own self_hash sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd also disagrees with its content, so it was edited after it was written\",\"digest_comparison\":\"\",\"location\":\"conformance_artifact_not_in_the_registry/c4e43a605f1e.json\",\"payload_hashes\":[],\"publication_digest_form\":true,\"raw_sha256\":{\"label\":\"non-authoritative\",\"value\":\"8a6be893ecac00099d4afb06d8bc3c07e02af2ba96a5bb63677d6c1399d53afc\"},\"record_identity\":null,\"record_validity_problems\":[],\"status\":\"digest_mismatch\"}",
+        "content_verified": false,
+        "declared_digest": "sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd",
+        "detail": "content recomputes to sha256:82124d1bb80db0fad26c984caf410d0701075109575b618ffc1dd0c074f32504 which the reference sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd does not name; the artifact's own self_hash sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd also disagrees with its content, so it was edited after it was written",
+        "digest_comparison": "",
+        "location": "conformance_artifact_not_in_the_registry/c4e43a605f1e.json",
+        "payload_hashes": [],
+        "raw_sha256": "8a6be893ecac00099d4afb06d8bc3c07e02af2ba96a5bb63677d6c1399d53afc",
+        "recomputed_digest": "sha256:82124d1bb80db0fad26c984caf410d0701075109575b618ffc1dd0c074f32504",
+        "record_identity": null,
+        "record_validity_problems": [],
+        "resolved": false,
+        "status": "digest_mismatch"
+      },
+      "id": "evidence.reject.tampered_content_same_self_hash",
+      "input": {
+        "files": [
+          {
+            "path": "conformance_artifact_not_in_the_registry/c4e43a605f1e.json",
+            "text": "{\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"created_at\":\"2000-01-01T00:00:00Z\",\"created_by\":{\"code_commit\":\"0000000000000000000000000000000000000000\",\"entrypoint\":\"scripts.concept_bundle_conformance\",\"host\":\"conformance\",\"run_id\":\"r20000101-0000-fake\"},\"payload\":{\"note\":\"edited after writing\"},\"schema_version\":1,\"self_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"subject\":[]}"
+          }
+        ],
+        "outside_files": [],
+        "ref": {
+          "artifact_hash": "sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd",
+          "artifact_type": "conformance_artifact_not_in_the_registry"
+        }
+      },
+      "kind": "evidence",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "the same directory as its lowercase twin on Windows and macOS, a different one on Linux. Refused independently of the schema",
+      "expected": {
+        "as_record": "{\"artifact_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"artifact_type\":\"CONFORMANCE_ARTIFACT_NOT_IN_THE_REGISTRY\",\"content_digest\":{\"domain\":\"sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\",\"label\":\"authoritative\",\"value\":\"\"},\"content_verified\":false,\"declared_self_hash\":\"\",\"detail\":\"artifact_type 'CONFORMANCE_ARTIFACT_NOT_IN_THE_REGISTRY' is not a canonical lowercase registry directory name (^[a-z0-9][a-z0-9_]*$); an uppercase form names the same directory as its lowercase twin on a case-insensitive filesystem and a different one on Linux, so the same reference would resolve to different artifacts on different machines; refused before any path was joined\",\"digest_comparison\":\"\",\"location\":\"\",\"payload_hashes\":[],\"publication_digest_form\":true,\"raw_sha256\":{\"label\":\"non-authoritative\",\"value\":\"\"},\"record_identity\":null,\"record_validity_problems\":[],\"status\":\"out_of_root\"}",
+        "content_verified": false,
+        "declared_digest": "",
+        "detail": "artifact_type 'CONFORMANCE_ARTIFACT_NOT_IN_THE_REGISTRY' is not a canonical lowercase registry directory name (^[a-z0-9][a-z0-9_]*$); an uppercase form names the same directory as its lowercase twin on a case-insensitive filesystem and a different one on Linux, so the same reference would resolve to different artifacts on different machines; refused before any path was joined",
+        "digest_comparison": "",
+        "location": "",
+        "payload_hashes": [],
+        "raw_sha256": "",
+        "recomputed_digest": "",
+        "record_identity": null,
+        "record_validity_problems": [],
+        "resolved": false,
+        "status": "out_of_root"
+      },
+      "id": "evidence.reject.uppercase_artifact_type",
+      "input": {
+        "files": [
+          {
+            "path": "conformance_artifact_not_in_the_registry/c4e43a605f1e.json",
+            "text": "{\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"created_at\":\"2000-01-01T00:00:00Z\",\"created_by\":{\"code_commit\":\"0000000000000000000000000000000000000000\",\"entrypoint\":\"scripts.concept_bundle_conformance\",\"host\":\"conformance\",\"run_id\":\"r20000101-0000-fake\"},\"payload\":{\"note\":\"meaningless conformance content\"},\"schema_version\":1,\"self_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"subject\":[]}"
+          }
+        ],
+        "outside_files": [],
+        "ref": {
+          "artifact_hash": "sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd",
+          "artifact_type": "CONFORMANCE_ARTIFACT_NOT_IN_THE_REGISTRY"
+        },
+        "unvalidated_ref": true
+      },
+      "kind": "evidence",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "a valid, self-consistent artifact of another type sitting exactly where this reference looks",
+      "expected": {
+        "as_record": "{\"artifact_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"content_digest\":{\"domain\":\"sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\",\"label\":\"authoritative\",\"value\":\"\"},\"content_verified\":false,\"declared_self_hash\":\"\",\"detail\":\"artifact declares artifact_type 'conformance_other_type', reference claims 'conformance_artifact_not_in_the_registry'\",\"digest_comparison\":\"\",\"location\":\"conformance_artifact_not_in_the_registry/c4e43a605f1e.json\",\"payload_hashes\":[],\"publication_digest_form\":true,\"raw_sha256\":{\"label\":\"non-authoritative\",\"value\":\"e51aac326e404b22eaa999dbbc7d2127789c13267e2c61c26c14d6d8d409d1e0\"},\"record_identity\":null,\"record_validity_problems\":[],\"status\":\"mismatched\"}",
+        "content_verified": false,
+        "declared_digest": "",
+        "detail": "artifact declares artifact_type 'conformance_other_type', reference claims 'conformance_artifact_not_in_the_registry'",
+        "digest_comparison": "",
+        "location": "conformance_artifact_not_in_the_registry/c4e43a605f1e.json",
+        "payload_hashes": [],
+        "raw_sha256": "e51aac326e404b22eaa999dbbc7d2127789c13267e2c61c26c14d6d8d409d1e0",
+        "recomputed_digest": "",
+        "record_identity": null,
+        "record_validity_problems": [],
+        "resolved": false,
+        "status": "mismatched"
+      },
+      "id": "evidence.reject.wrong_but_readable_artifact",
+      "input": {
+        "files": [
+          {
+            "path": "conformance_artifact_not_in_the_registry/c4e43a605f1e.json",
+            "text": "{\"artifact_type\":\"conformance_other_type\",\"created_at\":\"2000-01-01T00:00:00Z\",\"created_by\":{\"code_commit\":\"0000000000000000000000000000000000000000\",\"entrypoint\":\"scripts.concept_bundle_conformance\",\"host\":\"conformance\",\"run_id\":\"r20000101-0000-fake\"},\"payload\":{\"note\":\"a different artifact\"},\"schema_version\":1,\"self_hash\":\"sha256:638997c6d6b95928dd10936f1f6c8d705823368f8362dbd7ac6b18e183100152\",\"subject\":[]}"
+          }
+        ],
+        "outside_files": [],
+        "ref": {
+          "artifact_hash": "sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd",
+          "artifact_type": "conformance_artifact_not_in_the_registry"
+        }
+      },
+      "kind": "evidence",
       "schema_version": "1.0"
     },
     {
@@ -586,14 +1143,14 @@
         "audit_fingerprints_equal": false,
         "execution_fingerprints_equal": true,
         "left": {
-          "audit": "6f06c4f8d688b5609b14a5bb37260c8e2310cb28ed21ef9e56ce2c01620003dc",
+          "audit": "ec6a2f9f57ccb2e8c7321530ff7633215033d7ea62445675a7967889183f998e",
           "execution": "171bcab7b269fc7a956e1129136813f2a3b4888fc6da91910fe9702878dba16f",
-          "state": "1979b3f4a51e0b93744c704e0a073e58a32e0d3c6066b4c9d3853c1957bd615f"
+          "state": "4dc29b8c758a8797cb9d58d10908113acb75562cd3f138393df9ef73f89e8188"
         },
         "right": {
-          "audit": "c5a0a8df50ea453705537674a2333587ce7330878dd7f37b1af4239c16cacbfe",
+          "audit": "f4a6b7597ff0dc568749e7cc6d6761c6468e96a678cecac3e27923a3343a1810",
           "execution": "171bcab7b269fc7a956e1129136813f2a3b4888fc6da91910fe9702878dba16f",
-          "state": "89bed7b77a984c2a7d7cfc34bcc3295f8d5dfd01d98cc5da16bf77e9cb00f75f"
+          "state": "bec22280f528c5b696f337b3dd1ab66c0971e0acba763d49c59e8068737431a3"
         },
         "state_fingerprints_equal": false
       },
@@ -610,36 +1167,44 @@
           }
         ],
         "direction": "amplify",
-        "left_document": "{\"calibration_provenance\":{\"calibrated_at\":\"2026-01-01T00:00:00+00:00\",\"calibrated_by\":\"conformance harness\",\"evidence\":[{\"artifact_hash\":\"sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\"}]},\"concept_id\":\"conformance.vector.attested\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]}},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"positions\":\"generated_only\",\"provenance\":\"attested\",\"schema_version\":\"1.0\"}",
-        "right_document": "{\"calibration_provenance\":{\"calibrated_at\":\"2026-01-01T00:00:00+00:00\",\"calibrated_by\":\"a corrected name\",\"evidence\":[{\"artifact_hash\":\"sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\"}]},\"concept_id\":\"conformance.vector.attested\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]}},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"positions\":\"generated_only\",\"provenance\":\"attested\",\"schema_version\":\"1.0\"}",
+        "left_document": "{\"calibration_provenance\":{\"calibrated_at\":\"2026-01-01T00:00:00+00:00\",\"calibrated_by\":\"conformance harness\",\"evidence\":[{\"artifact_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\"}]},\"concept_id\":\"conformance.vector.attested\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]}},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"positions\":\"generated_only\",\"provenance\":\"attested\",\"schema_version\":\"1.0\"}",
+        "right_document": "{\"calibration_provenance\":{\"calibrated_at\":\"2026-01-01T00:00:00+00:00\",\"calibrated_by\":\"a corrected name\",\"evidence\":[{\"artifact_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\"}]},\"concept_id\":\"conformance.vector.attested\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]}},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"positions\":\"generated_only\",\"provenance\":\"attested\",\"schema_version\":\"1.0\"}",
         "strength": "medium"
       },
       "kind": "fingerprint_relation",
       "schema_version": "1.0"
     },
     {
-      "description": "ATTESTED provenance plus evidence that resolves: the only way to publish",
+      "description": "ATTESTED provenance plus evidence read and hashed: the only way to publish",
       "expected": {
         "evidence": [
           {
-            "artifact_hash": "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789",
+            "artifact_hash": "sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd",
             "artifact_type": "conformance_artifact_not_in_the_registry",
+            "content_verified": true,
+            "digest_comparison": "full",
+            "recomputed_digest": "sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd",
+            "record_validity_problems": [],
             "resolved": true,
             "status": "resolved"
           }
         ],
+        "evidence_content_verified": true,
         "publishable": true,
-        "reasons": []
+        "reasons": [],
+        "release_note": "Evidence registry record resolved and content-verified (SHA-256 over canonical JSON, self_hash excluded). Payload targets referenced by this record were not resolved or verified.\n\nconcept conformance.vector.attested on pairing conformance-pairing/not-a-real-pairing: publishable\ndigest domain: sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\npublication reference form: sha256:<64 lowercase hexadecimal characters>\nregistry record conformance_artifact_not_in_the_registry:sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd [resolved]\n  content digest (authoritative): sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\n  literal-byte sha256 (non-authoritative): 768b33fffc95ced6b22ef467c9a6a3c35ad0c697369a35209828bb6e98021772\n  payload targets carried by this record: none",
+        "verification_record": "{\"all_registry_records_content_verified\":true,\"concept_id\":\"conformance.vector.attested\",\"digest_domain\":\"sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\",\"evidence\":[{\"artifact_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"content_digest\":{\"domain\":\"sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\",\"label\":\"authoritative\",\"value\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\"},\"content_verified\":true,\"declared_self_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"detail\":\"content read and digest recomputed; matches the reference in full\",\"digest_comparison\":\"full\",\"location\":\"conformance_artifact_not_in_the_registry/c4e43a605f1e.json\",\"payload_hashes\":[],\"publication_digest_form\":true,\"raw_sha256\":{\"label\":\"non-authoritative\",\"value\":\"768b33fffc95ced6b22ef467c9a6a3c35ad0c697369a35209828bb6e98021772\"},\"record_identity\":{\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"code_commit\":\"0000000000000000000000000000000000000000\",\"created_at\":\"2000-01-01T00:00:00Z\",\"entrypoint\":\"scripts.concept_bundle_conformance\",\"host\":\"conformance\",\"run_id\":\"r20000101-0000-fake\",\"schema_version\":1,\"subject_count\":0},\"record_validity_problems\":[],\"status\":\"resolved\"}],\"evidence_refs\":1,\"full_digest_required\":true,\"labels\":{\"content_digest\":\"authoritative\",\"payload_hashes\":\"recorded, not revalidated\",\"raw_sha256\":\"non-authoritative\"},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"publication_digest_form\":\"sha256:<64 lowercase hexadecimal characters>\",\"publishable\":true,\"record_validity_fields\":[{\"consumed_by\":\"RepositoryEvidenceRegistry.resolve compares it to the reference and it names the directory the artifact was read from; the release record emits it\",\"field\":\"artifact_type\",\"json_type\":\"string\",\"non_empty_required\":true},{\"consumed_by\":\"_compare_digests reads it as the record's declaration about itself, to detect a record that contradicts its own content; emitted as declared_digest\",\"field\":\"self_hash\",\"json_type\":\"string\",\"non_empty_required\":true},{\"consumed_by\":\"EvidenceRecordIdentity: the release record states which envelope version the evidence was written under\",\"field\":\"schema_version\",\"json_type\":\"integer\",\"non_empty_required\":true},{\"consumed_by\":\"EvidenceRecordIdentity: the release record states when the evidence was created\",\"field\":\"created_at\",\"json_type\":\"string\",\"non_empty_required\":true},{\"consumed_by\":\"EvidenceRecordIdentity: the release record states which run, commit, entrypoint and host produced the evidence\",\"field\":\"created_by\",\"json_type\":\"object\",\"non_empty_required\":true},{\"consumed_by\":\"payload_hash_claims: each subject's content_hash is emitted labelled 'recorded, not revalidated'. An empty subject list is valid -- a corpus manifest is a root and has no subject\",\"field\":\"subject\",\"json_type\":\"array\",\"non_empty_required\":false},{\"consumed_by\":\"content_digest hashes it as the substance being attested, and payload_hash_claims scans it for hashes of other things\",\"field\":\"payload\",\"json_type\":\"object\",\"non_empty_required\":true}],\"statement\":\"Evidence registry record resolved and content-verified (SHA-256 over canonical JSON, self_hash excluded). Payload targets referenced by this record were not resolved or verified.\"}"
       },
-      "id": "publish.accept.attested_with_resolvable_evidence",
+      "id": "publish.accept.attested_with_verified_evidence",
       "input": {
-        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2026-01-01T00:00:00+00:00\",\"calibrated_by\":\"conformance harness\",\"evidence\":[{\"artifact_hash\":\"sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\"}]},\"concept_id\":\"conformance.vector.attested\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]}},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"positions\":\"generated_only\",\"provenance\":\"attested\",\"schema_version\":\"1.0\"}",
-        "evidence_registry": [
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2026-01-01T00:00:00+00:00\",\"calibrated_by\":\"conformance harness\",\"evidence\":[{\"artifact_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\"}]},\"concept_id\":\"conformance.vector.attested\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]}},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"positions\":\"generated_only\",\"provenance\":\"attested\",\"schema_version\":\"1.0\"}",
+        "files": [
           {
-            "artifact_type": "conformance_artifact_not_in_the_registry",
-            "self_hash": "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
+            "path": "conformance_artifact_not_in_the_registry/c4e43a605f1e.json",
+            "text": "{\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"created_at\":\"2000-01-01T00:00:00Z\",\"created_by\":{\"code_commit\":\"0000000000000000000000000000000000000000\",\"entrypoint\":\"scripts.concept_bundle_conformance\",\"host\":\"conformance\",\"run_id\":\"r20000101-0000-fake\"},\"payload\":{\"note\":\"meaningless conformance content\"},\"schema_version\":1,\"self_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"subject\":[]}"
           }
-        ]
+        ],
+        "outside_files": []
       },
       "kind": "publish",
       "schema_version": "1.0"
@@ -649,53 +1214,141 @@
       "expected": {
         "evidence": [
           {
-            "artifact_hash": "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789",
+            "artifact_hash": "sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd",
             "artifact_type": "conformance_artifact_not_in_the_registry",
+            "content_verified": true,
+            "digest_comparison": "full",
+            "recomputed_digest": "sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd",
+            "record_validity_problems": [],
             "resolved": true,
             "status": "resolved"
           }
         ],
+        "evidence_content_verified": true,
         "publishable": true,
-        "reasons": []
+        "reasons": [],
+        "release_note": "Evidence registry record resolved and content-verified (SHA-256 over canonical JSON, self_hash excluded). Payload targets referenced by this record were not resolved or verified.\n\nconcept conformance.vector.one.direction on pairing conformance-pairing/not-a-real-pairing: publishable\ndigest domain: sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\npublication reference form: sha256:<64 lowercase hexadecimal characters>\nregistry record conformance_artifact_not_in_the_registry:sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd [resolved]\n  content digest (authoritative): sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\n  literal-byte sha256 (non-authoritative): 768b33fffc95ced6b22ef467c9a6a3c35ad0c697369a35209828bb6e98021772\n  payload targets carried by this record: none",
+        "verification_record": "{\"all_registry_records_content_verified\":true,\"concept_id\":\"conformance.vector.one.direction\",\"digest_domain\":\"sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\",\"evidence\":[{\"artifact_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"content_digest\":{\"domain\":\"sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\",\"label\":\"authoritative\",\"value\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\"},\"content_verified\":true,\"declared_self_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"detail\":\"content read and digest recomputed; matches the reference in full\",\"digest_comparison\":\"full\",\"location\":\"conformance_artifact_not_in_the_registry/c4e43a605f1e.json\",\"payload_hashes\":[],\"publication_digest_form\":true,\"raw_sha256\":{\"label\":\"non-authoritative\",\"value\":\"768b33fffc95ced6b22ef467c9a6a3c35ad0c697369a35209828bb6e98021772\"},\"record_identity\":{\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"code_commit\":\"0000000000000000000000000000000000000000\",\"created_at\":\"2000-01-01T00:00:00Z\",\"entrypoint\":\"scripts.concept_bundle_conformance\",\"host\":\"conformance\",\"run_id\":\"r20000101-0000-fake\",\"schema_version\":1,\"subject_count\":0},\"record_validity_problems\":[],\"status\":\"resolved\"}],\"evidence_refs\":1,\"full_digest_required\":true,\"labels\":{\"content_digest\":\"authoritative\",\"payload_hashes\":\"recorded, not revalidated\",\"raw_sha256\":\"non-authoritative\"},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"publication_digest_form\":\"sha256:<64 lowercase hexadecimal characters>\",\"publishable\":true,\"record_validity_fields\":[{\"consumed_by\":\"RepositoryEvidenceRegistry.resolve compares it to the reference and it names the directory the artifact was read from; the release record emits it\",\"field\":\"artifact_type\",\"json_type\":\"string\",\"non_empty_required\":true},{\"consumed_by\":\"_compare_digests reads it as the record's declaration about itself, to detect a record that contradicts its own content; emitted as declared_digest\",\"field\":\"self_hash\",\"json_type\":\"string\",\"non_empty_required\":true},{\"consumed_by\":\"EvidenceRecordIdentity: the release record states which envelope version the evidence was written under\",\"field\":\"schema_version\",\"json_type\":\"integer\",\"non_empty_required\":true},{\"consumed_by\":\"EvidenceRecordIdentity: the release record states when the evidence was created\",\"field\":\"created_at\",\"json_type\":\"string\",\"non_empty_required\":true},{\"consumed_by\":\"EvidenceRecordIdentity: the release record states which run, commit, entrypoint and host produced the evidence\",\"field\":\"created_by\",\"json_type\":\"object\",\"non_empty_required\":true},{\"consumed_by\":\"payload_hash_claims: each subject's content_hash is emitted labelled 'recorded, not revalidated'. An empty subject list is valid -- a corpus manifest is a root and has no subject\",\"field\":\"subject\",\"json_type\":\"array\",\"non_empty_required\":false},{\"consumed_by\":\"content_digest hashes it as the substance being attested, and payload_hash_claims scans it for hashes of other things\",\"field\":\"payload\",\"json_type\":\"object\",\"non_empty_required\":true}],\"statement\":\"Evidence registry record resolved and content-verified (SHA-256 over canonical JSON, self_hash excluded). Payload targets referenced by this record were not resolved or verified.\"}"
       },
       "id": "publish.accept.one_calibrated_direction",
       "input": {
-        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2026-01-01T00:00:00+00:00\",\"calibrated_by\":\"conformance harness\",\"evidence\":[{\"artifact_hash\":\"sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\"}]},\"concept_id\":\"conformance.vector.one.direction\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]},\"suppress\":null},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"positions\":\"generated_only\",\"provenance\":\"attested\",\"schema_version\":\"1.0\"}",
-        "evidence_registry": [
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2026-01-01T00:00:00+00:00\",\"calibrated_by\":\"conformance harness\",\"evidence\":[{\"artifact_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\"}]},\"concept_id\":\"conformance.vector.one.direction\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]},\"suppress\":null},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"positions\":\"generated_only\",\"provenance\":\"attested\",\"schema_version\":\"1.0\"}",
+        "files": [
           {
-            "artifact_type": "conformance_artifact_not_in_the_registry",
-            "self_hash": "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
+            "path": "conformance_artifact_not_in_the_registry/c4e43a605f1e.json",
+            "text": "{\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"created_at\":\"2000-01-01T00:00:00Z\",\"created_by\":{\"code_commit\":\"0000000000000000000000000000000000000000\",\"entrypoint\":\"scripts.concept_bundle_conformance\",\"host\":\"conformance\",\"run_id\":\"r20000101-0000-fake\"},\"payload\":{\"note\":\"meaningless conformance content\"},\"schema_version\":1,\"self_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"subject\":[]}"
           }
-        ]
+        ],
+        "outside_files": []
       },
       "kind": "publish",
       "schema_version": "1.0"
     },
     {
-      "description": "attested, evidence resolving, and nothing to operate",
+      "description": "the record names a corpus this package never reads. It publishes, and the release output labels that hash 'recorded, not revalidated' rather than omitting it",
       "expected": {
         "evidence": [
           {
-            "artifact_hash": "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789",
+            "artifact_hash": "sha256:b9d00de965c8329807766650f12abf3fc00baa9ea3685364aaaaca20ea53ef15",
             "artifact_type": "conformance_artifact_not_in_the_registry",
+            "content_verified": true,
+            "digest_comparison": "full",
+            "recomputed_digest": "sha256:b9d00de965c8329807766650f12abf3fc00baa9ea3685364aaaaca20ea53ef15",
+            "record_validity_problems": [],
             "resolved": true,
             "status": "resolved"
           }
         ],
+        "evidence_content_verified": true,
+        "publishable": true,
+        "reasons": [],
+        "release_note": "Evidence registry record resolved and content-verified (SHA-256 over canonical JSON, self_hash excluded). Payload targets referenced by this record were not resolved or verified.\n\nconcept conformance.vector.attested on pairing conformance-pairing/not-a-real-pairing: publishable\ndigest domain: sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\npublication reference form: sha256:<64 lowercase hexadecimal characters>\nregistry record conformance_artifact_not_in_the_registry:sha256:b9d00de965c8329807766650f12abf3fc00baa9ea3685364aaaaca20ea53ef15 [resolved]\n  content digest (authoritative): sha256:b9d00de965c8329807766650f12abf3fc00baa9ea3685364aaaaca20ea53ef15\n  literal-byte sha256 (non-authoritative): 54341095d09e19cec4954d3d241132a3e13c78dcbb683f9d7239feaea1ae5d85\n  payload target subject[0].content_hash: sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc (recorded, not revalidated)",
+        "verification_record": "{\"all_registry_records_content_verified\":true,\"concept_id\":\"conformance.vector.attested\",\"digest_domain\":\"sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\",\"evidence\":[{\"artifact_hash\":\"sha256:b9d00de965c8329807766650f12abf3fc00baa9ea3685364aaaaca20ea53ef15\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"content_digest\":{\"domain\":\"sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\",\"label\":\"authoritative\",\"value\":\"sha256:b9d00de965c8329807766650f12abf3fc00baa9ea3685364aaaaca20ea53ef15\"},\"content_verified\":true,\"declared_self_hash\":\"sha256:b9d00de965c8329807766650f12abf3fc00baa9ea3685364aaaaca20ea53ef15\",\"detail\":\"content read and digest recomputed; matches the reference in full\",\"digest_comparison\":\"full\",\"location\":\"conformance_artifact_not_in_the_registry/b9d00de965c8.json\",\"payload_hashes\":[{\"label\":\"recorded, not revalidated\",\"path\":\"subject[0].content_hash\",\"value\":\"sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"}],\"publication_digest_form\":true,\"raw_sha256\":{\"label\":\"non-authoritative\",\"value\":\"54341095d09e19cec4954d3d241132a3e13c78dcbb683f9d7239feaea1ae5d85\"},\"record_identity\":{\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"code_commit\":\"0000000000000000000000000000000000000000\",\"created_at\":\"2000-01-01T00:00:00Z\",\"entrypoint\":\"scripts.concept_bundle_conformance\",\"host\":\"conformance\",\"run_id\":\"r20000101-0000-fake\",\"schema_version\":1,\"subject_count\":1},\"record_validity_problems\":[],\"status\":\"resolved\"}],\"evidence_refs\":1,\"full_digest_required\":true,\"labels\":{\"content_digest\":\"authoritative\",\"payload_hashes\":\"recorded, not revalidated\",\"raw_sha256\":\"non-authoritative\"},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"publication_digest_form\":\"sha256:<64 lowercase hexadecimal characters>\",\"publishable\":true,\"record_validity_fields\":[{\"consumed_by\":\"RepositoryEvidenceRegistry.resolve compares it to the reference and it names the directory the artifact was read from; the release record emits it\",\"field\":\"artifact_type\",\"json_type\":\"string\",\"non_empty_required\":true},{\"consumed_by\":\"_compare_digests reads it as the record's declaration about itself, to detect a record that contradicts its own content; emitted as declared_digest\",\"field\":\"self_hash\",\"json_type\":\"string\",\"non_empty_required\":true},{\"consumed_by\":\"EvidenceRecordIdentity: the release record states which envelope version the evidence was written under\",\"field\":\"schema_version\",\"json_type\":\"integer\",\"non_empty_required\":true},{\"consumed_by\":\"EvidenceRecordIdentity: the release record states when the evidence was created\",\"field\":\"created_at\",\"json_type\":\"string\",\"non_empty_required\":true},{\"consumed_by\":\"EvidenceRecordIdentity: the release record states which run, commit, entrypoint and host produced the evidence\",\"field\":\"created_by\",\"json_type\":\"object\",\"non_empty_required\":true},{\"consumed_by\":\"payload_hash_claims: each subject's content_hash is emitted labelled 'recorded, not revalidated'. An empty subject list is valid -- a corpus manifest is a root and has no subject\",\"field\":\"subject\",\"json_type\":\"array\",\"non_empty_required\":false},{\"consumed_by\":\"content_digest hashes it as the substance being attested, and payload_hash_claims scans it for hashes of other things\",\"field\":\"payload\",\"json_type\":\"object\",\"non_empty_required\":true}],\"statement\":\"Evidence registry record resolved and content-verified (SHA-256 over canonical JSON, self_hash excluded). Payload targets referenced by this record were not resolved or verified.\"}"
+      },
+      "id": "publish.accept.record_pointing_at_unread_targets",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2026-01-01T00:00:00+00:00\",\"calibrated_by\":\"conformance harness\",\"evidence\":[{\"artifact_hash\":\"sha256:b9d00de965c8329807766650f12abf3fc00baa9ea3685364aaaaca20ea53ef15\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\"}]},\"concept_id\":\"conformance.vector.attested\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]}},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"positions\":\"generated_only\",\"provenance\":\"attested\",\"schema_version\":\"1.0\"}",
+        "files": [
+          {
+            "path": "conformance_artifact_not_in_the_registry/b9d00de965c8.json",
+            "text": "{\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"created_at\":\"2000-01-01T00:00:00Z\",\"created_by\":{\"code_commit\":\"0000000000000000000000000000000000000000\",\"entrypoint\":\"scripts.concept_bundle_conformance\",\"host\":\"conformance\",\"run_id\":\"r20000101-0000-fake\"},\"payload\":{\"note\":\"meaningless conformance content\"},\"schema_version\":1,\"self_hash\":\"sha256:b9d00de965c8329807766650f12abf3fc00baa9ea3685364aaaaca20ea53ef15\",\"subject\":[{\"content_hash\":\"sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"location\":\"local:data/raw/not_read_by_this_package\",\"role\":\"corpus_manifest\"}]}"
+          }
+        ],
+        "outside_files": []
+      },
+      "kind": "publish",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "attested, evidence verified, and nothing to operate",
+      "expected": {
+        "evidence": [
+          {
+            "artifact_hash": "sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd",
+            "artifact_type": "conformance_artifact_not_in_the_registry",
+            "content_verified": true,
+            "digest_comparison": "full",
+            "recomputed_digest": "sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd",
+            "record_validity_problems": [],
+            "resolved": true,
+            "status": "resolved"
+          }
+        ],
+        "evidence_content_verified": true,
         "publishable": false,
         "reasons": [
           "no direction is calibrated: both 'amplify' and 'suppress' are null, so there is no control to operate. Publishing needs at least 1 calibrated direction -- not both, and an entry with one is published with the other disabled."
-        ]
+        ],
+        "release_note": "Evidence registry record resolved and content-verified (SHA-256 over canonical JSON, self_hash excluded). Payload targets referenced by this record were not resolved or verified.\n\nconcept conformance.vector.attested on pairing conformance-pairing/not-a-real-pairing: blocked\ndigest domain: sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\npublication reference form: sha256:<64 lowercase hexadecimal characters>\nregistry record conformance_artifact_not_in_the_registry:sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd [resolved]\n  content digest (authoritative): sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\n  literal-byte sha256 (non-authoritative): 768b33fffc95ced6b22ef467c9a6a3c35ad0c697369a35209828bb6e98021772\n  payload targets carried by this record: none\nblocked: no direction is calibrated: both 'amplify' and 'suppress' are null, so there is no control to operate. Publishing needs at least 1 calibrated direction -- not both, and an entry with one is published with the other disabled.",
+        "verification_record": "{\"all_registry_records_content_verified\":true,\"concept_id\":\"conformance.vector.attested\",\"digest_domain\":\"sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\",\"evidence\":[{\"artifact_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"content_digest\":{\"domain\":\"sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\",\"label\":\"authoritative\",\"value\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\"},\"content_verified\":true,\"declared_self_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"detail\":\"content read and digest recomputed; matches the reference in full\",\"digest_comparison\":\"full\",\"location\":\"conformance_artifact_not_in_the_registry/c4e43a605f1e.json\",\"payload_hashes\":[],\"publication_digest_form\":true,\"raw_sha256\":{\"label\":\"non-authoritative\",\"value\":\"768b33fffc95ced6b22ef467c9a6a3c35ad0c697369a35209828bb6e98021772\"},\"record_identity\":{\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"code_commit\":\"0000000000000000000000000000000000000000\",\"created_at\":\"2000-01-01T00:00:00Z\",\"entrypoint\":\"scripts.concept_bundle_conformance\",\"host\":\"conformance\",\"run_id\":\"r20000101-0000-fake\",\"schema_version\":1,\"subject_count\":0},\"record_validity_problems\":[],\"status\":\"resolved\"}],\"evidence_refs\":1,\"full_digest_required\":true,\"labels\":{\"content_digest\":\"authoritative\",\"payload_hashes\":\"recorded, not revalidated\",\"raw_sha256\":\"non-authoritative\"},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"publication_digest_form\":\"sha256:<64 lowercase hexadecimal characters>\",\"publishable\":false,\"record_validity_fields\":[{\"consumed_by\":\"RepositoryEvidenceRegistry.resolve compares it to the reference and it names the directory the artifact was read from; the release record emits it\",\"field\":\"artifact_type\",\"json_type\":\"string\",\"non_empty_required\":true},{\"consumed_by\":\"_compare_digests reads it as the record's declaration about itself, to detect a record that contradicts its own content; emitted as declared_digest\",\"field\":\"self_hash\",\"json_type\":\"string\",\"non_empty_required\":true},{\"consumed_by\":\"EvidenceRecordIdentity: the release record states which envelope version the evidence was written under\",\"field\":\"schema_version\",\"json_type\":\"integer\",\"non_empty_required\":true},{\"consumed_by\":\"EvidenceRecordIdentity: the release record states when the evidence was created\",\"field\":\"created_at\",\"json_type\":\"string\",\"non_empty_required\":true},{\"consumed_by\":\"EvidenceRecordIdentity: the release record states which run, commit, entrypoint and host produced the evidence\",\"field\":\"created_by\",\"json_type\":\"object\",\"non_empty_required\":true},{\"consumed_by\":\"payload_hash_claims: each subject's content_hash is emitted labelled 'recorded, not revalidated'. An empty subject list is valid -- a corpus manifest is a root and has no subject\",\"field\":\"subject\",\"json_type\":\"array\",\"non_empty_required\":false},{\"consumed_by\":\"content_digest hashes it as the substance being attested, and payload_hash_claims scans it for hashes of other things\",\"field\":\"payload\",\"json_type\":\"object\",\"non_empty_required\":true}],\"statement\":\"Evidence registry record resolved and content-verified (SHA-256 over canonical JSON, self_hash excluded). Payload targets referenced by this record were not resolved or verified.\"}"
       },
       "id": "publish.reject.both_directions_null",
       "input": {
-        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2026-01-01T00:00:00+00:00\",\"calibrated_by\":\"conformance harness\",\"evidence\":[{\"artifact_hash\":\"sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\"}]},\"concept_id\":\"conformance.vector.attested\",\"directions\":{\"amplify\":null,\"suppress\":null},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"positions\":\"generated_only\",\"provenance\":\"attested\",\"schema_version\":\"1.0\"}",
-        "evidence_registry": [
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2026-01-01T00:00:00+00:00\",\"calibrated_by\":\"conformance harness\",\"evidence\":[{\"artifact_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\"}]},\"concept_id\":\"conformance.vector.attested\",\"directions\":{\"amplify\":null,\"suppress\":null},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"positions\":\"generated_only\",\"provenance\":\"attested\",\"schema_version\":\"1.0\"}",
+        "files": [
           {
-            "artifact_type": "conformance_artifact_not_in_the_registry",
-            "self_hash": "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
+            "path": "conformance_artifact_not_in_the_registry/c4e43a605f1e.json",
+            "text": "{\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"created_at\":\"2000-01-01T00:00:00Z\",\"created_by\":{\"code_commit\":\"0000000000000000000000000000000000000000\",\"entrypoint\":\"scripts.concept_bundle_conformance\",\"host\":\"conformance\",\"run_id\":\"r20000101-0000-fake\"},\"payload\":{\"note\":\"meaningless conformance content\"},\"schema_version\":1,\"self_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"subject\":[]}"
           }
-        ]
+        ],
+        "outside_files": []
+      },
+      "kind": "publish",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "all 64 characters and no 'sha256:'. A bare digest does not say what produced it",
+      "expected": {
+        "evidence": [
+          {
+            "artifact_hash": "c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd",
+            "artifact_type": "conformance_artifact_not_in_the_registry",
+            "content_verified": true,
+            "digest_comparison": "full",
+            "recomputed_digest": "sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd",
+            "record_validity_problems": [],
+            "resolved": true,
+            "status": "resolved"
+          }
+        ],
+        "evidence_content_verified": true,
+        "publishable": false,
+        "reasons": [
+          "evidence registry record conformance_artifact_not_in_the_registry:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd was resolved and content-verified, and its reference is not in the form a public release requires. Publication needs sha256:<64 lowercase hexadecimal characters>: the algorithm prefix is mandatory, and a 12-to-63 character prefix is 48-to-252 bits of address rather than a full one. Cite sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd"
+        ],
+        "release_note": "Evidence registry record resolved and content-verified (SHA-256 over canonical JSON, self_hash excluded). Payload targets referenced by this record were not resolved or verified.\n\nconcept conformance.vector.attested on pairing conformance-pairing/not-a-real-pairing: blocked\ndigest domain: sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\npublication reference form: sha256:<64 lowercase hexadecimal characters>\nregistry record conformance_artifact_not_in_the_registry:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd [resolved]\n  content digest (authoritative): sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\n  literal-byte sha256 (non-authoritative): 768b33fffc95ced6b22ef467c9a6a3c35ad0c697369a35209828bb6e98021772\n  payload targets carried by this record: none\nblocked: evidence registry record conformance_artifact_not_in_the_registry:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd was resolved and content-verified, and its reference is not in the form a public release requires. Publication needs sha256:<64 lowercase hexadecimal characters>: the algorithm prefix is mandatory, and a 12-to-63 character prefix is 48-to-252 bits of address rather than a full one. Cite sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd",
+        "verification_record": "{\"all_registry_records_content_verified\":true,\"concept_id\":\"conformance.vector.attested\",\"digest_domain\":\"sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\",\"evidence\":[{\"artifact_hash\":\"c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"content_digest\":{\"domain\":\"sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\",\"label\":\"authoritative\",\"value\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\"},\"content_verified\":true,\"declared_self_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"detail\":\"content read and digest recomputed; matches the reference in full\",\"digest_comparison\":\"full\",\"location\":\"conformance_artifact_not_in_the_registry/c4e43a605f1e.json\",\"payload_hashes\":[],\"publication_digest_form\":false,\"raw_sha256\":{\"label\":\"non-authoritative\",\"value\":\"768b33fffc95ced6b22ef467c9a6a3c35ad0c697369a35209828bb6e98021772\"},\"record_identity\":{\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"code_commit\":\"0000000000000000000000000000000000000000\",\"created_at\":\"2000-01-01T00:00:00Z\",\"entrypoint\":\"scripts.concept_bundle_conformance\",\"host\":\"conformance\",\"run_id\":\"r20000101-0000-fake\",\"schema_version\":1,\"subject_count\":0},\"record_validity_problems\":[],\"status\":\"resolved\"}],\"evidence_refs\":1,\"full_digest_required\":true,\"labels\":{\"content_digest\":\"authoritative\",\"payload_hashes\":\"recorded, not revalidated\",\"raw_sha256\":\"non-authoritative\"},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"publication_digest_form\":\"sha256:<64 lowercase hexadecimal characters>\",\"publishable\":false,\"record_validity_fields\":[{\"consumed_by\":\"RepositoryEvidenceRegistry.resolve compares it to the reference and it names the directory the artifact was read from; the release record emits it\",\"field\":\"artifact_type\",\"json_type\":\"string\",\"non_empty_required\":true},{\"consumed_by\":\"_compare_digests reads it as the record's declaration about itself, to detect a record that contradicts its own content; emitted as declared_digest\",\"field\":\"self_hash\",\"json_type\":\"string\",\"non_empty_required\":true},{\"consumed_by\":\"EvidenceRecordIdentity: the release record states which envelope version the evidence was written under\",\"field\":\"schema_version\",\"json_type\":\"integer\",\"non_empty_required\":true},{\"consumed_by\":\"EvidenceRecordIdentity: the release record states when the evidence was created\",\"field\":\"created_at\",\"json_type\":\"string\",\"non_empty_required\":true},{\"consumed_by\":\"EvidenceRecordIdentity: the release record states which run, commit, entrypoint and host produced the evidence\",\"field\":\"created_by\",\"json_type\":\"object\",\"non_empty_required\":true},{\"consumed_by\":\"payload_hash_claims: each subject's content_hash is emitted labelled 'recorded, not revalidated'. An empty subject list is valid -- a corpus manifest is a root and has no subject\",\"field\":\"subject\",\"json_type\":\"array\",\"non_empty_required\":false},{\"consumed_by\":\"content_digest hashes it as the substance being attested, and payload_hash_claims scans it for hashes of other things\",\"field\":\"payload\",\"json_type\":\"object\",\"non_empty_required\":true}],\"statement\":\"Evidence registry record resolved and content-verified (SHA-256 over canonical JSON, self_hash excluded). Payload targets referenced by this record were not resolved or verified.\"}"
+      },
+      "id": "publish.reject.digest_without_algorithm_prefix",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2026-01-01T00:00:00+00:00\",\"calibrated_by\":\"conformance harness\",\"evidence\":[{\"artifact_hash\":\"c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\"}]},\"concept_id\":\"conformance.vector.attested\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]}},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"positions\":\"generated_only\",\"provenance\":\"attested\",\"schema_version\":\"1.0\"}",
+        "files": [
+          {
+            "path": "conformance_artifact_not_in_the_registry/c4e43a605f1e.json",
+            "text": "{\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"created_at\":\"2000-01-01T00:00:00Z\",\"created_by\":{\"code_commit\":\"0000000000000000000000000000000000000000\",\"entrypoint\":\"scripts.concept_bundle_conformance\",\"host\":\"conformance\",\"run_id\":\"r20000101-0000-fake\"},\"payload\":{\"note\":\"meaningless conformance content\"},\"schema_version\":1,\"self_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"subject\":[]}"
+          }
+        ],
+        "outside_files": []
       },
       "kind": "publish",
       "schema_version": "1.0"
@@ -707,14 +1360,20 @@
           {
             "artifact_hash": "0123456789ab",
             "artifact_type": "fake_artifact_do_not_ship",
+            "content_verified": false,
+            "digest_comparison": "",
+            "recomputed_digest": "",
+            "record_validity_problems": [],
             "resolved": false,
             "status": "unresolvable"
           }
         ],
+        "evidence_content_verified": false,
         "publishable": false,
         "reasons": [
           "provenance is 'fake', must be exactly 'attested'",
-          "evidence fake_artifact_do_not_ship:0123456789ab is unresolvable: no artifact of type 'fake_artifact_do_not_ship' with hash12 '0123456789ab' in this registry",
+          "evidence fake_artifact_do_not_ship:0123456789ab is unresolvable: no registry artifact at this path",
+          "not every evidence registry record was resolved AND verified by content; existence and a self-declared digest do not attest",
           "calibration_provenance.calibrated_by contains placeholder marker(s) ['fake']",
           "concept_id contains placeholder marker(s) ['fake', 'do_not_ship']",
           "pairing_id contains placeholder marker(s) ['fake', 'do-not-ship']",
@@ -725,41 +1384,168 @@
           "suppress/low unit_source 'FAKE maximum -- invented, measured over nothing' contains placeholder marker(s) ['fake']",
           "suppress/medium unit_source 'FAKE maximum -- invented, measured over nothing' contains placeholder marker(s) ['fake']",
           "suppress/high unit_source 'FAKE maximum -- invented, measured over nothing' contains placeholder marker(s) ['fake']"
-        ]
+        ],
+        "release_note": "Evidence registry record resolved and content-verified (SHA-256 over canonical JSON, self_hash excluded). Payload targets referenced by this record were not resolved or verified.\n\nconcept FAKE_DO_NOT_SHIP_concept_alpha on pairing fake-pairing/do-not-ship: blocked\ndigest domain: sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\npublication reference form: sha256:<64 lowercase hexadecimal characters>\nregistry record fake_artifact_do_not_ship:0123456789ab [unresolvable]\n  content digest (authoritative): not computed\n  literal-byte sha256 (non-authoritative): not computed\n  payload targets carried by this record: none\nblocked: provenance is 'fake', must be exactly 'attested'\nblocked: evidence fake_artifact_do_not_ship:0123456789ab is unresolvable: no registry artifact at this path\nblocked: not every evidence registry record was resolved AND verified by content; existence and a self-declared digest do not attest\nblocked: calibration_provenance.calibrated_by contains placeholder marker(s) ['fake']\nblocked: concept_id contains placeholder marker(s) ['fake', 'do_not_ship']\nblocked: pairing_id contains placeholder marker(s) ['fake', 'do-not-ship']\nblocked: target sae_id 'fake-sae-do-not-ship' contains placeholder marker(s) ['fake', 'do-not-ship']\nblocked: amplify/low unit_source 'FAKE maximum -- invented, measured over nothing' contains placeholder marker(s) ['fake']\nblocked: amplify/medium unit_source 'FAKE maximum -- invented, measured over nothing' contains placeholder marker(s) ['fake']\nblocked: amplify/high unit_source 'FAKE maximum -- invented, measured over nothing' contains placeholder marker(s) ['fake']\nblocked: suppress/low unit_source 'FAKE maximum -- invented, measured over nothing' contains placeholder marker(s) ['fake']\nblocked: suppress/medium unit_source 'FAKE maximum -- invented, measured over nothing' contains placeholder marker(s) ['fake']\nblocked: suppress/high unit_source 'FAKE maximum -- invented, measured over nothing' contains placeholder marker(s) ['fake']",
+        "verification_record": "{\"all_registry_records_content_verified\":false,\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_alpha\",\"digest_domain\":\"sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\",\"content_digest\":{\"domain\":\"sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\",\"label\":\"authoritative\",\"value\":\"\"},\"content_verified\":false,\"declared_self_hash\":\"\",\"detail\":\"no registry artifact at this path\",\"digest_comparison\":\"\",\"location\":\"fake_artifact_do_not_ship/0123456789ab.json\",\"payload_hashes\":[],\"publication_digest_form\":false,\"raw_sha256\":{\"label\":\"non-authoritative\",\"value\":\"\"},\"record_identity\":null,\"record_validity_problems\":[],\"status\":\"unresolvable\"}],\"evidence_refs\":1,\"full_digest_required\":true,\"labels\":{\"content_digest\":\"authoritative\",\"payload_hashes\":\"recorded, not revalidated\",\"raw_sha256\":\"non-authoritative\"},\"pairing_id\":\"fake-pairing/do-not-ship\",\"publication_digest_form\":\"sha256:<64 lowercase hexadecimal characters>\",\"publishable\":false,\"record_validity_fields\":[{\"consumed_by\":\"RepositoryEvidenceRegistry.resolve compares it to the reference and it names the directory the artifact was read from; the release record emits it\",\"field\":\"artifact_type\",\"json_type\":\"string\",\"non_empty_required\":true},{\"consumed_by\":\"_compare_digests reads it as the record's declaration about itself, to detect a record that contradicts its own content; emitted as declared_digest\",\"field\":\"self_hash\",\"json_type\":\"string\",\"non_empty_required\":true},{\"consumed_by\":\"EvidenceRecordIdentity: the release record states which envelope version the evidence was written under\",\"field\":\"schema_version\",\"json_type\":\"integer\",\"non_empty_required\":true},{\"consumed_by\":\"EvidenceRecordIdentity: the release record states when the evidence was created\",\"field\":\"created_at\",\"json_type\":\"string\",\"non_empty_required\":true},{\"consumed_by\":\"EvidenceRecordIdentity: the release record states which run, commit, entrypoint and host produced the evidence\",\"field\":\"created_by\",\"json_type\":\"object\",\"non_empty_required\":true},{\"consumed_by\":\"payload_hash_claims: each subject's content_hash is emitted labelled 'recorded, not revalidated'. An empty subject list is valid -- a corpus manifest is a root and has no subject\",\"field\":\"subject\",\"json_type\":\"array\",\"non_empty_required\":false},{\"consumed_by\":\"content_digest hashes it as the substance being attested, and payload_hash_claims scans it for hashes of other things\",\"field\":\"payload\",\"json_type\":\"object\",\"non_empty_required\":true}],\"statement\":\"Evidence registry record resolved and content-verified (SHA-256 over canonical JSON, self_hash excluded). Payload targets referenced by this record were not resolved or verified.\"}"
       },
       "id": "publish.reject.fake_provenance",
       "input": {
         "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2000-01-01T00:00:00Z\",\"calibrated_by\":\"FAKE fixture author -- no calibration was performed\",\"evidence\":[{\"artifact_hash\":\"0123456789ab\",\"artifact_type\":\"fake_artifact_do_not_ship\"}]},\"concept_id\":\"FAKE_DO_NOT_SHIP_concept_alpha\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"sample_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.0}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":1.5},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.25},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"FAKE maximum -- invented, measured over nothing\",\"value\":0.75}},\"targets\":[{\"feature_idx\":1000,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0},{\"feature_idx\":1100,\"layer\":7,\"sae_id\":\"fake-sae-do-not-ship\",\"weight\":1.0}]}},\"pairing_id\":\"fake-pairing/do-not-ship\",\"positions\":\"all\",\"provenance\":\"fake\",\"schema_version\":\"1.0\"}",
-        "evidence_registry": [
+        "files": [
           {
-            "artifact_type": "conformance_artifact_not_in_the_registry",
-            "self_hash": "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
+            "path": "conformance_artifact_not_in_the_registry/c4e43a605f1e.json",
+            "text": "{\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"created_at\":\"2000-01-01T00:00:00Z\",\"created_by\":{\"code_commit\":\"0000000000000000000000000000000000000000\",\"entrypoint\":\"scripts.concept_bundle_conformance\",\"host\":\"conformance\",\"run_id\":\"r20000101-0000-fake\"},\"payload\":{\"note\":\"meaningless conformance content\"},\"schema_version\":1,\"self_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"subject\":[]}"
           }
-        ]
+        ],
+        "outside_files": []
       },
       "kind": "publish",
       "schema_version": "1.0"
     },
     {
-      "description": "attested, and still refused: the cited artifact is not in the registry",
+      "description": "the cited content hashes to exactly what the reference names, and the record is missing created_at. Integrity does not substitute for validity",
       "expected": {
         "evidence": [
           {
-            "artifact_hash": "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789",
+            "artifact_hash": "sha256:afaa825184f472d29986ab0b6943e57720a637d34937a03acbf023cc6c158129",
             "artifact_type": "conformance_artifact_not_in_the_registry",
+            "content_verified": false,
+            "digest_comparison": "",
+            "recomputed_digest": "sha256:afaa825184f472d29986ab0b6943e57720a637d34937a03acbf023cc6c158129",
+            "record_validity_problems": [
+              "created_at is missing"
+            ],
+            "resolved": false,
+            "status": "invalid_record"
+          }
+        ],
+        "evidence_content_verified": false,
+        "publishable": false,
+        "reasons": [
+          "evidence conformance_artifact_not_in_the_registry:sha256:afaa825184f472d29986ab0b6943e57720a637d34937a03acbf023cc6c158129 is invalid_record: content read and digest recomputed, and it MATCHES the reference -- the record is still not a valid registry record: created_at is missing. A correct digest attests that these are the bytes that were cited, not that they are an artifact. [created_at is missing]",
+          "not every evidence registry record was resolved AND verified by content; existence and a self-declared digest do not attest"
+        ],
+        "release_note": "Evidence registry record resolved and content-verified (SHA-256 over canonical JSON, self_hash excluded). Payload targets referenced by this record were not resolved or verified.\n\nconcept conformance.vector.attested on pairing conformance-pairing/not-a-real-pairing: blocked\ndigest domain: sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\npublication reference form: sha256:<64 lowercase hexadecimal characters>\nregistry record conformance_artifact_not_in_the_registry:sha256:afaa825184f472d29986ab0b6943e57720a637d34937a03acbf023cc6c158129 [invalid_record]\n  content digest (authoritative): sha256:afaa825184f472d29986ab0b6943e57720a637d34937a03acbf023cc6c158129\n  literal-byte sha256 (non-authoritative): 49a6b3095412b1fa4cd01f226c849c5bd7dd8e58bb0882cd200ff50a00fa1bb9\n  record field problem: created_at is missing\n  payload targets carried by this record: none\nblocked: evidence conformance_artifact_not_in_the_registry:sha256:afaa825184f472d29986ab0b6943e57720a637d34937a03acbf023cc6c158129 is invalid_record: content read and digest recomputed, and it MATCHES the reference -- the record is still not a valid registry record: created_at is missing. A correct digest attests that these are the bytes that were cited, not that they are an artifact. [created_at is missing]\nblocked: not every evidence registry record was resolved AND verified by content; existence and a self-declared digest do not attest",
+        "verification_record": "{\"all_registry_records_content_verified\":false,\"concept_id\":\"conformance.vector.attested\",\"digest_domain\":\"sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\",\"evidence\":[{\"artifact_hash\":\"sha256:afaa825184f472d29986ab0b6943e57720a637d34937a03acbf023cc6c158129\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"content_digest\":{\"domain\":\"sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\",\"label\":\"authoritative\",\"value\":\"sha256:afaa825184f472d29986ab0b6943e57720a637d34937a03acbf023cc6c158129\"},\"content_verified\":false,\"declared_self_hash\":\"sha256:afaa825184f472d29986ab0b6943e57720a637d34937a03acbf023cc6c158129\",\"detail\":\"content read and digest recomputed, and it MATCHES the reference -- the record is still not a valid registry record: created_at is missing. A correct digest attests that these are the bytes that were cited, not that they are an artifact.\",\"digest_comparison\":\"\",\"location\":\"conformance_artifact_not_in_the_registry/afaa825184f4.json\",\"payload_hashes\":[],\"publication_digest_form\":true,\"raw_sha256\":{\"label\":\"non-authoritative\",\"value\":\"49a6b3095412b1fa4cd01f226c849c5bd7dd8e58bb0882cd200ff50a00fa1bb9\"},\"record_identity\":null,\"record_validity_problems\":[\"created_at is missing\"],\"status\":\"invalid_record\"}],\"evidence_refs\":1,\"full_digest_required\":true,\"labels\":{\"content_digest\":\"authoritative\",\"payload_hashes\":\"recorded, not revalidated\",\"raw_sha256\":\"non-authoritative\"},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"publication_digest_form\":\"sha256:<64 lowercase hexadecimal characters>\",\"publishable\":false,\"record_validity_fields\":[{\"consumed_by\":\"RepositoryEvidenceRegistry.resolve compares it to the reference and it names the directory the artifact was read from; the release record emits it\",\"field\":\"artifact_type\",\"json_type\":\"string\",\"non_empty_required\":true},{\"consumed_by\":\"_compare_digests reads it as the record's declaration about itself, to detect a record that contradicts its own content; emitted as declared_digest\",\"field\":\"self_hash\",\"json_type\":\"string\",\"non_empty_required\":true},{\"consumed_by\":\"EvidenceRecordIdentity: the release record states which envelope version the evidence was written under\",\"field\":\"schema_version\",\"json_type\":\"integer\",\"non_empty_required\":true},{\"consumed_by\":\"EvidenceRecordIdentity: the release record states when the evidence was created\",\"field\":\"created_at\",\"json_type\":\"string\",\"non_empty_required\":true},{\"consumed_by\":\"EvidenceRecordIdentity: the release record states which run, commit, entrypoint and host produced the evidence\",\"field\":\"created_by\",\"json_type\":\"object\",\"non_empty_required\":true},{\"consumed_by\":\"payload_hash_claims: each subject's content_hash is emitted labelled 'recorded, not revalidated'. An empty subject list is valid -- a corpus manifest is a root and has no subject\",\"field\":\"subject\",\"json_type\":\"array\",\"non_empty_required\":false},{\"consumed_by\":\"content_digest hashes it as the substance being attested, and payload_hash_claims scans it for hashes of other things\",\"field\":\"payload\",\"json_type\":\"object\",\"non_empty_required\":true}],\"statement\":\"Evidence registry record resolved and content-verified (SHA-256 over canonical JSON, self_hash excluded). Payload targets referenced by this record were not resolved or verified.\"}"
+      },
+      "id": "publish.reject.invalid_evidence_record",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2026-01-01T00:00:00+00:00\",\"calibrated_by\":\"conformance harness\",\"evidence\":[{\"artifact_hash\":\"sha256:afaa825184f472d29986ab0b6943e57720a637d34937a03acbf023cc6c158129\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\"}]},\"concept_id\":\"conformance.vector.attested\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]}},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"positions\":\"generated_only\",\"provenance\":\"attested\",\"schema_version\":\"1.0\"}",
+        "files": [
+          {
+            "path": "conformance_artifact_not_in_the_registry/afaa825184f4.json",
+            "text": "{\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"created_by\":{\"code_commit\":\"0000000000000000000000000000000000000000\",\"entrypoint\":\"scripts.concept_bundle_conformance\",\"host\":\"conformance\",\"run_id\":\"r20000101-0000-fake\"},\"payload\":{\"note\":\"meaningless conformance content\"},\"schema_version\":1,\"self_hash\":\"sha256:afaa825184f472d29986ab0b6943e57720a637d34937a03acbf023cc6c158129\",\"subject\":[]}"
+          }
+        ],
+        "outside_files": []
+      },
+      "kind": "publish",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "attested, and still refused: the cited artifact is not there to hash",
+      "expected": {
+        "evidence": [
+          {
+            "artifact_hash": "sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd",
+            "artifact_type": "conformance_artifact_not_in_the_registry",
+            "content_verified": false,
+            "digest_comparison": "",
+            "recomputed_digest": "",
+            "record_validity_problems": [],
             "resolved": false,
             "status": "unresolvable"
           }
         ],
+        "evidence_content_verified": false,
         "publishable": false,
         "reasons": [
-          "evidence conformance_artifact_not_in_the_registry:sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789 is unresolvable: no artifact of type 'conformance_artifact_not_in_the_registry' with hash12 'abcdef012345' in this registry"
-        ]
+          "evidence conformance_artifact_not_in_the_registry:sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd is unresolvable: no registry artifact at this path",
+          "not every evidence registry record was resolved AND verified by content; existence and a self-declared digest do not attest"
+        ],
+        "release_note": "Evidence registry record resolved and content-verified (SHA-256 over canonical JSON, self_hash excluded). Payload targets referenced by this record were not resolved or verified.\n\nconcept conformance.vector.attested on pairing conformance-pairing/not-a-real-pairing: blocked\ndigest domain: sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\npublication reference form: sha256:<64 lowercase hexadecimal characters>\nregistry record conformance_artifact_not_in_the_registry:sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd [unresolvable]\n  content digest (authoritative): not computed\n  literal-byte sha256 (non-authoritative): not computed\n  payload targets carried by this record: none\nblocked: evidence conformance_artifact_not_in_the_registry:sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd is unresolvable: no registry artifact at this path\nblocked: not every evidence registry record was resolved AND verified by content; existence and a self-declared digest do not attest",
+        "verification_record": "{\"all_registry_records_content_verified\":false,\"concept_id\":\"conformance.vector.attested\",\"digest_domain\":\"sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\",\"evidence\":[{\"artifact_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"content_digest\":{\"domain\":\"sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\",\"label\":\"authoritative\",\"value\":\"\"},\"content_verified\":false,\"declared_self_hash\":\"\",\"detail\":\"no registry artifact at this path\",\"digest_comparison\":\"\",\"location\":\"conformance_artifact_not_in_the_registry/c4e43a605f1e.json\",\"payload_hashes\":[],\"publication_digest_form\":true,\"raw_sha256\":{\"label\":\"non-authoritative\",\"value\":\"\"},\"record_identity\":null,\"record_validity_problems\":[],\"status\":\"unresolvable\"}],\"evidence_refs\":1,\"full_digest_required\":true,\"labels\":{\"content_digest\":\"authoritative\",\"payload_hashes\":\"recorded, not revalidated\",\"raw_sha256\":\"non-authoritative\"},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"publication_digest_form\":\"sha256:<64 lowercase hexadecimal characters>\",\"publishable\":false,\"record_validity_fields\":[{\"consumed_by\":\"RepositoryEvidenceRegistry.resolve compares it to the reference and it names the directory the artifact was read from; the release record emits it\",\"field\":\"artifact_type\",\"json_type\":\"string\",\"non_empty_required\":true},{\"consumed_by\":\"_compare_digests reads it as the record's declaration about itself, to detect a record that contradicts its own content; emitted as declared_digest\",\"field\":\"self_hash\",\"json_type\":\"string\",\"non_empty_required\":true},{\"consumed_by\":\"EvidenceRecordIdentity: the release record states which envelope version the evidence was written under\",\"field\":\"schema_version\",\"json_type\":\"integer\",\"non_empty_required\":true},{\"consumed_by\":\"EvidenceRecordIdentity: the release record states when the evidence was created\",\"field\":\"created_at\",\"json_type\":\"string\",\"non_empty_required\":true},{\"consumed_by\":\"EvidenceRecordIdentity: the release record states which run, commit, entrypoint and host produced the evidence\",\"field\":\"created_by\",\"json_type\":\"object\",\"non_empty_required\":true},{\"consumed_by\":\"payload_hash_claims: each subject's content_hash is emitted labelled 'recorded, not revalidated'. An empty subject list is valid -- a corpus manifest is a root and has no subject\",\"field\":\"subject\",\"json_type\":\"array\",\"non_empty_required\":false},{\"consumed_by\":\"content_digest hashes it as the substance being attested, and payload_hash_claims scans it for hashes of other things\",\"field\":\"payload\",\"json_type\":\"object\",\"non_empty_required\":true}],\"statement\":\"Evidence registry record resolved and content-verified (SHA-256 over canonical JSON, self_hash excluded). Payload targets referenced by this record were not resolved or verified.\"}"
       },
-      "id": "publish.reject.unresolvable_evidence",
+      "id": "publish.reject.missing_evidence",
       "input": {
-        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2026-01-01T00:00:00+00:00\",\"calibrated_by\":\"conformance harness\",\"evidence\":[{\"artifact_hash\":\"sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\"}]},\"concept_id\":\"conformance.vector.attested\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]}},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"positions\":\"generated_only\",\"provenance\":\"attested\",\"schema_version\":\"1.0\"}",
-        "evidence_registry": []
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2026-01-01T00:00:00+00:00\",\"calibrated_by\":\"conformance harness\",\"evidence\":[{\"artifact_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\"}]},\"concept_id\":\"conformance.vector.attested\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]}},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"positions\":\"generated_only\",\"provenance\":\"attested\",\"schema_version\":\"1.0\"}",
+        "files": [],
+        "outside_files": []
+      },
+      "kind": "publish",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "verified by content, but cited by a 12-character prefix; publication requires the full digest",
+      "expected": {
+        "evidence": [
+          {
+            "artifact_hash": "c4e43a605f1e",
+            "artifact_type": "conformance_artifact_not_in_the_registry",
+            "content_verified": true,
+            "digest_comparison": "prefix",
+            "recomputed_digest": "sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd",
+            "record_validity_problems": [],
+            "resolved": true,
+            "status": "resolved"
+          }
+        ],
+        "evidence_content_verified": true,
+        "publishable": false,
+        "reasons": [
+          "evidence registry record conformance_artifact_not_in_the_registry:c4e43a605f1e was resolved and content-verified, and its reference is not in the form a public release requires. Publication needs sha256:<64 lowercase hexadecimal characters>: the algorithm prefix is mandatory, and a 12-to-63 character prefix is 48-to-252 bits of address rather than a full one. Cite sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd"
+        ],
+        "release_note": "Evidence registry record resolved and content-verified (SHA-256 over canonical JSON, self_hash excluded). Payload targets referenced by this record were not resolved or verified.\n\nconcept conformance.vector.attested on pairing conformance-pairing/not-a-real-pairing: blocked\ndigest domain: sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\npublication reference form: sha256:<64 lowercase hexadecimal characters>\nregistry record conformance_artifact_not_in_the_registry:c4e43a605f1e [resolved]\n  content digest (authoritative): sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\n  literal-byte sha256 (non-authoritative): 768b33fffc95ced6b22ef467c9a6a3c35ad0c697369a35209828bb6e98021772\n  payload targets carried by this record: none\nblocked: evidence registry record conformance_artifact_not_in_the_registry:c4e43a605f1e was resolved and content-verified, and its reference is not in the form a public release requires. Publication needs sha256:<64 lowercase hexadecimal characters>: the algorithm prefix is mandatory, and a 12-to-63 character prefix is 48-to-252 bits of address rather than a full one. Cite sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd",
+        "verification_record": "{\"all_registry_records_content_verified\":true,\"concept_id\":\"conformance.vector.attested\",\"digest_domain\":\"sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\",\"evidence\":[{\"artifact_hash\":\"c4e43a605f1e\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"content_digest\":{\"domain\":\"sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\",\"label\":\"authoritative\",\"value\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\"},\"content_verified\":true,\"declared_self_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"detail\":\"content read and digest recomputed; the reference carries only 12 of 64 hex characters, so it was matched as a prefix\",\"digest_comparison\":\"prefix\",\"location\":\"conformance_artifact_not_in_the_registry/c4e43a605f1e.json\",\"payload_hashes\":[],\"publication_digest_form\":false,\"raw_sha256\":{\"label\":\"non-authoritative\",\"value\":\"768b33fffc95ced6b22ef467c9a6a3c35ad0c697369a35209828bb6e98021772\"},\"record_identity\":{\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"code_commit\":\"0000000000000000000000000000000000000000\",\"created_at\":\"2000-01-01T00:00:00Z\",\"entrypoint\":\"scripts.concept_bundle_conformance\",\"host\":\"conformance\",\"run_id\":\"r20000101-0000-fake\",\"schema_version\":1,\"subject_count\":0},\"record_validity_problems\":[],\"status\":\"resolved\"}],\"evidence_refs\":1,\"full_digest_required\":true,\"labels\":{\"content_digest\":\"authoritative\",\"payload_hashes\":\"recorded, not revalidated\",\"raw_sha256\":\"non-authoritative\"},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"publication_digest_form\":\"sha256:<64 lowercase hexadecimal characters>\",\"publishable\":false,\"record_validity_fields\":[{\"consumed_by\":\"RepositoryEvidenceRegistry.resolve compares it to the reference and it names the directory the artifact was read from; the release record emits it\",\"field\":\"artifact_type\",\"json_type\":\"string\",\"non_empty_required\":true},{\"consumed_by\":\"_compare_digests reads it as the record's declaration about itself, to detect a record that contradicts its own content; emitted as declared_digest\",\"field\":\"self_hash\",\"json_type\":\"string\",\"non_empty_required\":true},{\"consumed_by\":\"EvidenceRecordIdentity: the release record states which envelope version the evidence was written under\",\"field\":\"schema_version\",\"json_type\":\"integer\",\"non_empty_required\":true},{\"consumed_by\":\"EvidenceRecordIdentity: the release record states when the evidence was created\",\"field\":\"created_at\",\"json_type\":\"string\",\"non_empty_required\":true},{\"consumed_by\":\"EvidenceRecordIdentity: the release record states which run, commit, entrypoint and host produced the evidence\",\"field\":\"created_by\",\"json_type\":\"object\",\"non_empty_required\":true},{\"consumed_by\":\"payload_hash_claims: each subject's content_hash is emitted labelled 'recorded, not revalidated'. An empty subject list is valid -- a corpus manifest is a root and has no subject\",\"field\":\"subject\",\"json_type\":\"array\",\"non_empty_required\":false},{\"consumed_by\":\"content_digest hashes it as the substance being attested, and payload_hash_claims scans it for hashes of other things\",\"field\":\"payload\",\"json_type\":\"object\",\"non_empty_required\":true}],\"statement\":\"Evidence registry record resolved and content-verified (SHA-256 over canonical JSON, self_hash excluded). Payload targets referenced by this record were not resolved or verified.\"}"
+      },
+      "id": "publish.reject.prefix_digest_reference",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2026-01-01T00:00:00+00:00\",\"calibrated_by\":\"conformance harness\",\"evidence\":[{\"artifact_hash\":\"c4e43a605f1e\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\"}]},\"concept_id\":\"conformance.vector.attested\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]}},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"positions\":\"generated_only\",\"provenance\":\"attested\",\"schema_version\":\"1.0\"}",
+        "files": [
+          {
+            "path": "conformance_artifact_not_in_the_registry/c4e43a605f1e.json",
+            "text": "{\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"created_at\":\"2000-01-01T00:00:00Z\",\"created_by\":{\"code_commit\":\"0000000000000000000000000000000000000000\",\"entrypoint\":\"scripts.concept_bundle_conformance\",\"host\":\"conformance\",\"run_id\":\"r20000101-0000-fake\"},\"payload\":{\"note\":\"meaningless conformance content\"},\"schema_version\":1,\"self_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"subject\":[]}"
+          }
+        ],
+        "outside_files": []
+      },
+      "kind": "publish",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "attested, the artifact is present, its self_hash still matches the reference -- and its content does not hash to it",
+      "expected": {
+        "evidence": [
+          {
+            "artifact_hash": "sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd",
+            "artifact_type": "conformance_artifact_not_in_the_registry",
+            "content_verified": false,
+            "digest_comparison": "",
+            "recomputed_digest": "sha256:82124d1bb80db0fad26c984caf410d0701075109575b618ffc1dd0c074f32504",
+            "record_validity_problems": [],
+            "resolved": false,
+            "status": "digest_mismatch"
+          }
+        ],
+        "evidence_content_verified": false,
+        "publishable": false,
+        "reasons": [
+          "evidence conformance_artifact_not_in_the_registry:sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd is digest_mismatch: content recomputes to sha256:82124d1bb80db0fad26c984caf410d0701075109575b618ffc1dd0c074f32504 which the reference sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd does not name; the artifact's own self_hash sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd also disagrees with its content, so it was edited after it was written",
+          "not every evidence registry record was resolved AND verified by content; existence and a self-declared digest do not attest"
+        ],
+        "release_note": "Evidence registry record resolved and content-verified (SHA-256 over canonical JSON, self_hash excluded). Payload targets referenced by this record were not resolved or verified.\n\nconcept conformance.vector.attested on pairing conformance-pairing/not-a-real-pairing: blocked\ndigest domain: sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\npublication reference form: sha256:<64 lowercase hexadecimal characters>\nregistry record conformance_artifact_not_in_the_registry:sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd [digest_mismatch]\n  content digest (authoritative): sha256:82124d1bb80db0fad26c984caf410d0701075109575b618ffc1dd0c074f32504\n  literal-byte sha256 (non-authoritative): 8a6be893ecac00099d4afb06d8bc3c07e02af2ba96a5bb63677d6c1399d53afc\n  payload targets carried by this record: none\nblocked: evidence conformance_artifact_not_in_the_registry:sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd is digest_mismatch: content recomputes to sha256:82124d1bb80db0fad26c984caf410d0701075109575b618ffc1dd0c074f32504 which the reference sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd does not name; the artifact's own self_hash sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd also disagrees with its content, so it was edited after it was written\nblocked: not every evidence registry record was resolved AND verified by content; existence and a self-declared digest do not attest",
+        "verification_record": "{\"all_registry_records_content_verified\":false,\"concept_id\":\"conformance.vector.attested\",\"digest_domain\":\"sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\",\"evidence\":[{\"artifact_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"content_digest\":{\"domain\":\"sha256(canonical_json(artifact without the self_hash field)); canonical JSON = keys sorted, separators (',',':'), non-ASCII unescaped, non-finite numbers refused\",\"label\":\"authoritative\",\"value\":\"sha256:82124d1bb80db0fad26c984caf410d0701075109575b618ffc1dd0c074f32504\"},\"content_verified\":false,\"declared_self_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"detail\":\"content recomputes to sha256:82124d1bb80db0fad26c984caf410d0701075109575b618ffc1dd0c074f32504 which the reference sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd does not name; the artifact's own self_hash sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd also disagrees with its content, so it was edited after it was written\",\"digest_comparison\":\"\",\"location\":\"conformance_artifact_not_in_the_registry/c4e43a605f1e.json\",\"payload_hashes\":[],\"publication_digest_form\":true,\"raw_sha256\":{\"label\":\"non-authoritative\",\"value\":\"8a6be893ecac00099d4afb06d8bc3c07e02af2ba96a5bb63677d6c1399d53afc\"},\"record_identity\":null,\"record_validity_problems\":[],\"status\":\"digest_mismatch\"}],\"evidence_refs\":1,\"full_digest_required\":true,\"labels\":{\"content_digest\":\"authoritative\",\"payload_hashes\":\"recorded, not revalidated\",\"raw_sha256\":\"non-authoritative\"},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"publication_digest_form\":\"sha256:<64 lowercase hexadecimal characters>\",\"publishable\":false,\"record_validity_fields\":[{\"consumed_by\":\"RepositoryEvidenceRegistry.resolve compares it to the reference and it names the directory the artifact was read from; the release record emits it\",\"field\":\"artifact_type\",\"json_type\":\"string\",\"non_empty_required\":true},{\"consumed_by\":\"_compare_digests reads it as the record's declaration about itself, to detect a record that contradicts its own content; emitted as declared_digest\",\"field\":\"self_hash\",\"json_type\":\"string\",\"non_empty_required\":true},{\"consumed_by\":\"EvidenceRecordIdentity: the release record states which envelope version the evidence was written under\",\"field\":\"schema_version\",\"json_type\":\"integer\",\"non_empty_required\":true},{\"consumed_by\":\"EvidenceRecordIdentity: the release record states when the evidence was created\",\"field\":\"created_at\",\"json_type\":\"string\",\"non_empty_required\":true},{\"consumed_by\":\"EvidenceRecordIdentity: the release record states which run, commit, entrypoint and host produced the evidence\",\"field\":\"created_by\",\"json_type\":\"object\",\"non_empty_required\":true},{\"consumed_by\":\"payload_hash_claims: each subject's content_hash is emitted labelled 'recorded, not revalidated'. An empty subject list is valid -- a corpus manifest is a root and has no subject\",\"field\":\"subject\",\"json_type\":\"array\",\"non_empty_required\":false},{\"consumed_by\":\"content_digest hashes it as the substance being attested, and payload_hash_claims scans it for hashes of other things\",\"field\":\"payload\",\"json_type\":\"object\",\"non_empty_required\":true}],\"statement\":\"Evidence registry record resolved and content-verified (SHA-256 over canonical JSON, self_hash excluded). Payload targets referenced by this record were not resolved or verified.\"}"
+      },
+      "id": "publish.reject.tampered_evidence",
+      "input": {
+        "document": "{\"calibration_provenance\":{\"calibrated_at\":\"2026-01-01T00:00:00+00:00\",\"calibrated_by\":\"conformance harness\",\"evidence\":[{\"artifact_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"artifact_type\":\"conformance_artifact_not_in_the_registry\"}]},\"concept_id\":\"conformance.vector.attested\",\"directions\":{\"amplify\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]},\"suppress\":{\"specs\":{\"high\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":2.0},\"low\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":0.5},\"medium\":{\"operation\":\"clamp\",\"unit\":\"corpus_max_multiple\",\"unit_source\":\"corpus maximum, conformance vector\",\"value\":1.0}},\"targets\":[{\"feature_idx\":4242,\"layer\":11,\"sae_id\":\"conformance-sae-not-a-real-sae\",\"weight\":1.0}]}},\"pairing_id\":\"conformance-pairing/not-a-real-pairing\",\"positions\":\"generated_only\",\"provenance\":\"attested\",\"schema_version\":\"1.0\"}",
+        "files": [
+          {
+            "path": "conformance_artifact_not_in_the_registry/c4e43a605f1e.json",
+            "text": "{\"artifact_type\":\"conformance_artifact_not_in_the_registry\",\"created_at\":\"2000-01-01T00:00:00Z\",\"created_by\":{\"code_commit\":\"0000000000000000000000000000000000000000\",\"entrypoint\":\"scripts.concept_bundle_conformance\",\"host\":\"conformance\",\"run_id\":\"r20000101-0000-fake\"},\"payload\":{\"note\":\"edited after writing\"},\"schema_version\":1,\"self_hash\":\"sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd\",\"subject\":[]}"
+          }
+        ],
+        "outside_files": []
       },
       "kind": "publish",
       "schema_version": "1.0"
@@ -1005,6 +1791,121 @@
         "strength": "low"
       },
       "kind": "runtime_reject",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "refused before it can be a path",
+      "expected": {
+        "classification": null,
+        "exception": "SchemaValidationError",
+        "message": "EvidenceRef.artifact_type must match ^[a-z0-9][a-z0-9_]*$ -- lowercase letters, digits and underscores only, because it names a registry directory. Uppercase is refused so that a type cannot mean one directory on a case-insensitive filesystem and another on Linux; separators and dots are refused so that it cannot be a path. Got '../outside/conformance_artifact_not_in_the_registry'"
+      },
+      "id": "schema.reject.traversing_artifact_type",
+      "input": {
+        "evidence_ref": {
+          "artifact_hash": "sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd",
+          "artifact_type": "../outside/conformance_artifact_not_in_the_registry"
+        }
+      },
+      "kind": "schema_reject",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "refused before it can be a case collision",
+      "expected": {
+        "classification": null,
+        "exception": "SchemaValidationError",
+        "message": "EvidenceRef.artifact_type must match ^[a-z0-9][a-z0-9_]*$ -- lowercase letters, digits and underscores only, because it names a registry directory. Uppercase is refused so that a type cannot mean one directory on a case-insensitive filesystem and another on Linux; separators and dots are refused so that it cannot be a path. Got 'Census_Report'"
+      },
+      "id": "schema.reject.uppercase_artifact_type",
+      "input": {
+        "evidence_ref": {
+          "artifact_hash": "sha256:c4e43a605f1e9ac05ee66e84c75fe318da562b4c920c312ddb043cc8945a68dd",
+          "artifact_type": "Census_Report"
+        }
+      },
+      "kind": "schema_reject",
+      "schema_version": "1.0"
+    },
+    {
+      "description": "the exact sentences every public and release rendering carries, adjacent and in this order, plus the two inline labels and the phrasings that are refused",
+      "expected": {
+        "accepted_examples": [
+          "Evidence registry record resolved and content-verified (SHA-256 over canonical JSON, self_hash excluded). Payload targets referenced by this record were not resolved or verified.",
+          "Payload targets referenced by this record were not resolved or verified.",
+          "The registry record was content-verified.",
+          "The corpus was never verified."
+        ],
+        "payload_hash_label": "recorded, not revalidated",
+        "payload_limit_sentence": "Payload targets referenced by this record were not resolved or verified.",
+        "prohibited_claims": [
+          "evidence verified",
+          "artifacts verified",
+          "verified against the corpus",
+          "verified against the dataset",
+          "fully verified"
+        ],
+        "raw_sha256_label": "non-authoritative",
+        "record_validity_fields": [
+          {
+            "consumed_by": "RepositoryEvidenceRegistry.resolve compares it to the reference and it names the directory the artifact was read from; the release record emits it",
+            "field": "artifact_type",
+            "json_type": "string",
+            "non_empty_required": true
+          },
+          {
+            "consumed_by": "_compare_digests reads it as the record's declaration about itself, to detect a record that contradicts its own content; emitted as declared_digest",
+            "field": "self_hash",
+            "json_type": "string",
+            "non_empty_required": true
+          },
+          {
+            "consumed_by": "EvidenceRecordIdentity: the release record states which envelope version the evidence was written under",
+            "field": "schema_version",
+            "json_type": "integer",
+            "non_empty_required": true
+          },
+          {
+            "consumed_by": "EvidenceRecordIdentity: the release record states when the evidence was created",
+            "field": "created_at",
+            "json_type": "string",
+            "non_empty_required": true
+          },
+          {
+            "consumed_by": "EvidenceRecordIdentity: the release record states which run, commit, entrypoint and host produced the evidence",
+            "field": "created_by",
+            "json_type": "object",
+            "non_empty_required": true
+          },
+          {
+            "consumed_by": "payload_hash_claims: each subject's content_hash is emitted labelled 'recorded, not revalidated'. An empty subject list is valid -- a corpus manifest is a root and has no subject",
+            "field": "subject",
+            "json_type": "array",
+            "non_empty_required": false
+          },
+          {
+            "consumed_by": "content_digest hashes it as the substance being attested, and payload_hash_claims scans it for hashes of other things",
+            "field": "payload",
+            "json_type": "object",
+            "non_empty_required": true
+          }
+        ],
+        "refused_examples": [
+          "All evidence verified.",
+          "Artifacts verified against the registry.",
+          "Content verified against the corpus.",
+          "Hashes verified against the dataset.",
+          "Evidence fully verified.",
+          "The checkpoint was verified.",
+          "Everything was verified."
+        ],
+        "separator_between_sentences": " ",
+        "statement": "Evidence registry record resolved and content-verified (SHA-256 over canonical JSON, self_hash excluded). Payload targets referenced by this record were not resolved or verified.",
+        "verification_sentence": "Evidence registry record resolved and content-verified (SHA-256 over canonical JSON, self_hash excluded)."
+      },
+      "id": "wording.mandatory_release_statement",
+      "input": {},
+      "kind": "release_wording",
       "schema_version": "1.0"
     }
   ]

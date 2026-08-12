@@ -23,6 +23,7 @@ from sae_concept_lab.canonical.concept_bundle import (
     ConceptRegistry,
     Exposure,
     RepositoryEvidenceRegistry,
+    assert_release_text_clean,
     evaluate_publishability,
     load_entry_files,
     select_layout_entries,
@@ -141,14 +142,20 @@ def enforce_release_gate(
             f"against evidence_registry_root={root}. " + " | ".join(per_entry_reasons)
         )
 
-    resolved_ref_count = sum(len(le.entry.evidence) for le in selection)
-    print(
+    header = (
         f"RELEASE DIAGNOSTICS model_key={model_key!r}: {len(selection)} publishable "
-        f"entr{'y' if len(selection) == 1 else 'ies'}, {resolved_ref_count} evidence_ref(s) all "
-        f"reported RESOLVED by RepositoryEvidenceRegistry against {root}. KNOWN CANONICAL-SOURCE "
-        "LIMITATION (not duplicated or weakened here -- see BOUNDARY.md): "
-        "RepositoryEvidenceRegistry.resolve() checks a registry record's own declared self_hash "
-        "field against the reference's digest; it does not independently read a separate raw "
-        "artifact and recompute a hash from its bytes.",
-        file=sys.stderr,
+        f"entr{'y' if len(selection) == 1 else 'ies'} against evidence_registry_root={root}. "
+        "The wording and every label below are sae_concept_lab.canonical.concept_bundle's own "
+        "(release.ReleaseDecision.render_release_evidence_note()) -- this adapter prints them "
+        "verbatim and never composes its own claim about what was verified."
     )
+    # Belt-and-suspenders on every line this build shows: assert_release_text_clean is
+    # canonical's own over-claim detector, run here on both the header this adapter
+    # writes and the note canonical writes, rather than either being trusted by eye.
+    assert_release_text_clean(header)
+    print(header, file=sys.stderr)
+    for layout_entry in selection:
+        decision = evaluate_publishability(layout_entry.entry, evidence_registry=registry)
+        note = decision.render_release_evidence_note()
+        assert_release_text_clean(note)
+        print(note, file=sys.stderr)

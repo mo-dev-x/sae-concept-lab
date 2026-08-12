@@ -19,9 +19,14 @@ differently -- this is the ratified policy, not a convenience split:
                    eight concept_bundle contract modules). Verified by
                    hash-comparing CURRENT bytes against both the manifest
                    and a live qwen-sae-interp checkout, AND by re-running
-                   all 50 frozen conformance vectors against the
-                   extracted package. Membership is derived from frozen
-                   pack fabf702's own export_inventory.json
+                   every frozen conformance vector against the extracted
+                   package (the count is read from the copied vectors.json
+                   at verification time, never hardcoded here, since the
+                   frozen pack is replaced whole on a deliberate
+                   re-extraction -- see provenance/source_import.json's
+                   concept_bundle_contract.supersedes_previous_extraction
+                   for the currently mirrored pack's commit). Membership
+                   is derived from that pack's own export_inventory.json
                    minimum_export_surface list, not merely asserted --
                    see assert_no_reclassification().
 
@@ -35,7 +40,8 @@ code-extraction field.
 
 Every verdict is scope-qualified: main() never prints a bare "PASS" --
 each extraction's line names its class and the commit its faithfulness
-is judged against, and reads exactly one of:
+is judged against, and reads exactly one of the two forms below (with
+the actual short commit hash and vector count substituted in):
 
   HISTORICAL_SEED <short-commit> import faithful at import commit; current bytes not checked
   CANONICAL_MIRROR <short-commit> current bytes match canonical source; conformance vectors pass
@@ -256,7 +262,14 @@ def verify_historical_seed_extraction(repo_root: Path, extraction: dict) -> dict
 def verify_canonical_mirror_extraction(repo_root: Path, checkout: Path, extraction: dict) -> dict:
     """CANONICAL_MIRROR: hash-compares CURRENT bytes (both in this
     repository and at the source commit in the qwen-sae-interp checkout)
-    AND re-runs all 50 frozen conformance vectors."""
+    AND re-runs every frozen conformance vector.
+
+    An entry may declare its own `source_commit`, overriding the
+    extraction-level checkout_commit for that one entry. This exists for
+    export_inventory.json: the frozen pack stamps frozen_at_commit in an
+    immediately-following commit, since a commit cannot name its own
+    hash inside a file it contains, so THAT file's byte-for-byte source is
+    one commit later than the modules and vectors it describes."""
     commit = extraction["source_repository"].get("checkout_commit") or extraction["source_repository"].get("commit")
     assert_commit_exists(checkout, commit)
 
@@ -266,7 +279,10 @@ def verify_canonical_mirror_extraction(repo_root: Path, checkout: Path, extracti
     modified_dest: list[str] = []
 
     for entry in extraction_entries(extraction):
-        source_blob = read_blob_at_commit(checkout, commit, entry["source_path"])
+        entry_commit = entry.get("source_commit", commit)
+        if entry_commit != commit:
+            assert_commit_exists(checkout, entry_commit)
+        source_blob = read_blob_at_commit(checkout, entry_commit, entry["source_path"])
         if source_blob is None:
             missing_source.append(entry["source_path"])
         elif sha256_bytes(source_blob) != entry["sha256"]:
