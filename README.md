@@ -6,17 +6,23 @@ repository owns the product UI and its deployment adapter only; it does
 not own, and must never be treated as, a scientific source of truth. See
 [`BOUNDARY.md`](BOUNDARY.md) for the full repository-boundary statement.
 
-Everything this app currently serves is synthetic: both model tabs are
-backed by `StubConceptLabBackend` (deterministic, GPU-free, every response
-tagged `[FAKE STUB -- UI TEST ONLY]`) and eight canonical
-`provenance: "fake"` concept-bundle documents (four per pairing), loaded
-and resolved entirely through
+By default, both model tabs are backed by `StubConceptLabBackend`
+(deterministic, GPU-free, every response tagged
+`[FAKE STUB -- UI TEST ONLY]`) and eight canonical `provenance: "fake"`
+concept-bundle documents (four per pairing), loaded and resolved entirely
+through
 [`sae_concept_lab/canonical/concept_bundle/`](sae_concept_lab/canonical/concept_bundle/)
--- see below. `--mode release` is a fail-closed gate that refuses to
-launch on this build no matter what, because every backend it constructs
-is `StubConceptLabBackend` by type, checked before anything else. See
-[`sae_concept_lab/README.md`](sae_concept_lab/README.md) for the full
-detail on the UI, the release gate, and known Gradio limitations.
+-- see below. `--qwen-backend runtime`/`--gemma-backend runtime` select a
+REAL backend instead (`sae_concept_lab/core/qwen_backend.py` /
+`gemma_backend.py`, wired to mechanically-extracted, mechanically-accepted
+intervention code -- see "Runtime backends" below and
+[`docs/tamia_launch.md`](docs/tamia_launch.md)). `--mode release` is a
+fail-closed gate that refuses to launch on this build no matter which
+backend is selected: every fixture this repository ships is
+`provenance: "fake"`, never `attested`, so canonical publishability blocks
+all of them regardless. See [`sae_concept_lab/README.md`](sae_concept_lab/README.md)
+for the full detail on the UI, the release gate, and known Gradio
+limitations.
 
 ## Install
 
@@ -44,13 +50,36 @@ Then open the printed local URL (default `http://127.0.0.1:7860`).
 python -m sae_concept_lab.app --mode release --evidence-registry-root /path/to/registry
 ```
 
-This exits non-zero and never opens a server: the backend-type check
-refuses first (every backend this build constructs is
-`StubConceptLabBackend`), and even past that, `--evidence-registry-root`
-is validated fail-closed (refused if absent/missing/unreadable/empty)
-before any canonical publishability check runs. See
+This exits non-zero and never opens a server: with the default stub
+backend, the backend-type check refuses first; even past that (or with a
+real, mechanically-accepted backend selected -- see below),
+`--evidence-registry-root` is validated fail-closed (refused if absent/
+missing/unreadable/empty), and canonical publishability still blocks
+every shipped fixture (all `provenance: "fake"`). See
 [`sae_concept_lab/README.md`](sae_concept_lab/README.md) for why that is a
 deliberate, structural refusal rather than a flag someone forgot to flip.
+
+## Runtime backends (extracted intervention code, mechanically accepted)
+
+`sae_concept_lab/extracted_runtime/` mirrors the minimum runtime surface
+needed to run a real intervention against Qwen3.5-27B + Qwen-Scope or
+gemma-3-12b-it + gemma-scope-2-12b-it-res, extracted from qwen-sae-interp
+under a third `extraction_class`, `RUNTIME_CODE_MIRROR` (code only -- see
+[`BOUNDARY.md`](BOUNDARY.md)). `sae_concept_lab/core/qwen_backend.py` /
+`gemma_backend.py` translate a canonical `ResolvedControlState` into calls
+on that code, lazily -- no torch/transformers/transformer_lens/sae_lens
+import happens until a real backend's `generate()` actually runs.
+
+Whether either pairing's intervention MECHANISM has been mechanically
+proven against real weights is `sae_concept_lab/core/runtime_acceptance.py`'s
+entirely separate concern from code extraction, checked independently by
+the release gate. Both pairings are currently mechanically accepted (see
+that module for the exact bounded claim and the qwen-sae-interp evidence
+commit it was imported from) -- this is never a scientific or public-release
+claim; see `BOUNDARY.md`'s "Runtime backends" section for the full account,
+including two earlier acceptance claims this repository rejected before
+accepting a third. See [`docs/tamia_launch.md`](docs/tamia_launch.md) for
+exact launch commands and pinned paths/revisions.
 
 ## Canonical concept-bundle contract (extracted, certified, and wired into the UI)
 
@@ -104,12 +133,15 @@ explicit statement of what was and was not imported.
 
 Each extraction also carries an `extraction_class` -- `HISTORICAL_SEED`
 (a past import permitted to evolve, verified against this repository's
-own frozen import commit) or `CANONICAL_MIRROR` (a byte-for-byte mirror
+own frozen import commit), `CANONICAL_MIRROR` (a byte-for-byte mirror
 that may never evolve, verified against current bytes AND every frozen
-conformance vector). This is a code-provenance axis, entirely separate
-from the scientific `Provenance` field (`ATTESTED`/`CANDIDATE`/`DRAFT`/
-`FAKE`/`UNKNOWN`) a `BundleEntry` carries -- see
-[`BOUNDARY.md`](BOUNDARY.md) for the full statement.
+conformance vector), or `RUNTIME_CODE_MIRROR` (byte-for-byte immutable
+extracted runtime code with no conformance pack of its own, verified by
+hash alone at whole-file or per-function granularity -- see
+`sae_concept_lab/extracted_runtime/`). This is a code-provenance axis,
+entirely separate from the scientific `Provenance` field
+(`ATTESTED`/`CANDIDATE`/`DRAFT`/`FAKE`/`UNKNOWN`) a `BundleEntry` carries
+-- see [`BOUNDARY.md`](BOUNDARY.md) for the full statement.
 
 To verify that recorded provenance against a live `qwen-sae-interp`
 checkout (read-only -- this never modifies that checkout):
@@ -129,7 +161,15 @@ for exactly what it checks.
 - `gradio>=6.22,<7` (runtime, for the UI)
 - `pytest>=7` (test, optional extra `test`)
 
-The extracted concept-bundle contract (`sae_concept_lab/canonical/`) adds
-no dependency of its own -- standard library only. No GPU, no real model
-weights, and no scientific dependency (`interplab`, `sae_lens`,
-`transformer_lens`, etc.) anywhere in this repository's import graph.
+The extracted concept-bundle contract (`sae_concept_lab/canonical/`) and
+the extracted runtime code (`sae_concept_lab/extracted_runtime/`) add no
+hard dependency of their own -- both import cleanly with neither torch
+nor any other heavy package installed (proven directly: this repository's
+own test suite runs, and passes in full, with no torch/transformers/
+transformer_lens/sae_lens present). `torch`/`transformers` (Qwen) and
+`torch`/`transformer_lens`/`sae_lens` (Gemma) are only ever imported
+inside a real backend's `generate()` method, at the moment it actually
+runs -- install them only if you intend to launch `--qwen-backend runtime`
+or `--gemma-backend runtime` (see `docs/tamia_launch.md`). No scientific
+dependency (`interplab` or any qwen-sae-interp-internal package) appears
+anywhere in this repository's import graph, in any configuration.

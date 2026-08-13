@@ -124,6 +124,11 @@ class CompareResult:
     modified_text: str
     original_request: GenerationRequest
     modified_request: GenerationRequest
+    #: The Modified arm's full GenerationResult, so a caller can reach
+    #: backend diagnostics (result.diagnostics) -- the Original/baseline
+    #: arm has apply_intervention=False and therefore nothing to diagnose,
+    #: so only the Modified side is carried here.
+    modified_result: GenerationResult | None = None
 
 
 def run_compare(
@@ -161,6 +166,7 @@ def run_compare(
         modified_text=modified_result.text,
         original_request=original_request,
         modified_request=modified_request,
+        modified_result=modified_result,
     )
 
 

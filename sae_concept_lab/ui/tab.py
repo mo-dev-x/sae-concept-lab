@@ -366,7 +366,7 @@ def build_model_tab(
         progress(0, desc=t("loading_label", lang))
         time.sleep(DEMO_THINK_TIME_SECONDS)
         resolved = resolve_control(entry, direction=direction, strength=strength)
-        new_history, _result = send_message(
+        new_history, result = send_message(
             backend=backend,
             history=history,
             prompt=message,
@@ -376,6 +376,9 @@ def build_model_tab(
             resolved_config=resolved,
         )
         summary = public_output_summary(resolved, lang)
+        details = advanced_output_details(resolved)
+        if result.diagnostics is not None:
+            details = {**details, "backend_diagnostics": result.diagnostics}
         progress(1)
         return (
             new_history,
@@ -383,7 +386,7 @@ def build_model_tab(
             "",
             summary,
             resolved,
-            advanced_output_details(resolved),
+            details,
             "",
         )
 
@@ -422,12 +425,15 @@ def build_model_tab(
         assert_compare_invariant(compare)
         original_md = f"**{t('compare_original_label', lang)}**\n\n{compare.original_text}"
         modified_md = f"**{t('compare_modified_label', lang)}**\n\n{compare.modified_text}"
+        details = advanced_output_details(resolved)
+        if compare.modified_result is not None and compare.modified_result.diagnostics is not None:
+            details = {**details, "backend_diagnostics": compare.modified_result.diagnostics}
         progress(1)
         return (
             original_md,
             modified_md,
             resolved,
-            advanced_output_details(resolved),
+            details,
             "",
         )
 

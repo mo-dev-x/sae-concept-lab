@@ -53,6 +53,14 @@ class GenerationResult:
     text: str
     is_synthetic: bool
     resolved_config: ResolvedControlState | None
+    #: Backend-produced diagnostics: requested/resolved/backend-received
+    #: target, model/SAE/hook identity, activation before/after, residual
+    #: delta, prefill/decode hook counts, execution/audit fingerprints.
+    #: None for StubConceptLabBackend and for the Compare baseline arm
+    #: (apply_intervention=False -- there is no intervention to diagnose).
+    #: A real backend populates this; nothing here is computed by this
+    #: module -- see core/qwen_backend.py / core/gemma_backend.py.
+    diagnostics: dict[str, Any] | None = None
 
 
 class ConceptLabBackend(Protocol):

@@ -101,28 +101,114 @@ the canonical contract deliberately holds no display name for either (see
 `schema.py`'s module note and `resolver.py`'s `public_view()` docstring).
 Translating an id into a label is presentation, not scientific validation.
 
-The interim `ConceptLabBackend` Protocol (`core/protocol.py`) is
-unchanged in shape and purpose: it is still the seam between this UI and
-whatever generates chat text (currently always `StubConceptLabBackend`).
-Wiring a REAL chat backend -- one that actually intervenes on a model
-using a resolved control state -- remains a separate, not-yet-performed
-task; only the CONTROL/CONFIGURATION side (what a concept/direction/
-strength resolves to) is wired to canonical now.
+The `ConceptLabBackend` Protocol (`core/protocol.py`) is unchanged in
+shape and purpose: it is still the seam between this UI and whatever
+generates chat text. As of the dual-runtime integration below, it now has
+THREE implementations: `StubConceptLabBackend` (always available,
+deterministic, GPU-free) and two real backends,
+`sae_concept_lab.core.qwen_backend.QwenRuntimeBackend` and
+`sae_concept_lab.core.gemma_backend.GemmaRuntimeBackend`, each wired to
+its own extracted intervention loader/hook mechanism -- see "Runtime
+backends" below.
+
+## Runtime backends: extracted intervention code, mechanical acceptance as a SEPARATE gate
+
+`sae_concept_lab/extracted_runtime/` mirrors the MINIMUM runtime surface
+needed to run a real intervention: `targets.py` (pure-stdlib identity/
+validation, whole-file), `hooks.py` (the shared clamp/ablate hook
+mechanism, five named functions), `diagnostics.py` (shared trace/verdict
+functions, five named functions), `qwen_loader.py` (Qwen3.5-27B raw-HF
+loader), `gemma_loader.py` (gemma-3-12b-it transformer_lens/sae_lens
+loader) -- extracted from qwen-sae-interp's `scripts/legacy/
+final_pairing_harness.py`, `scripts/legacy/final_pairing_targets.py`, and
+`interplab/interventions/hooks.py`. This is CODE ONLY, under a new,
+third `extraction_class`, `RUNTIME_CODE_MIRROR` (see below) -- it carries
+**no claim whatsoever** that either pairing's intervention mechanism has
+been proven against real weights. `sae_concept_lab/core/qwen_backend.py`
+and `gemma_backend.py` are the product-owned backends that translate a
+canonical `ResolvedControlState` into calls on this extracted code,
+lazily (no torch/transformers/transformer_lens/sae_lens import happens
+until a real backend's `generate()` actually runs), with their own
+defensive same-layer/multi-SAE/cross-layer re-check
+(`core/execution_guard.py`, reusing canonical's own
+`MultipleSaeIdentitiesAtLayerError`/`MultipleExecutionGroupsError`
+classes, never a re-implementation).
+
+**Mechanical acceptance against real weights** -- whether the extracted
+CODE has actually been proven to move a real residual stream -- is
+`sae_concept_lab/core/runtime_acceptance.py`'s entirely separate concern,
+checked independently by the release gate and by each backend's own
+honesty tag. `import_acceptance_from_evidence_commit()` is the ONLY way a
+pairing becomes accepted: it performs the full bounded adjudication --
+`git show` every named artifact at a caller-supplied evidence commit in a
+real qwen-sae-interp checkout, independently recompute its SHA-256, and
+raise (never silently continue) on any mismatch. Both pairings are
+currently ACCEPTED, imported from qwen-sae-interp evidence commit
+`b6d598b` (`results/final_pairing/job_406092/` for Qwen -- ALL and
+GENERATED_ONLY scenarios only, that job's Gemma scenarios failed and are
+explicitly excluded from the claim; `results/final_pairing/job_407008/`
+for Gemma, both scenarios). Mechanical acceptance of the intervention
+MECHANISM and public release of a SCIENTIFIC CONCEPT
+(`sae_concept_lab.canonical.concept_bundle.release`) are, and must
+remain, two separate gates: this repository ships no ATTESTED concepts,
+so `--mode release` refuses regardless of which backend is selected or
+whether its pairing is mechanically accepted.
+
+### Three evidence claims, two rejected
+
+Across this integration's dispatch history, three claims were made that a
+Qwen and/or Gemma job had mechanically passed. The first two were
+REJECTED before anything was written into this repository's provenance,
+on grounds this repository's own discipline (mechanically verify against
+the tracked source, never trust a pasted assertion) already enforced
+elsewhere:
+
+1. A claim that qwen-sae-interp job 406092 was a Qwen mechanical pass.
+   qwen-sae-interp's own tracked `docs/final_pairing_tamia_packet.md`, at
+   the time, stated the opposite repeatedly and explicitly ("the entire
+   Qwen raw-HF path has never run against real Qwen3.5-27B weights") --
+   job 406092 was documented there as a Gemma-only finding. Rejected.
+2. A claim that Gemma job "407008" had passed, naming qwen-sae-interp
+   commit `de3b499` as the source. That commit's actual content is an
+   unrelated pytest-removal refactor ("Replace the pytest-based Tamia
+   symlink preflight with a standalone, standard-library-only script") --
+   no job 407008 existed anywhere in the tracked repository at that
+   point. Rejected.
+3. A claim citing qwen-sae-interp commit `b6d598b` ("Import and adjudicate
+   sealed final-pairing evidence: job 407008 (Gemma pass) and job 406092
+   (mixed: Gemma failed, Qwen mechanical pass)"), with
+   `results/final_pairing/job_406092/` and `.../job_407008/` as tracked
+   evidence trees, each with a `chain_of_custody.json` manifest,
+   `inventory.json` hash table, and a bounded README. ACCEPTED, after: (a)
+   `git show` confirmed the commit exists and its message matches; (b)
+   every named artifact was independently re-hashed against the committed
+   tree via `import_acceptance_from_evidence_commit`, which raises rather
+   than continues on any mismatch; (c) qwen-sae-interp's own
+   `tests/test_final_pairing_evidence_record.py` (29 tests, including
+   cross-contamination guards proving the Qwen-pass and Gemma-pass claims
+   cannot leak into each other's job) was read and run for real against
+   that checkout, and passed.
+
+The lesson this history is kept for: a job number, a commit hash, and a
+plausible-looking log are not evidence on their own. Evidence is a
+git-show-verifiable commit whose content survives independent re-hashing
+and re-running -- attempts 1 and 2 had neither; attempt 3 had both.
 
 ## extraction_class: a code-provenance axis, never the scientific-content axis
 
 `provenance/source_import.json` tags every extraction with an
-`extraction_class` of `HISTORICAL_SEED` or `CANONICAL_MIRROR`. This is a
-CODE axis -- how a file entered this repository and how strictly its
-bytes must stay fixed -- and it is deliberately kept in a different
-field, with a different vocabulary, from the SCIENTIFIC `provenance` field
-(`Provenance.ATTESTED` / `CANDIDATE` / `DRAFT` / `FAKE` / `UNKNOWN`,
-defined in `sae_concept_lab/canonical/concept_bundle/schema.py`). The two
-must never be confused: a `BundleEntry`'s `provenance` says how well
-established a CONCEPT's origin is; an extraction's `extraction_class`
-says how strictly a FILE's bytes must be verified. Nothing in this
-repository's provenance tooling reads or writes the word `provenance` as
-a code-extraction field or verdict.
+`extraction_class` of `HISTORICAL_SEED`, `CANONICAL_MIRROR`, or
+`RUNTIME_CODE_MIRROR`. This is a CODE axis -- how a file entered this
+repository and how strictly its bytes must stay fixed -- and it is
+deliberately kept in a different field, with a different vocabulary, from
+the SCIENTIFIC `provenance` field (`Provenance.ATTESTED` / `CANDIDATE` /
+`DRAFT` / `FAKE` / `UNKNOWN`, defined in
+`sae_concept_lab/canonical/concept_bundle/schema.py`). The two must never
+be confused: a `BundleEntry`'s `provenance` says how well established a
+CONCEPT's origin is; an extraction's `extraction_class` says how strictly
+a FILE's bytes must be verified. Nothing in this repository's provenance
+tooling reads or writes the word `provenance` as a code-extraction field
+or verdict.
 
 - **HISTORICAL_SEED** (`sae_concept_lab_ui`): a past import whose current
   bytes are PERMITTED TO EVOLVE. `app.py`, `core/*`, `ui/*`,
@@ -142,16 +228,43 @@ a code-extraction field or verdict.
   frozen pack's commit -- it changes on a deliberate re-extraction (this
   repository has had one: `fabf702` superseded by `2a95a49`), which is a
   property of the pack being replaced whole, never a partial drift.
+- **RUNTIME_CODE_MIRROR** (`shared_runtime_mirror`, `qwen_runtime_mirror`,
+  `gemma_runtime_mirror`): byte-for-byte immutable like CANONICAL_MIRROR,
+  but for extracted RUNTIME code with no frozen conformance pack of its
+  own -- verified by hash alone, at whole-file granularity
+  (`imported_modules`, e.g. `targets.py`) or per-function granularity
+  (`imported_functions`, AST-extracted and independently re-hashed against
+  both the source commit and the destination file -- needed because the
+  source scripts mix Qwen/Gemma/CLI code in ways that don't separate
+  cleanly at the file level), printing e.g.:
+  `RUNTIME_CODE_MIRROR e63b08e current bytes match source; no conformance pack applies to this extraction`.
+  This class makes **no claim** that the mirrored code has been
+  mechanically verified against real weights -- that is
+  `sae_concept_lab.core.runtime_acceptance`'s entirely separate concern
+  (see "Runtime backends" above).
 
 `provenance/verify_provenance.py` rejects reclassification: a
-HISTORICAL_SEED extraction naming a source_path that the frozen pack's
-own `export_inventory.json` lists under `minimum_export_surface` is a
-fatal configuration error, not a per-file finding -- it would let a
-canonical-mirror-owned path escape strict verification by being
-relabelled. New, genuinely product-native files (e.g.
-`fixtures/labels.py`, the eight canonical fixture documents under
+HISTORICAL_SEED extraction naming a source_path that any
+CANONICAL_MIRROR/RUNTIME_CODE_MIRROR extraction in this manifest records,
+or that the frozen pack's own `export_inventory.json` lists under
+`minimum_export_surface`, is a fatal configuration error, not a per-file
+finding -- it would let an immutable-mirror-owned path escape strict
+verification by being relabelled. New, genuinely product-native files
+(e.g. `fixtures/labels.py`, the eight canonical fixture documents under
 `fixtures/gemma/` and `fixtures/qwen/`) need no invented extraction class
 at all -- they are simply not extractions.
+
+**A real, caught-in-the-act example of why function-level extraction
+matters**: the first attempt at `hooks.py` copied the whole source file
+byte-for-byte, including `attach()` and everything only it needs -- which
+imports `interplab.interventions.spec.InterventionSpec`, an internal
+qwen-sae-interp package. A whole-file mirror of that source is therefore
+**structurally unable to ever import standalone in this repository**, not
+merely hard to test -- discovered by a test failure
+(`ModuleNotFoundError: No module named 'interplab'`), corrected before
+being relied on anywhere, by re-extracting only the five functions
+`_make_clamp_hook` actually needs. See `provenance/source_import.json`'s
+`shared_runtime_mirror.excluded_from_extraction` for the full account.
 
 ## Reserved space for future runtime extraction
 

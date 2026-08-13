@@ -29,6 +29,7 @@ from sae_concept_lab.canonical.concept_bundle import (
     select_layout_entries,
 )
 from sae_concept_lab.core.protocol import ConceptLabBackend
+from sae_concept_lab.core.runtime_acceptance import is_mechanically_accepted
 from sae_concept_lab.core.stub_backend import StubConceptLabBackend
 
 FIXTURES_DIR = Path(__file__).resolve().parent
@@ -125,6 +126,24 @@ def enforce_release_gate(
             "StubConceptLabBackend (deterministic fake data), regardless of any entry's "
             "provenance. A real, non-stub backend implementing ConceptLabBackend.generate() is "
             "required before evidence/publishability is even worth checking."
+        )
+
+    # A real backend's own `pairing` attribute (QwenRuntimeBackend.pairing,
+    # GemmaRuntimeBackend.pairing) is checked here by duck typing, not by
+    # importing either concrete class -- this module stays decoupled from
+    # specific backend implementations, matching ConceptLabBackend's own
+    # Protocol design. Mechanical CODE extraction (RUNTIME_CODE_MIRROR) is
+    # entirely independent of mechanical ACCEPTANCE against real weights;
+    # a backend whose code imports and runs perfectly is still refused
+    # here until its pairing has an attached, verified
+    # RuntimeAcceptanceRecord (core/runtime_acceptance.py).
+    pairing = getattr(backend, "pairing", None)
+    if pairing is not None and not is_mechanically_accepted(pairing):
+        raise ReleaseGateError(
+            f"refusing --mode release: backend for model_key={model_key!r} is a real backend for "
+            f"pairing={pairing!r}, but that pairing has no attached, verified "
+            "RuntimeAcceptanceRecord (core/runtime_acceptance.py) -- mechanical acceptance against "
+            "real weights has not been imported from a tracked qwen-sae-interp evidence commit yet."
         )
 
     root = _validate_evidence_registry_root(evidence_registry_root)

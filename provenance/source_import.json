@@ -271,6 +271,273 @@
       "statement": "No scientific concept, feature membership, calibration value, or evidence artifact was imported. The eight modules extracted here are the concept-bundle CONTRACT ONLY -- schema, codec, typed refusals, execution grouping, resolution arithmetic, evidence-reference resolution, and the publication gate -- not any concept data. interplab/concept_bundle/fixtures.py (invented data), scripts/concept_bundle_conformance.py's role as a verification harness (copied here for the record and to run the check, not as runtime surface), and tests/concept_bundle_helpers.py (test-only construction) were deliberately excluded, matching export_inventory.json's own excluded_from_minimum_surface list. The extracted package is standard-library-only (confirmed both by the canonical export_inventory.json's runtime_dependencies list and by this repository's own isolation tests) and has no import-time dependency on qwen-sae-interp, interplab, torch, numpy, sae_lens, or transformer_lens.",
       "extraction_class": "CANONICAL_MIRROR",
       "canonical_mirror_note": "Membership in CANONICAL_MIRROR is derived from the CURRENT frozen pack's own export_inventory.json minimum_export_surface list (the eight canonical source paths), not merely asserted by this field -- currently frozen pack commit 2a95a49 (superseding fabf702; see supersedes_previous_extraction above). CANONICAL_MIRROR verification checks CURRENT bytes (never permitted to evolve) against the manifest hash AND against a live qwen-sae-interp checkout, and re-runs every frozen conformance vector (75, as of this pack) -- see provenance/verify_provenance.py."
+    },
+    {
+      "extraction_id": "shared_runtime_mirror",
+      "schema_note": "Mechanical extraction of the runtime code SHARED by both the Qwen3.5-27B and gemma-3-12b-it intervention paths: the pure-stdlib identity/validation library (targets.py, whole-file), the shared clamp/ablate hook mechanism (hooks.py, assembled from five named functions of interplab/interventions/hooks.py -- NOT whole-file; see mechanical_adaptations), and the shared diagnostic-trace/verdict functions (diagnostics.py, assembled from five named functions of final_pairing_harness.py). CODE ONLY -- see qwen_runtime_mirror/gemma_runtime_mirror for the pairing-specific loaders, and sae_concept_lab/core/runtime_acceptance.py for the entirely separate question of whether either pairing has been mechanically verified against real weights.",
+      "source_repository": {
+        "identity": "qwen-sae-interp",
+        "remote_url": "https://github.com/mo-dev-x/qwen-sae-interp.git",
+        "branch": "final-pairing-harness",
+        "checkout_commit": "de3b4994b1b7449fd4d967abfe63bf196772ef11",
+        "checkout_commit_short": "de3b499",
+        "checkout_commit_subject": "Replace the pytest-based Tamia symlink preflight with a standalone, standard-library-only script",
+        "checkout_commit_note": "Current tip of final-pairing-harness as of this extraction. Chosen because it is the most current, most-fixed state of this shared code, not because of any mechanical-acceptance claim -- this extraction_id records CODE PROVENANCE only."
+      },
+      "import_timestamp_utc": "2026-08-13T08:46:10Z",
+      "import_path_roots": [
+        "sae_concept_lab/extracted_runtime"
+      ],
+      "scaffolding_added": [
+        {
+          "path": "sae_concept_lab/extracted_runtime/__init__.py",
+          "reason": "Parent-package marker only, required so the extracted modules are importable at sae_concept_lab.extracted_runtime.*. Not extracted from any source commit; carries no runtime content; excluded from hash verification and from the unrecorded-file scan by being listed here explicitly rather than silently ignored -- the same pattern sae_concept_lab/canonical/__init__.py already established for the concept-bundle extraction."
+        }
+      ],
+      "imported_modules": [
+        {
+          "source_path": "scripts/legacy/final_pairing_targets.py",
+          "dest_path": "sae_concept_lab/extracted_runtime/targets.py",
+          "sha256": "45b2c1fd293d8f16ec30020fcf37b25ab8c90115d5a5cc7d6df4df9e9f1e5de3",
+          "whole_file_note": "Whole-file copy: this module is 100% standard-library at module scope in both this commit and e63b08e (only a function-local huggingface_hub.utils.EntryNotFoundError import, added at de3b499 inside resolve_local_gemma_sae_path), 'engineering identity only' per its own module docstring, and used unmodified by both qwen_loader.py and gemma_loader.py."
+        }
+      ],
+      "imported_functions": [
+        {
+          "source_path": "scripts/legacy/final_pairing_harness.py",
+          "function_name": "InterventionTrace",
+          "dest_path": "sae_concept_lab/extracted_runtime/diagnostics.py",
+          "dest_function_name": "InterventionTrace",
+          "decorator_reattached": "@dataclass",
+          "sha256": "f7f48ec79706d9e19ac7e22b3237af6bc5626da6107c5558826e88f6a60deec4",
+          "note": "sha256 is of the class body only, decorator excluded (ast.get_source_segment's own behavior for a decorated definition) -- the @dataclass line above it was reattached by hand when assembling diagnostics.py and is not covered by this hash; provenance/verify_provenance.py's verify_function_entry() computes the identical hash the identical way against both the source commit and this destination file."
+        },
+        {
+          "source_path": "scripts/legacy/final_pairing_harness.py",
+          "function_name": "wrap_hook_with_diagnostics",
+          "dest_path": "sae_concept_lab/extracted_runtime/diagnostics.py",
+          "sha256": "82b2456475aa258795acb1a22867e6939935096ab6374dbea389fd9369f16356"
+        },
+        {
+          "source_path": "scripts/legacy/final_pairing_harness.py",
+          "function_name": "find_first_disappearance_boundary",
+          "dest_path": "sae_concept_lab/extracted_runtime/diagnostics.py",
+          "sha256": "62956f075bac99fe6aa9d32cfd787884abe88158df3c58d46cc254715a508893"
+        },
+        {
+          "source_path": "scripts/legacy/final_pairing_harness.py",
+          "function_name": "mechanical_verdict",
+          "dest_path": "sae_concept_lab/extracted_runtime/diagnostics.py",
+          "sha256": "8249f5bbade2b1a8c73258e7b54dbaadf25952a6237967cac277bb63e554f403"
+        },
+        {
+          "source_path": "scripts/legacy/final_pairing_harness.py",
+          "function_name": "_require_offline",
+          "dest_path": "sae_concept_lab/extracted_runtime/diagnostics.py",
+          "sha256": "4259061b6bae6c95dc8567cb668534cf919802c533843d193d240edf7a4273ed"
+        },
+        {
+          "source_path": "interplab/interventions/hooks.py",
+          "function_name": "CallStats",
+          "dest_path": "sae_concept_lab/extracted_runtime/hooks.py",
+          "dest_function_name": "CallStats",
+          "decorator_reattached": "@dataclasses.dataclass(frozen=True)",
+          "sha256": "099620a2f9c0aa139bea9117ecb3dc6a84a413e21dd719823074c54de66b3f42",
+          "note": "Class body only, decorator excluded from the hash and reattached by hand, identically to InterventionTrace above."
+        },
+        {
+          "source_path": "interplab/interventions/hooks.py",
+          "function_name": "_PositionCounter",
+          "dest_path": "sae_concept_lab/extracted_runtime/hooks.py",
+          "sha256": "982038e9329e3ff5138ed4435cb996e0d3e32baff2bd86f5de106be1b6805bd1"
+        },
+        {
+          "source_path": "interplab/interventions/hooks.py",
+          "function_name": "_resolve_prompt_lengths_tensor",
+          "dest_path": "sae_concept_lab/extracted_runtime/hooks.py",
+          "sha256": "8501b89127d28ec58484a905f8f8baeeb6d28958fe5b1eec3140560a12e147b3"
+        },
+        {
+          "source_path": "interplab/interventions/hooks.py",
+          "function_name": "_positions_mask",
+          "dest_path": "sae_concept_lab/extracted_runtime/hooks.py",
+          "sha256": "181499132b153b43ab6c54c667dc62c1c8bf83ab32ece27132f16cf08305ef4e"
+        },
+        {
+          "source_path": "interplab/interventions/hooks.py",
+          "function_name": "_make_clamp_hook",
+          "dest_path": "sae_concept_lab/extracted_runtime/hooks.py",
+          "sha256": "9022b2e13b98fa0036c29ed35df43155b7810f7e0e8869b506da191c7fdeca9a"
+        }
+      ],
+      "excluded_from_extraction": [
+        {
+          "name": "attach, AttachHandle, _check_positions_contract, _check_direction_seed_contract, _fp32_copy, _direction_vector, _make_add_direction_hook",
+          "reason": "CRITICAL: attach() and everything only it needs import interplab.interventions.spec.InterventionSpec -- an internal qwen-sae-interp package this product must never depend on in any form, not even lazily (unlike torch/numpy/sae_lens, which are legitimate optional heavy runtime dependencies a real deployment installs, interplab is qwen-sae-interp's OWN source tree and can never be a dependency of a standalone product). A whole-file copy of hooks.py was attempted first and found, by direct test failure (ModuleNotFoundError: No module named 'interplab'), to be unimportable in this repository under any configuration -- corrected to this function-level extraction before being relied upon anywhere. Neither final_pairing_harness.py nor this product's own backends call attach() -- both call _make_clamp_hook directly (the source module's own docstring: '_make_clamp_hook is imported unmodified, exactly as scripts/legacy/gemma3_tool.py already does'). _make_add_direction_hook serves a different, unused InterventionSpec.kind ('add_direction'); ABLATE is CLAMP with value 0.0, applied by this product's own backends before calling _make_clamp_hook, exactly matching attach()'s own rule ('clamp_value = 0.0 if spec.kind == \"ablate\" else ...')."
+        }
+      ],
+      "cross_check_against_e63b08e": {
+        "performed": true,
+        "method": "Independently re-parsed the source file at commit e63b08e with the same AST-based function extractor used for verification, for every function/class listed above (diagnostics.py's five, hooks.py's five) plus targets.py whole-file, and confirmed byte-identical source segments at both commits.",
+        "result": "all five diagnostics.py functions, all five hooks.py functions, and the Qwen-relevant portions of targets.py are confirmed byte-identical between e63b08e and de3b499 -- only targets.py's Gemma-specific validators and resolve_local_gemma_sae_path (absent at e63b08e) differ."
+      },
+      "mechanical_adaptations": {
+        "count": 1,
+        "adaptations": [
+          {
+            "what": "hooks.py's module header is NOT a verbatim copy of interplab/interventions/hooks.py's own header (`import contextlib`, `import dataclasses`, `from collections.abc import Sequence`, `import numpy as np`, `import torch`, `from sae_lens import SAE`, `from interplab.interventions.spec import InterventionSpec`) -- it is reduced to exactly `import dataclasses` + `import torch`, the only two imports the FIVE EXTRACTED functions actually use (contextlib/Sequence/numpy/SAE/InterventionSpec are all used only by the excluded attach()-family code).",
+            "why": "The excluded code's own import (InterventionSpec) cannot resolve in this repository under any circumstance -- see excluded_from_extraction above. Trimming the header to only what the kept functions need is not a body-level change to any extracted function (each one's own AST-extracted source segment, verified above, is untouched) -- it is the direct, necessary consequence of extracting a NAMED SUBSET of a file instead of the whole file, exactly as qwen_runtime_mirror/gemma_runtime_mirror's own single documented adaptation (import final_pairing_targets as targets -> from . import targets) already established as the precedent for this kind of header-only change.",
+            "behavioral_consequence": "None for the five kept functions -- verified identically to every other imported_functions entry, by AST-extracting each from both the source commit and this destination file and confirming byte-identical bodies."
+          }
+        ]
+      },
+      "statement": "No scientific concept, feature membership, calibration value, or evidence artifact was imported. This extraction is engineering identity/validation code (targets.py), a generic clamp/ablate hook mechanism (hooks.py), and diagnostic bookkeeping (diagnostics.py) -- never a concept bundle, a calibration value, or a claim that either pairing has been mechanically verified against real weights.",
+      "extraction_class": "RUNTIME_CODE_MIRROR",
+      "runtime_code_mirror_note": "No conformance pack exists for this extraction (there is no equivalent of concept_bundle's frozen vector pack for loader/hook code) -- verification is pure hash comparison, at whole-file granularity for targets.py and at per-function granularity (AST-extracted, independently re-hashed against both the source commit and this destination file) for diagnostics.py and hooks.py. See provenance/verify_provenance.py's RUNTIME_CODE_MIRROR documentation."
+    },
+    {
+      "extraction_id": "qwen_runtime_mirror",
+      "schema_note": "Mechanical, function-level extraction of the Qwen3.5-27B raw-HF intervention loader from scripts/legacy/final_pairing_harness.py at commit e63b08e -- the commit named in the currently-pending (not yet tracked/committed) Qwen mechanical-acceptance evidence for Slurm job 406092. This extraction is CODE ONLY: it carries no claim that job 406092's Qwen scenarios are accepted evidence -- see sae_concept_lab/core/runtime_acceptance.py, which currently records BOTH pairings as mechanically unverified, and app.py's release gate, which refuses a real backend until that changes.",
+      "source_repository": {
+        "identity": "qwen-sae-interp",
+        "remote_url": "https://github.com/mo-dev-x/qwen-sae-interp.git",
+        "branch": "final-pairing-harness",
+        "checkout_commit": "e63b08eb94667be5b9a10425814e111fb9f6cefb",
+        "checkout_commit_short": "e63b08e",
+        "checkout_commit_subject": "Gemma harness: fail closed on the exact SAE subdirectory and symlink physical target",
+        "checkout_commit_note": "Chosen to match the commit named in the pending (unverified) Qwen job-406092 evidence log, so that if/when Engineer 1's tracked evidence commit arrives referencing this same commit, this extraction already mirrors exactly what would have been run -- not because this commit's own message is about Qwen (it is a Gemma fix; the Qwen-relevant functions extracted below are independently confirmed byte-identical at this commit and at every later commit through de3b499)."
+      },
+      "import_timestamp_utc": "2026-08-13T08:46:10Z",
+      "import_path_roots": [
+        "sae_concept_lab/extracted_runtime"
+      ],
+      "imported_functions": [
+        {
+          "source_path": "scripts/legacy/final_pairing_harness.py",
+          "function_name": "_topk_relu",
+          "dest_path": "sae_concept_lab/extracted_runtime/qwen_loader.py",
+          "sha256": "e96146a8a03f825a5c8b55c5aaa9e18a5066095727a04b59cd3ff54b3262cdda"
+        },
+        {
+          "source_path": "scripts/legacy/final_pairing_harness.py",
+          "function_name": "QwenScopeSAE",
+          "dest_path": "sae_concept_lab/extracted_runtime/qwen_loader.py",
+          "sha256": "f663d5804b234a7340e2fdd7037403ea5c136a64e71da290e3f2e9c65b10fa8e"
+        },
+        {
+          "source_path": "scripts/legacy/final_pairing_harness.py",
+          "function_name": "resolve_qwen_text_decoder",
+          "dest_path": "sae_concept_lab/extracted_runtime/qwen_loader.py",
+          "sha256": "c687ab829c5d8edc9f8a2b4d557b5cc3c616d8e0a9770b096dcce457c0bcd5fa"
+        },
+        {
+          "source_path": "scripts/legacy/final_pairing_harness.py",
+          "function_name": "get_qwen_decoder_layer",
+          "dest_path": "sae_concept_lab/extracted_runtime/qwen_loader.py",
+          "sha256": "44e0a06c494e4f32a5d06868926a7c8d7b64e5c548d36d561bb7aec892552d8a"
+        },
+        {
+          "source_path": "scripts/legacy/final_pairing_harness.py",
+          "function_name": "register_qwen_raw_hook",
+          "dest_path": "sae_concept_lab/extracted_runtime/qwen_loader.py",
+          "sha256": "b729c940bd48ab50e65bfff85163378563d9540b7a17569e4518874b67c87cc3"
+        },
+        {
+          "source_path": "scripts/legacy/final_pairing_harness.py",
+          "function_name": "load_qwen_target",
+          "dest_path": "sae_concept_lab/extracted_runtime/qwen_loader.py",
+          "sha256": "b0887f7f03c2b6e50ea05932441a9711c8637843f777920bada96c0594e05896"
+        }
+      ],
+      "excluded_from_extraction": [
+        {
+          "name": "resolve_target_value",
+          "reason": "Resolves a CLI dose-multiple/calibration-value/raw-clamp-value flag combination into an absolute target. Superseded entirely by canonical resolver.resolve_control(), which already produces an absolute ResolvedControlState.value before this package's backend ever runs -- porting this function would duplicate resolution logic the canonical contract already owns."
+        },
+        {
+          "name": "parse_args / main",
+          "reason": "CLI-only glue (argparse definition and the script entry point). This product's own QwenRuntimeBackend replaces main()'s Qwen branch, translating a canonical ResolvedControlState directly into calls on load_qwen_target/register_qwen_raw_hook/the shared hooks.py mechanism -- never re-parsing a command line."
+        },
+        {
+          "name": "_load_gemma3_tool",
+          "reason": "Dynamically execs gemma3_tool.py purely to reuse dose_to_absolute_clamp -- unneeded once resolve_target_value (above) is unneeded."
+        }
+      ],
+      "mechanical_adaptations": {
+        "count": 1,
+        "adaptations": [
+          {
+            "what": "The source script's sibling-directory import, `sys.path.insert(0, str(Path(__file__).resolve().parent)); import final_pairing_targets as targets`, is replaced with a plain package-relative `from . import targets` (and `from .diagnostics import _require_offline` for the one shared helper this loader calls directly).",
+            "why": "The source script is a flat scripts/legacy/ file that manipulates sys.path to bare-import its sibling; this product is a proper Python package, where a relative import is the standard, standalone-safe equivalent -- no sys.path mutation, no dependency on being invoked as a script.",
+            "behavioral_consequence": "None. Every function body is otherwise byte-identical; this is an import-statement substitution only, verified by AST-extracting each function from both the source commit and this destination file and confirming their bodies (which never reference the import statement's own syntax) hash identically."
+          }
+        ]
+      },
+      "statement": "No scientific concept, feature membership, calibration value, or evidence artifact was imported. This is the Qwen3.5-27B raw-HF loading/hook-registration CODE ONLY -- QwenScopeSAE's own docstring already documents that W_enc/b_enc/W_dec/b_dec are required with no silent substitution, and that requirement is preserved verbatim, unweakened, in this extraction.",
+      "extraction_class": "RUNTIME_CODE_MIRROR",
+      "runtime_code_mirror_note": "No conformance pack exists for this extraction. Verified at per-function granularity only (imported_functions) -- see provenance/verify_provenance.py."
+    },
+    {
+      "extraction_id": "gemma_runtime_mirror",
+      "schema_note": "Mechanical, function-level extraction of the gemma-3-12b-it transformer_lens/sae_lens intervention loader from scripts/legacy/final_pairing_harness.py at commit de3b499 (current tip of final-pairing-harness as of this extraction). CODE ONLY -- carries no claim that any Gemma job (including the unsubstantiated 'job 407008' this product's own dispatch history rejected -- see BOUNDARY.md) has mechanically accepted this pairing. sae_concept_lab/core/runtime_acceptance.py records Gemma as unverified pending Engineer 1's own tracked evidence commit for this pairing.",
+      "source_repository": {
+        "identity": "qwen-sae-interp",
+        "remote_url": "https://github.com/mo-dev-x/qwen-sae-interp.git",
+        "branch": "final-pairing-harness",
+        "checkout_commit": "de3b4994b1b7449fd4d967abfe63bf196772ef11",
+        "checkout_commit_short": "de3b499",
+        "checkout_commit_subject": "Replace the pytest-based Tamia symlink preflight with a standalone, standard-library-only script",
+        "checkout_commit_note": "Current tip of final-pairing-harness as of this extraction -- the most current, most-fixed state of the Gemma loading path (SAE-loader-id separation, local-snapshot-only SAE resolution, corrected safetensors shape shim). Chosen for currency, not for any mechanical-acceptance claim, which this extraction_id does not carry."
+      },
+      "import_timestamp_utc": "2026-08-13T08:46:10Z",
+      "import_path_roots": [
+        "sae_concept_lab/extracted_runtime"
+      ],
+      "imported_functions": [
+        {
+          "source_path": "scripts/legacy/final_pairing_harness.py",
+          "function_name": "_capture_sae_download_paths",
+          "dest_path": "sae_concept_lab/extracted_runtime/gemma_loader.py",
+          "sha256": "19b511771c0c23e37330fce1ac6232b9e873d57bf14ef7c67ea53809d3166d5a"
+        },
+        {
+          "source_path": "scripts/legacy/final_pairing_harness.py",
+          "function_name": "_restore_sae_download_paths",
+          "dest_path": "sae_concept_lab/extracted_runtime/gemma_loader.py",
+          "sha256": "9096afacb9a4536ef0db6b92a3b6d56b5a4c6c678419a0b1384ae269bd35ee87"
+        },
+        {
+          "source_path": "scripts/legacy/final_pairing_harness.py",
+          "function_name": "_patch_gemma3_safetensors_shape_lookup",
+          "dest_path": "sae_concept_lab/extracted_runtime/gemma_loader.py",
+          "sha256": "acd7965628e0d10d3620dfd92d4f671ec35c82796343325936755f061c53cd7b"
+        },
+        {
+          "source_path": "scripts/legacy/final_pairing_harness.py",
+          "function_name": "load_gemma_it_target",
+          "dest_path": "sae_concept_lab/extracted_runtime/gemma_loader.py",
+          "sha256": "b12504c5820aff72c005938e23dc6ee9293ae05150aa8c6fbf944ea4ce824d5d"
+        }
+      ],
+      "excluded_from_extraction": [
+        {
+          "name": "resolve_target_value / parse_args / main / _load_gemma3_tool",
+          "reason": "Identical reasoning to qwen_runtime_mirror's own excluded_from_extraction: CLI glue and dose-resolution logic superseded by canonical resolver.resolve_control()."
+        }
+      ],
+      "mechanical_adaptations": {
+        "count": 1,
+        "adaptations": [
+          {
+            "what": "Identical single adaptation to qwen_runtime_mirror: `import final_pairing_targets as targets` (plus sys.path manipulation) replaced with `from . import targets`; `_require_offline` (called directly, unqualified, inside load_gemma_it_target) imported via `from .diagnostics import _require_offline`.",
+            "why": "Same reason as qwen_runtime_mirror: standalone package-relative import replacing a flat-script sys.path hack.",
+            "behavioral_consequence": "None -- verified identically, by AST-extracting each function from both the source commit and this destination file and confirming byte-identical bodies."
+          }
+        ]
+      },
+      "statement": "No scientific concept, feature membership, calibration value, or evidence artifact was imported. This is the Gemma loading/SAE-resolution CODE ONLY -- every fail-closed identity/subdirectory/symlink-containment guard this code depends on (in targets.py, shared_runtime_mirror) is preserved verbatim, unweakened.",
+      "extraction_class": "RUNTIME_CODE_MIRROR",
+      "runtime_code_mirror_note": "No conformance pack exists for this extraction. Verified at per-function granularity only (imported_functions) -- see provenance/verify_provenance.py."
     }
   ]
 }

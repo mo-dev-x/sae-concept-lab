@@ -224,11 +224,13 @@ Two smaller correctness fixes rode along with this pass:
    conformance pack, mechanically extracted into
    `sae_concept_lab/canonical/concept_bundle/`, and is now wired into
    `fixtures/loader.py`/`core/logic.py`/`ui/tab.py` directly.
-   `core/protocol.py`'s `ConceptLabBackend` Protocol is unchanged in
-   shape and remains the seam for a REAL chat backend (one that actually
-   intervenes on a model) -- that wiring is still not performed; only the
-   control/configuration side (what a concept/direction/strength resolves
-   to) is wired to canonical.
+   **Also resolved**, as of the dual-runtime integration: `core/qwen_backend.py`
+   and `core/gemma_backend.py` are REAL `ConceptLabBackend` implementations
+   -- wired to mechanically-extracted (`sae_concept_lab/extracted_runtime/`)
+   and mechanically-accepted (`core/runtime_acceptance.py`) intervention
+   code for both pairings. Selected via `--qwen-backend runtime`/
+   `--gemma-backend runtime` (`app.py`); `--mode release` still refuses
+   regardless, since no shipped concept is ATTESTED.
 2. Compare is currently a non-committing side-by-side probe: sending the
    same message via "Compare" does NOT append either response to the
    running chat history (only "Send" does). Unclear whether a future
