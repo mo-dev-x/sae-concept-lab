@@ -24,6 +24,13 @@ gate's publishability check (which only ever evaluates
 `entries.py`'s own docstring and `tests/test_tamia_smoke.py`'s
 `test_smoke_entries_never_enter_fixture_discovery_or_release_gate` for the
 mechanical proof of that isolation.
+
+`pi_demo_preflight.py` is a SEPARATE, unrelated smoke check added for the
+2026-08-13 PI-demo dispatch: a local, GPU-free, D:-only preflight that
+boots the real dev-mode app with StubConceptLabBackend, HTTP-probes it,
+checks the currently staged release-eligibility status, and shuts it down
+cleanly. It never touches Tamia, never constructs a real backend, and
+never depends on anything in this module. See docs/pi_demo_runbook.md.
 """
 
 from __future__ import annotations

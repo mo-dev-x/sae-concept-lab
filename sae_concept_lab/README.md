@@ -245,7 +245,16 @@ Two smaller correctness fixes rode along with this pass:
    `sae_concept_lab/smoke/tamia_smoke.py` exercises both real backends
    through the exact canonical resolution -> execution-guard -> backend
    path the application uses, on real Tamia weights -- see
-   `../docs/tamia_smoke.md`.
+   `../docs/tamia_smoke.md`. **Also resolved**, as of the PI-demo
+   dispatch (2026-08-13): a bounded Mode-A import slot
+   (`fixtures/attested/{gemma,qwen}/`, `fixtures/loader.py`'s
+   `load_attested_entries`) lets a genuinely ATTESTED bundle reach
+   `--mode release` with no `.py` edit, `--mode release` now filters
+   rendered entries to the publishable subset
+   (`canonical.select_layout_entries`), and a local, GPU-free preflight
+   (`sae_concept_lab/smoke/pi_demo_preflight.py`) checks the whole stack
+   end to end -- see `../docs/pi_demo_runbook.md` and
+   `../docs/pi_demo_scientific_status.md`.
 2. Compare is currently a non-committing side-by-side probe: sending the
    same message via "Compare" does NOT append either response to the
    running chat history (only "Send" does). Unclear whether a future

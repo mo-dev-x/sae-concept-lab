@@ -230,6 +230,49 @@ force:
   is the one function both tabs call to render positions. There is no
   second, per-pairing copy of this logic to drift.
 
+## Bounded Mode-A import slot and the PI-demo preflight (2026-08-13)
+
+`sae_concept_lab/fixtures/attested/{gemma,qwen}/` is the ONE location a
+genuinely ATTESTED bundle can be dropped into and be picked up by
+`fixtures.loader.load_entries(model_key)` with **no edit to any `.py`
+file** -- see `fixtures/attested/README.md`, `fixtures/loader.py`'s
+`load_attested_entries`/`ATTESTED_DIR`, and
+`tests/test_pi_demo_mode_a.py`. A directory scan here is safe in a way it
+deliberately is not for `fixtures/{gemma,qwen}/` (whose explicit
+`_ENTRY_FILENAMES` list is unchanged): whether a scanned file's entry ever
+publishes remains entirely `evaluate_publishability`'s decision, never
+this slot's, and a file that fails to even decode is excluded and
+reported (`AttestedImportOutcome.rejected`) rather than raised --
+Mode B's guarantee (the shipped FAKE fixtures always load) does not
+depend on whatever the slot currently holds or how broken it is.
+
+`sae_concept_lab/app.py`'s `--mode release` path now additionally filters
+the entries it passes to `build_demo` through canonical's own
+`select_layout_entries(..., exposure=Exposure.RELEASE)` before rendering
+-- closing a real gap where a release build would otherwise have shown
+every shipped FAKE fixture indistinguishably alongside a genuinely
+publishable entry, once one existed. `ui/app_ui.build_demo` takes a new
+`mode` parameter that ONLY controls whether the permanent "PLACEHOLDER /
+NOT SCIENTIFIC EVIDENCE" banner renders (omitted under `mode="release"`,
+since it would misdescribe a build now filtered to publishable-only
+content); it never changes any other rendering or behavior, and dev
+mode's own long-standing behavior (unfiltered, banner always present) is
+unchanged (`tests/test_pi_demo_mode_a.py`).
+
+`sae_concept_lab/smoke/pi_demo_preflight.py` is a separate, local,
+GPU-free, D:-only preflight (unrelated to the Tamia GPU smoke packet
+below): required files, no C:-based path anywhere, current
+release-eligibility status (Mode A vs Mode B, informational), release
+still refuses locally with stub backends (hard assertion -- a real
+backend is a separate, GPU-side precondition this preflight cannot and
+does not satisfy), boot/HTTP-200/visible-status/clean-shutdown of the
+real dev-mode app on loopback, and one aggregate machine-readable JSON
+result. See `docs/pi_demo_runbook.md` (the operational script, Mode A/B
+branches, five-minute walkthrough, recovery) and
+`docs/pi_demo_scientific_status.md` (exact permitted/prohibited claims,
+current ATTESTED count, the working-instrument-vs-validated-science
+distinction).
+
 ## Tamia product-integration smoke packet
 
 `sae_concept_lab/smoke/tamia_smoke.py` is a reproducible, fail-closed

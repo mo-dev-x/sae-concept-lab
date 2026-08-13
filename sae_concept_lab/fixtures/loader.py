@@ -15,6 +15,7 @@ stub backend" or "where this deployment's registry lives".
 
 from __future__ import annotations
 
+import dataclasses
 import sys
 from pathlib import Path
 
@@ -47,6 +48,17 @@ _ENTRY_FILENAMES: dict[str, tuple[str, ...]] = {
 
 PAIRING_ID_FOR_MODEL_KEY: dict[str, str] = {"gemma": GEMMA_PAIRING_ID, "qwen": QWEN_PAIRING_ID}
 
+#: The bounded Mode-A import slot (2026-08-13 PI-demo dispatch): the ONE
+#: location a genuinely ATTESTED bundle can be dropped into and be picked
+#: up by load_entries() with NO edit to this or any other .py file. A
+#: directory scan here is safe in a way it deliberately is not for
+#: fixtures/{gemma,qwen}/ above: whether a scanned file's entry ever
+#: PUBLISHES remains entirely evaluate_publishability's decision (ATTESTED
+#: provenance, resolvable full-digest evidence, no placeholder markers),
+#: never this module's, and a file that fails to even decode is excluded
+#: and reported rather than crashing anything -- see load_attested_entries.
+ATTESTED_DIR = FIXTURES_DIR / "attested"
+
 
 class ReleaseGateError(RuntimeError):
     """Raised when a release/public launch is requested against the stub
@@ -63,12 +75,64 @@ def _entry_paths(model_key: str) -> tuple[Path, ...]:
     return tuple(FIXTURES_DIR / model_key / name for name in _ENTRY_FILENAMES[model_key])
 
 
+def _attested_entry_paths(model_key: str) -> tuple[Path, ...]:
+    directory = ATTESTED_DIR / model_key
+    if not directory.is_dir():
+        return ()
+    return tuple(sorted(directory.glob("*.json")))
+
+
+@dataclasses.dataclass(frozen=True)
+class AttestedImportOutcome:
+    """What the attested slot currently holds for one model_key.
+
+    `entries` decoded successfully through the canonical codec (their
+    provenance/evidence have NOT been checked here -- that is still
+    evaluate_publishability's job, downstream). `rejected` names every
+    file that failed to even decode (malformed JSON, a schema violation,
+    an unsafe artifact_type -- whatever BundleDecodeError or its siblings
+    report), each paired with the exact exception text, so a Lab
+    Assistant staging a bundle sees precisely why a drop-in was not
+    picked up instead of it silently vanishing."""
+
+    entries: tuple[BundleEntry, ...]
+    rejected: tuple[tuple[Path, str], ...] = ()
+
+
+def load_attested_entries(model_key: str) -> AttestedImportOutcome:
+    """Decodes every *.json file currently in the Mode-A slot
+    (ATTESTED_DIR / model_key), in sorted filename order, through the SAME
+    canonical codec every shipped FAKE fixture goes through. A file that
+    fails to decode is excluded and reported in `.rejected` rather than
+    raised -- this function is called unconditionally by load_entries()
+    below, and Mode B's guarantee (the shipped FAKE fixtures always load)
+    must not depend on whatever a Mode-A drop-in happens to contain."""
+    entries: list[BundleEntry] = []
+    rejected: list[tuple[Path, str]] = []
+    for path in _attested_entry_paths(model_key):
+        try:
+            (entry,) = load_entry_files((path,))
+            entries.append(entry)
+        except Exception as exc:  # reported in .rejected, never allowed to propagate -- see docstring
+            rejected.append((path, f"{type(exc).__name__}: {exc}"))
+    return AttestedImportOutcome(tuple(entries), tuple(rejected))
+
+
 def load_entries(model_key: str) -> tuple[BundleEntry, ...]:
-    """Strictly decodes this model's explicit entry files via the canonical
-    codec. Raises whatever canonical.concept_bundle.errors exception the
-    codec raises on a malformed document -- never a product-defined
-    ValueError standing in for it."""
-    return load_entry_files(_entry_paths(model_key))
+    """The shipped FAKE fixtures (unconditional: this call can never fail
+    because of anything in the attested slot, which is Mode B's guarantee)
+    plus whatever the bounded Mode-A slot (ATTESTED_DIR / model_key)
+    currently holds and could decode. Raises whatever
+    canonical.concept_bundle.errors exception the codec raises on a
+    malformed FAKE fixture file -- never a product-defined ValueError
+    standing in for it. A malformed or tampered file in the ATTESTED slot
+    never raises here; see load_attested_entries(model_key).rejected for
+    diagnostics, printed by sae_concept_lab.app and the PI-demo preflight."""
+    fake_entries = load_entry_files(_entry_paths(model_key))
+    attested = load_attested_entries(model_key)
+    for path, reason in attested.rejected:
+        print(f"WARNING: attested slot entry {path} was not loaded: {reason}", file=sys.stderr)
+    return (*fake_entries, *attested.entries)
 
 
 def build_registry(model_key: str) -> ConceptRegistry:

@@ -25,6 +25,11 @@ from __future__ import annotations
 import argparse
 import sys
 
+from sae_concept_lab.canonical.concept_bundle import (
+    Exposure,
+    RepositoryEvidenceRegistry,
+    select_layout_entries,
+)
 from sae_concept_lab.core.gemma_backend import GemmaRuntimeBackend
 from sae_concept_lab.core.qwen_backend import QwenRuntimeBackend
 from sae_concept_lab.core.stub_backend import StubConceptLabBackend
@@ -146,11 +151,33 @@ def main(argv: list[str] | None = None) -> int:
         print(f"REFUSING TO LAUNCH: {exc}", file=sys.stderr)
         return 2
 
+    # enforce_release_gate above already proved (per model_key,
+    # independently) that at least one entry is publishable against
+    # evidence_registry_root -- so this filter can never leave either tab
+    # with zero entries. Dev mode is unfiltered by design (it may render
+    # FAKE stubs; the permanent banner in ui/app_ui.py says so). Release
+    # mode must never render an entry that has not itself individually
+    # passed evaluate_publishability, even if OTHER entries for the same
+    # model_key are what made the gate above pass -- a shipped FAKE
+    # fixture and a genuinely ATTESTED bundle for the same pairing must
+    # never be indistinguishable on screen.
+    if args.mode == "release":
+        registry = RepositoryEvidenceRegistry(root=args.evidence_registry_root)
+        gemma_entries = tuple(
+            layout.entry
+            for layout in select_layout_entries(gemma_entries, exposure=Exposure.RELEASE, evidence_registry=registry)
+        )
+        qwen_entries = tuple(
+            layout.entry
+            for layout in select_layout_entries(qwen_entries, exposure=Exposure.RELEASE, evidence_registry=registry)
+        )
+
     demo = build_demo(
         gemma_entries=gemma_entries,
         qwen_entries=qwen_entries,
         gemma_backend=gemma_backend,
         qwen_backend=qwen_backend,
+        mode=args.mode,
     )
     demo.launch(server_name=args.server_name, server_port=args.server_port, share=False)
     return 0

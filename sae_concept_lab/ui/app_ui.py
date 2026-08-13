@@ -19,15 +19,31 @@ def build_demo(
     qwen_entries: tuple[BundleEntry, ...],
     gemma_backend: ConceptLabBackend,
     qwen_backend: ConceptLabBackend,
+    mode: str = "dev",
 ) -> gr.Blocks:
+    """`mode` only ever changes whether the permanent placeholder banner
+    below renders -- it is never passed to build_model_tab and never
+    changes what any tab does. The banner's fixed wording ("every reply
+    and technical value below is synthetic stub data") is TRUE of every
+    entry a dev-mode build can render (dev mode never filters by
+    publishability) and would be FALSE the moment a release build renders
+    a genuinely ATTESTED, evidence-verified entry (sae_concept_lab.app's
+    own --mode release path filters to exactly that publishable subset
+    via canonical's select_layout_entries before calling this function) --
+    so `mode == "release"` omits it rather than risk stating something
+    this module cannot itself verify entry-by-entry. This is the ONLY
+    thing `mode` controls; per-entry provenance is still, and remains,
+    shown in Advanced (ResolvedControlState.advanced_view()), never here.
+    """
     lang0 = DEFAULT_LANG
     relang: list[RelangTarget] = []
 
     with gr.Blocks(title=t("app_title", lang0)) as demo:
         lang_state = gr.State(lang0)
 
-        banner_md = gr.Markdown(f"### ⚠️ {t('fake_banner', lang0)}")
-        relang.append((banner_md, lambda lang: gr.Markdown(f"### ⚠️ {t('fake_banner', lang)}")))
+        if mode != "release":
+            banner_md = gr.Markdown(f"### ⚠️ {t('fake_banner', lang0)}")
+            relang.append((banner_md, lambda lang: gr.Markdown(f"### ⚠️ {t('fake_banner', lang)}")))
 
         title_md = gr.Markdown(f"# {t('app_title', lang0)}")
         relang.append((title_md, lambda lang: gr.Markdown(f"# {t('app_title', lang)}")))
