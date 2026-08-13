@@ -194,6 +194,60 @@ plausible-looking log are not evidence on their own. Evidence is a
 git-show-verifiable commit whose content survives independent re-hashing
 and re-running -- attempts 1 and 2 had neither; attempt 3 had both.
 
+## Positions: public default is ALL, ATTESTED ratification is authoritative
+
+`BundleEntry.positions` (canonical, `schema.py`) has never been a
+user-selectable control in either mode -- it is authored per entry and
+Advanced renders it read-only (`core/logic.py:advanced_positions_text`).
+Until the 2026-08-13 researcher ruling on public positions, this
+repository deliberately left no product-chosen default for it at all
+(see the prior "keep public default configuration-driven until
+researcher ratifies ALL" note this replaces). That ruling is now in
+force:
+
+- **Public positions default: ALL.** This repository's own eight shipped
+  FAKE fixtures (`fixtures/{gemma,qwen}/*.json`) were re-authored from
+  `generated_only` to `all` accordingly -- none of them carries
+  ATTESTED-level ratification for `generated_only`, so none of them had
+  any standing to use it.
+- **An explicit, researcher-ratified ATTESTED bundle position remains
+  authoritative.** Nothing in `resolve_control`, `advanced_positions_text`,
+  or either backend overrides `entry.positions` -- an ATTESTED entry's own
+  value is read and used exactly as authored, regardless of what the
+  public default is for everything else.
+- **GENERATED_ONLY remains fully available**, in Advanced, on both
+  pairings, and always surfaces the fixed disclosure "GENERATED_ONLY
+  masks prefill and leaves the first generated token unaffected." next to
+  the resolved mode (`core/logic.py:GENERATED_ONLY_POSITIONS_DISCLOSURE`)
+  -- distinct from, and not a replacement for, `core/qwen_backend.py`'s/
+  `core/gemma_backend.py`'s own longer `GENERATED_ONLY_FIRST_TOKEN_DISCLOSURE`
+  (a backend diagnostics-log statement quoted verbatim from
+  qwen-sae-interp's own docs; both backends now carry it identically --
+  previously only the Qwen backend did, a parity gap closed alongside
+  this ruling).
+- **No hidden model-specific default exists.** `build_model_tab` is the
+  one shared component tree instantiated per pairing; `advanced_positions_text`
+  is the one function both tabs call to render positions. There is no
+  second, per-pairing copy of this logic to drift.
+
+## Tamia product-integration smoke packet
+
+`sae_concept_lab/smoke/tamia_smoke.py` is a reproducible, fail-closed
+smoke runner -- NOT a second scientific acceptance harness -- that proves
+the extracted, mechanically-accepted runtime backends actually run,
+through the real product adapters (`core/logic.py:send_message`,
+`execution_guard`'s defensive re-check inside each backend,
+`ui/app_ui.build_demo`), on real weights on Tamia. It never calls
+`extracted_runtime.qwen_loader`/`gemma_loader`/`hooks` directly to drive a
+generation (the one exception, proving the loader's own identity guard
+rather than bypassing it, is documented in `docs/tamia_smoke.md`). Every
+concept-bundle entry it resolves against (`sae_concept_lab/smoke/entries.py`)
+is built directly in Python, prefixed `ENGINEERING-ONLY-SMOKE-`, and
+`provenance=FAKE` -- never added to `fixtures.loader._ENTRY_FILENAMES`, so
+it can never enter fixture discovery, the Gradio UI, or the release gate.
+See `docs/tamia_smoke.md` for the full scenario list, exact Tamia
+submission command, expected artifacts, and failure classification.
+
 ## extraction_class: a code-provenance axis, never the scientific-content axis
 
 `provenance/source_import.json` tags every extraction with an

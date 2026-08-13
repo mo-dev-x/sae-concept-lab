@@ -35,7 +35,7 @@
     }
   },
   "pairing_id": "fake-qwen-demo-pairing",
-  "positions": "generated_only",
+  "positions": "all",
   "provenance": "fake",
   "schema_version": "1.0"
 }

@@ -37,6 +37,20 @@ from sae_concept_lab.core.execution_guard import require_group_from_resolved
 from sae_concept_lab.core.protocol import GenerationRequest, GenerationResult
 from sae_concept_lab.core.runtime_acceptance import is_mechanically_accepted
 
+#: Identical to core/qwen_backend.py's own constant of the same name --
+#: the masking contract this describes (hooks.py's _positions_mask /
+#: _PositionCounter) is shared code, not pairing-specific, so the
+#: disclosure is the same statement for both backends. Printed verbatim
+#: in docs/final_pairing_tamia_packet.md (qwen-sae-interp); quoted here,
+#: not re-derived.
+GENERATED_ONLY_FIRST_TOKEN_DISCLOSURE = (
+    "positions=generated_only: the first generated token is always sampled with "
+    "zero influence from the intervention -- the prefill call's masked-off "
+    "positions include the position whose logits produce it. The intervention "
+    "first affects the second generated token onward (docs/positions_semantics.md, "
+    "qwen-sae-interp)."
+)
+
 MECHANICALLY_UNVERIFIED_TAG = "[MECHANICALLY UNVERIFIED AGAINST REAL WEIGHTS -- see core/runtime_acceptance.py]"
 
 DEFAULT_MAX_NEW_TOKENS = 8
@@ -191,6 +205,8 @@ class GemmaRuntimeBackend:
             "execution_fingerprint": resolved.execution_fingerprint(),
             "state_fingerprint": resolved.state_fingerprint(),
         }
+        if positions == "generated_only":
+            diagnostics["generated_only_first_token_disclosure"] = GENERATED_ONLY_FIRST_TOKEN_DISCLOSURE
         return GenerationResult(
             text=self._tag(text),
             is_synthetic=False,

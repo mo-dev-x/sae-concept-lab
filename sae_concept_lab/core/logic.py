@@ -20,10 +20,19 @@ from __future__ import annotations
 import dataclasses
 from typing import Any
 
-from sae_concept_lab.canonical.concept_bundle import ResolvedControlState
+from sae_concept_lab.canonical.concept_bundle import BundleEntry, PositionMode, ResolvedControlState
 from sae_concept_lab.core.protocol import ConceptLabBackend, GenerationRequest, GenerationResult
 from sae_concept_lab.fixtures.labels import concept_label, pairing_label
 from sae_concept_lab.i18n import t
+
+#: Product-owned wording (not extracted/quoted from qwen-sae-interp),
+#: shown in the Advanced positions display whenever an entry's ratified
+#: position mode is GENERATED_ONLY. Distinct from core/qwen_backend.py's
+#: own, longer GENERATED_ONLY_FIRST_TOKEN_DISCLOSURE (a backend
+#: diagnostics-log statement, quoted verbatim from qwen-sae-interp's own
+#: docs) -- this is the shorter, UI-facing summary the 2026-08-13
+#: researcher ruling on public positions requires.
+GENERATED_ONLY_POSITIONS_DISCLOSURE = "GENERATED_ONLY masks prefill and leaves the first generated token unaffected."
 
 # ---------------------------------------------------------------------------
 # Reset rule: any change to concept/direction/strength unconditionally
@@ -223,3 +232,23 @@ def advanced_output_details(resolved_config: ResolvedControlState) -> dict[str, 
         **resolved_config.advanced_view(),
         "execution_payload": resolved_config.execution_dict(),
     }
+
+
+def advanced_positions_text(entry: BundleEntry, lang: str) -> str:
+    """The Advanced-only rendering of an entry's resolved position mode.
+
+    `entry.positions` is the one and only authority here: an ATTESTED
+    entry's own ratified value is never overridden by anything in this
+    function or its callers. Positions carries no runtime-selectable
+    control and no per-pairing special case -- both tabs render through
+    this single function (ui/tab.py calls it identically for gemma and
+    qwen), so there is no hidden model-specific default anywhere in this
+    rendering. This product's own non-ATTESTED (FAKE) fixtures default to
+    ALL per the 2026-08-13 researcher ruling on public positions (see
+    BOUNDARY.md) -- that is a fixture-authoring decision recorded in each
+    entry's own JSON, never a default this function or the resolver
+    silently applies."""
+    text = f"**{t('advanced_positions_readonly_label', lang)}:** {entry.positions.value}"
+    if entry.positions is PositionMode.GENERATED_ONLY:
+        text += f"\n\n{GENERATED_ONLY_POSITIONS_DISCLOSURE}"
+    return text

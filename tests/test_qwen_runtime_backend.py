@@ -241,3 +241,54 @@ def test_lazy_import_never_touches_torch_at_module_or_construction_time():
     this whole test file runs in this venv, which has neither installed."""
     backend = QwenRuntimeBackend(model_path="x", sae_path="y", qwen_layer=0)
     assert backend is not None
+
+
+def test_generated_only_disclosure_appears_only_for_generated_only_positions(monkeypatch):
+    """2026-08-13 researcher ruling: GENERATED_ONLY remains fully
+    available and must display the first-token disclosure whenever it is
+    the resolved position mode. This repository's own shipped fixtures
+    now default to ALL (the public default), so this uses a locally
+    constructed entry to exercise the GENERATED_ONLY case directly."""
+    from sae_concept_lab.core.qwen_backend import GENERATED_ONLY_FIRST_TOKEN_DISCLOSURE
+
+    _install_fakes(monkeypatch)
+    document = json.dumps({
+        "schema_version": "1.0",
+        "concept_id": "FAKE-qwen-generated-only-disclosure-check",
+        "pairing_id": "fake-qwen-demo-pairing",
+        "positions": "generated_only",
+        "provenance": "fake",
+        "calibration_provenance": None,
+        "directions": {
+            "amplify": {
+                "targets": [{"sae_id": "fake-sae-demo-qwen-000", "layer": 7, "feature_idx": 4096, "weight": 1.0}],
+                "specs": {
+                    strength: {"operation": "clamp", "value": 5.0, "unit": "absolute_activation", "unit_source": None}
+                    for strength in ("low", "medium", "high")
+                },
+            },
+            "suppress": None,
+        },
+    })
+    entry = decode_entry(document, where="generated-only-disclosure-check")
+    resolved = resolve_control(entry, direction="amplify", strength="medium")
+    backend = _backend()
+    request = GenerationRequest(
+        history=(), prompt="hi", model_key="qwen", decoding={}, seed=0,
+        apply_intervention=True, resolved_config=resolved,
+    )
+    result = backend.generate(request)
+    assert result.diagnostics["generated_only_first_token_disclosure"] == GENERATED_ONLY_FIRST_TOKEN_DISCLOSURE
+
+
+def test_generated_only_disclosure_is_absent_for_all_positions(monkeypatch):
+    _install_fakes(monkeypatch)
+    resolved = resolve_control(CURIOSITY, direction="amplify", strength="medium")
+    assert resolved.positions.value == "all"
+    backend = _backend()
+    request = GenerationRequest(
+        history=(), prompt="hi", model_key="qwen", decoding={}, seed=0,
+        apply_intervention=True, resolved_config=resolved,
+    )
+    result = backend.generate(request)
+    assert "generated_only_first_token_disclosure" not in result.diagnostics

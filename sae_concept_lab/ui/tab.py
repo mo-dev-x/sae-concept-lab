@@ -31,6 +31,7 @@ from sae_concept_lab.canonical.concept_bundle import (
 from sae_concept_lab.core.logic import (
     Selection,
     advanced_output_details,
+    advanced_positions_text,
     apply_selection_change,
     assert_compare_invariant,
     public_output_summary,
@@ -222,10 +223,12 @@ def build_model_tab(
             (seed_number, lambda lang: gr.Number(label=t("advanced_seed_label", lang)))
         )
         # Read-only: positions comes from the bundle entry, never a public
-        # control -- there is no scientific default to choose here.
-        positions_display_md = gr.Markdown(
-            f"**{t('advanced_positions_readonly_label', lang0)}:** {first_entry.positions.value}"
-        )
+        # control. An ATTESTED entry's own ratified position is
+        # authoritative; this product's own non-ATTESTED (FAKE) fixtures
+        # default to ALL per the 2026-08-13 researcher ruling (BOUNDARY.md)
+        # -- a fixture-authoring choice, not a default this rendering or
+        # the resolver applies.
+        positions_display_md = gr.Markdown(advanced_positions_text(first_entry, lang0))
         resolved_state_title_md = gr.Markdown(f"**{t('advanced_resolved_state_title', lang0)}**")
         relang.append(
             (resolved_state_title_md, lambda lang: gr.Markdown(f"**{t('advanced_resolved_state_title', lang)}**"))
@@ -268,7 +271,7 @@ def build_model_tab(
 
     def _refresh_positions_display_on_lang_change(lang: str, concept_id: str):
         entry = next(e for e in entries if e.concept_id == concept_id)
-        return f"**{t('advanced_positions_readonly_label', lang)}:** {entry.positions.value}"
+        return advanced_positions_text(entry, lang)
 
     lang_radio.change(
         _refresh_positions_display_on_lang_change,
@@ -308,7 +311,7 @@ def build_model_tab(
         new_direction = entry.calibrated_directions[0].value
         direction_update = gr.Radio(choices=_direction_choices_for_entry(entry, lang), value=new_direction)
         unavailable_notice = _direction_unavailable_notice(entry, lang)
-        positions_text = f"**{t('advanced_positions_readonly_label', lang)}:** {entry.positions.value}"
+        positions_text = advanced_positions_text(entry, lang)
         new_history, chatbot_value, notice, new_selection = _check_and_apply(
             concept_id, new_direction, strength, history, previous_selection, lang
         )

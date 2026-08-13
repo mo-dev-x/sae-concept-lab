@@ -95,9 +95,19 @@ sae_concept_lab/
   value -- see `core/logic.py:public_output_summary`, sourced entirely
   from `ResolvedControlState.public_view()`'s own allow-list (model,
   concept, direction, strength, available/unavailable directions only).
-- No product-chosen positions default: `positions` is read from the
-  canonical entry (`entry.positions`), never offered as a public or
-  Advanced control -- Advanced displays it read-only.
+- Positions is never a live, user-selectable control in either mode:
+  `positions` is read from the canonical entry (`entry.positions`) and
+  Advanced displays it read-only (`core/logic.py:advanced_positions_text`).
+  An ATTESTED entry's own ratified position is always authoritative and is
+  never overridden. Per the 2026-08-13 researcher ruling on public
+  positions, this repository's own non-ATTESTED (FAKE) fixtures all
+  default to `all` -- a fixture-authoring choice recorded in each entry's
+  own JSON, not a default any code path applies at resolution time (there
+  is no per-model or otherwise hidden default anywhere in this code).
+  GENERATED_ONLY remains fully available (Advanced can render an entry
+  ratified that way) and always surfaces the fixed disclosure "GENERATED_ONLY
+  masks prefill and leaves the first generated token unaffected." next to
+  the resolved mode -- see `tests/test_sae_concept_lab_public_vs_advanced.py`.
 - Two of the eight shipped fixtures are deliberately not fully
   executable, to give the PROHIBITED/CAPABILITY_LIMIT surfacing a real
   case rather than only a synthetic vector: `gemma/enthusiasm.json`'s
@@ -230,7 +240,12 @@ Two smaller correctness fixes rode along with this pass:
    and mechanically-accepted (`core/runtime_acceptance.py`) intervention
    code for both pairings. Selected via `--qwen-backend runtime`/
    `--gemma-backend runtime` (`app.py`); `--mode release` still refuses
-   regardless, since no shipped concept is ATTESTED.
+   regardless, since no shipped concept is ATTESTED. **Also resolved**, as
+   of the Tamia product-integration smoke packet:
+   `sae_concept_lab/smoke/tamia_smoke.py` exercises both real backends
+   through the exact canonical resolution -> execution-guard -> backend
+   path the application uses, on real Tamia weights -- see
+   `../docs/tamia_smoke.md`.
 2. Compare is currently a non-committing side-by-side probe: sending the
    same message via "Compare" does NOT append either response to the
    running chat history (only "Send" does). Unclear whether a future
