@@ -71,29 +71,49 @@ together" configuration documents), released at the end.
 
 ## Exact Tamia submission command
 
+**No package installation and no environment mutation occurs anywhere in
+this procedure.** `pip install -e .` is neither required nor performed on
+Tamia: this repository's package tree has no build step, no compiled
+extension, and no `entry_points`/console-script a launch depends on, so
+pointing `PYTHONPATH` at the extracted archive's repository root resolves
+every import exactly as an editable install would -- proven directly by
+`tests/test_tamia_smoke.py::test_smoke_entry_point_runs_via_pythonpath_alone_without_any_pip_install`,
+which runs this exact module with a completely bare interpreter (`-S`,
+no site-packages at all) and only `PYTHONPATH` set. The existing
+`/home/y/yazid/sprint-venv` already carries every heavy dependency (torch/
+transformers/sae_lens/transformer_lens) this repository's real backends
+need -- nothing on that shared venv is modified, added to, or reinstalled.
+
 ```bash
-HF_HUB_OFFLINE=1 python -m sae_concept_lab.smoke.tamia_smoke \
-  --qwen-model-path /path/from/inventory/qwen3.5-27b \
-  --qwen-sae-path /path/from/inventory/qwen-scope/layer0.sae.pt \
+cd /path/to/sae-concept-lab-8332b01   # the isolated extraction (see "Archive" above)
+export PYTHONPATH="$PWD${PYTHONPATH:+:$PYTHONPATH}"
+export HF_HUB_OFFLINE=1
+export CUDA_VISIBLE_DEVICES=0
+
+/home/y/yazid/sprint-venv/bin/python -m sae_concept_lab.smoke.tamia_smoke \
+  --qwen-model-path /scratch/y/yazid/hf_cache/hub/models--Qwen--Qwen3.5-27B/snapshots/fc05daec18b0a78c049392ed2e771dde82bdf654 \
+  --qwen-sae-path /scratch/y/yazid/hf_cache/hub/models--Qwen--SAE-Res-Qwen3.5-27B-W80K-L0_50/snapshots/13d4221569f7ca5d3c1e605e3e3dc95117e4807c/layer0.sae.pt \
   --qwen-expected-model-revision fc05daec18b0a78c049392ed2e771dde82bdf654 \
   --qwen-expected-sae-revision 13d4221569f7ca5d3c1e605e3e3dc95117e4807c \
-  --gemma-model-path /path/from/inventory/gemma-3-12b-it \
-  --gemma-sae-path /path/from/inventory/gemma-scope-2-12b-it \
+  --gemma-model-path /scratch/y/yazid/hf_cache/hub/models--google--gemma-3-12b-it/snapshots/96b6f1eccf38110c56df3a15bffe176da04bfd80 \
+  --gemma-sae-path /scratch/y/yazid/hf_cache/hub/models--google--gemma-scope-2-12b-it/snapshots/4c419f1ba0be8b7754d4151d4f26c23b92a9029e \
   --gemma-expected-model-revision 96b6f1eccf38110c56df3a15bffe176da04bfd80 \
   --gemma-expected-sae-revision 4c419f1ba0be8b7754d4151d4f26c23b92a9029e \
-  --output /path/on/D-or-scratch/tamia_smoke_packet.json
+  --output tamia_smoke_packet.json
 ```
 
-The revision defaults above (baked into `parse_args`) already match the
-accepted evidence run's own revisions; only pass
-`--{qwen,gemma}-expected-{model,sae}-revision` explicitly if your
-inventory re-staged either snapshot under a different revision (see
-`docs/tamia_launch.md`'s own caveat on this). `--qwen-device`/
-`--qwen-dtype`/`--gemma-device`/`--gemma-dtype` default to
-`cuda`/`bfloat16` and rarely need overriding. `--max-new-tokens` defaults
-to (and is capped at) 4. `--server-port` defaults to 7861 (distinct from
-the dev-mode default 7860, so both can run on the same node without a
-port clash).
+The four snapshot paths above already follow the standard
+`huggingface_hub` cache layout (`models--<org>--<repo>/snapshots/<revision>/...`),
+so `targets.validate_local_snapshot_identity` verifies each one's identity
+directly from the path itself; the `--*-expected-*-revision` flags are
+shown explicitly above for clarity and match what the path alone already
+proves -- omitting them would resolve identically for these exact paths,
+but never omit them for a path staged outside this layout (see
+`docs/tamia_launch.md`). `--qwen-device`/`--qwen-dtype`/`--gemma-device`/
+`--gemma-dtype` default to `cuda`/`bfloat16` and rarely need overriding.
+`--max-new-tokens` defaults to (and is capped at) 4. `--server-port`
+defaults to 7861 (distinct from the dev-mode default 7860, so both can
+run on the same node without a port clash).
 
 **Never install anything, or write any cache/temp artifact, to `C:`** --
 this applies to any Windows-side staging step; on Tamia itself (Linux),

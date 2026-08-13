@@ -15,6 +15,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import subprocess
+import sys
 
 import pytest
 
@@ -475,3 +478,35 @@ def test_main_returns_nonzero_when_any_scenario_failed(monkeypatch, tmp_path):
     assert exit_code == 1
     written = json.loads(output_path.read_text(encoding="utf-8"))
     assert written["passed"] is False
+
+
+# ---------------------------------------------------------------------------
+# Pins the Tamia no-install launch form: PYTHONPATH=<repo root> is
+# sufficient, no `pip install -e .` and no environment mutation required
+# (docs/tamia_smoke.md's "Exact Tamia submission command").
+# ---------------------------------------------------------------------------
+
+
+def test_smoke_entry_point_runs_via_pythonpath_alone_without_any_pip_install():
+    """Runs `python -S -m sae_concept_lab.smoke.tamia_smoke --help` with
+    `-S` (skip site-packages/site-initialization entirely -- no installed
+    package, editable or otherwise, is even reachable) and ONLY
+    `PYTHONPATH` pointing at this repository's own root added on top of
+    the inherited environment. A shared Tamia venv (e.g.
+    /home/y/yazid/sprint-venv) is never installed into or mutated by this
+    procedure -- this test is the mechanical proof that pointing
+    PYTHONPATH at an extracted archive's root is sufficient by itself.
+    `--help` also never reaches build_smoke_packet (argparse exits first),
+    so this doubles as direct proof that importing this whole module tree
+    touches no third-party package at all -- the lazy-import discipline
+    extracted_runtime/__init__.py documents, holding all the way up
+    through this packet's own entry point."""
+    repo_root = tamia_smoke._repo_root()
+    env = {**os.environ, "PYTHONPATH": str(repo_root)}
+    result = subprocess.run(
+        [sys.executable, "-S", "-m", "sae_concept_lab.smoke.tamia_smoke", "--help"],
+        capture_output=True, text=True, env=env, timeout=30, cwd=str(repo_root),
+    )
+    assert result.returncode == 0, f"stdout={result.stdout!r} stderr={result.stderr!r}"
+    assert "--qwen-model-path" in result.stdout
+    assert "--gemma-model-path" in result.stdout
