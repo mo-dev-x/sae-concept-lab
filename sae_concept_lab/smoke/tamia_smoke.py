@@ -368,6 +368,13 @@ def _finish_position_scenario(
         "acceptance_evidence_commit": record.evidence_commit if record is not None else None,
         "acceptance_claim": record.claim if record is not None else None,
         "model_and_sae_identity": diagnostics.get("provenance"),
+        # The scope of THIS scenario's own claim, carried into the sealed
+        # record rather than left for a reader to reconstruct from the
+        # identity block. .get() so a hand-built diagnostics dict (see
+        # tests/test_tamia_smoke.py's _fake_generation_result) still works.
+        "claim_scope": diagnostics.get("claim_scope"),
+        "scientific_attribution": diagnostics.get("scientific_attribution"),
+        "requested_vs_loaded_identity": diagnostics.get("identity"),
         "resolved_canonical_execution_dict": resolved.execution_dict() if resolved is not None else None,
         "execution_fingerprint": resolved.execution_fingerprint() if resolved is not None else None,
         "state_fingerprint": resolved.state_fingerprint() if resolved is not None else None,

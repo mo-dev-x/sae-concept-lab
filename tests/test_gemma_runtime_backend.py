@@ -84,7 +84,10 @@ def test_clamp_request_end_to_end(monkeypatch):
     assert result.is_synthetic is False
     assert result.resolved_config is resolved
     assert result.diagnostics["requested"]["operation"] == "clamp"
-    assert result.diagnostics["requested"]["layer"] == 11
+    # requested_layer, never a bare "layer": see core/scientific_identity.py.
+    # The loaded layer is reported separately, from the loader's own record.
+    assert result.diagnostics["requested"]["requested_layer"] == 11
+    assert result.diagnostics["identity"]["loaded"]["layer"] == 11
     assert result.diagnostics["resolved_absolute_target"] == resolved.value
     assert result.diagnostics["backend_received_value"] == resolved.value
     assert result.diagnostics["provenance"]["layer"]["engineering_layer"] == 11

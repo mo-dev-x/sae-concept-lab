@@ -27,6 +27,18 @@ Every scientific-identity/fail-closed guard the extracted loader carries
 validators) is preserved verbatim -- this module calls
 sae_concept_lab.extracted_runtime.qwen_loader.load_qwen_target unmodified
 and never re-implements or loosens any of it.
+
+SCIENTIFIC-IDENTITY GATE (core/scientific_identity.py). This backend already
+refused a resolved layer that disagreed with its OWN CONFIGURED `qwen_layer`.
+That check is retained and is not sufficient: it compares a request against
+another statement of intent, never against what the loader reported it
+produced. `_generate_with_intervention` now additionally compares the
+resolved layer against the LOADED layer (LoadedLayerIdentityMismatch),
+reports the loaded identity beside the requested one under unambiguous keys,
+and tags any result whose loaded identity is not the certified primary as an
+engineering demonstration. Note the standing consequence recorded in
+scientific_identity.py: the extracted Qwen loader records release/sae_id as
+literal None, so a Qwen run is never science-attributed by this gate.
 """
 
 from __future__ import annotations
@@ -39,6 +51,13 @@ from sae_concept_lab.canonical.concept_bundle import Operation
 from sae_concept_lab.core.execution_guard import require_group_from_resolved
 from sae_concept_lab.core.protocol import GenerationRequest, GenerationResult
 from sae_concept_lab.core.runtime_acceptance import is_mechanically_accepted
+from sae_concept_lab.core.scientific_identity import (
+    ENGINEERING_DEMONSTRATION_TAG,
+    ScientificAttributionVerdict,
+    evaluate_science_attribution,
+    loaded_identity_from_provenance,
+    require_loaded_layer_matches_request,
+)
 
 #: Printed verbatim in docs/final_pairing_tamia_packet.md (qwen-sae-interp)
 #: -- quoted here, not re-derived, because the MECHANISM this describes
@@ -105,7 +124,14 @@ class QwenRuntimeBackend:
             )
         return self._loaded
 
-    def _tag(self, text: str) -> str:
+    def _tag(self, text: str, attribution: ScientificAttributionVerdict | None = None) -> str:
+        """Two INDEPENDENT tags -- see core/gemma_backend.py's identical
+        method for why they are not collapsed into one. Mechanical acceptance
+        (the mechanism ran against real weights) and scientific attribution
+        (the SAE loaded is the certified primary) are separate claims, and a
+        single tag would end up asserting the more flattering of the two."""
+        if attribution is not None and not attribution.science_attributed:
+            text = f"{ENGINEERING_DEMONSTRATION_TAG} {text}"
         if is_mechanically_accepted(self.pairing):
             return text
         return f"{MECHANICALLY_UNVERIFIED_TAG} {text}"
@@ -167,6 +193,21 @@ class QwenRuntimeBackend:
 
         hf_model, text_decoder, sae, hook_identifier, provenance = self._ensure_loaded()
 
+        # THE GATE. The `layer != self._qwen_layer` check above compares the
+        # request against this backend's own CONFIGURATION -- two statements
+        # of intent. `provenance` is the first thing here that reports what
+        # was actually LOADED, so the comparison that matters happens now,
+        # before a hook is built.
+        loaded_identity = loaded_identity_from_provenance(provenance)
+        require_loaded_layer_matches_request(
+            pairing=self.pairing,
+            requested_layer=layer,
+            requested_sae_id=sae_id,
+            feature_idx=target.feature_idx,
+            loaded=loaded_identity,
+        )
+        attribution = evaluate_science_attribution(pairing=self.pairing, loaded=loaded_identity)
+
         clamp_value = 0.0 if resolved.operation is Operation.ABLATE else float(resolved.value)
         positions = resolved.positions.value
 
@@ -209,6 +250,29 @@ class QwenRuntimeBackend:
         diagnostics: dict[str, Any] = {
             "pairing": self.pairing,
             "mechanically_accepted": is_mechanically_accepted(self.pairing),
+            "claim_scope": attribution.claim_scope,
+            "science_attributed": attribution.science_attributed,
+            "scientific_attribution": attribution.as_dict(),
+            # See core/gemma_backend.py for why every identity key is now
+            # spelled requested_* or reported under "loaded".
+            "identity": {
+                "requested": {
+                    "bundle_sae_id": sae_id,
+                    "layer": layer,
+                    "feature_idx": target.feature_idx,
+                    "read_from": "the resolved control state (the concept bundle), not the loader",
+                },
+                "loaded": loaded_identity.as_dict(),
+                "requested_layer_equals_loaded_layer": True,
+                "backend_configured_qwen_layer": self._qwen_layer,
+                "note": (
+                    "requested_layer_equals_loaded_layer is unconditionally True here because a "
+                    "mismatch raises LoadedLayerIdentityMismatch and no result is produced at "
+                    "all; it is recorded so a reader of this record does not have to infer that "
+                    "the comparison happened. backend_configured_qwen_layer is this backend's "
+                    "own configuration -- a statement of intent, not evidence of what loaded."
+                ),
+            },
             "requested": {
                 "concept_id": resolved.concept_id,
                 "pairing_id": resolved.pairing_id,
@@ -216,8 +280,8 @@ class QwenRuntimeBackend:
                 "strength": resolved.strength.value,
                 "operation": resolved.operation.value,
                 "positions": positions,
-                "sae_id": sae_id,
-                "layer": layer,
+                "requested_bundle_sae_id": sae_id,
+                "requested_layer": layer,
                 "feature_idx": target.feature_idx,
             },
             "resolved_absolute_target": clamp_value,
@@ -233,7 +297,7 @@ class QwenRuntimeBackend:
             diagnostics["generated_only_first_token_disclosure"] = GENERATED_ONLY_FIRST_TOKEN_DISCLOSURE
 
         return GenerationResult(
-            text=self._tag(text),
+            text=self._tag(text, attribution),
             is_synthetic=False,
             resolved_config=resolved,
             diagnostics=diagnostics,

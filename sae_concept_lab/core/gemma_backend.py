@@ -24,6 +24,19 @@ Every fail-closed identity/subdirectory/symlink-containment guard the
 extracted loader carries is preserved verbatim -- this module calls
 sae_concept_lab.extracted_runtime.gemma_loader.load_gemma_it_target
 unmodified and never re-implements or loosens any of it.
+
+SCIENTIFIC-IDENTITY GATE (core/scientific_identity.py). `_ensure_loaded()`
+resolves the model/SAE from extracted_runtime/targets.py's pinned identity;
+the resolved control state independently names a (sae_id, layer). Those two
+are separate facts and this module previously never compared them: the
+unpacked `layer` was used for nothing but a diagnostics field, so a feature
+index could be clamped inside a different layer's dictionary while the
+diagnostics reported the requested layer. `_generate_with_intervention` now
+REFUSES that case (LoadedLayerIdentityMismatch), reports the LOADED identity
+alongside the requested one under unambiguous keys, and tags any result whose
+loaded identity is not the certified primary as an engineering demonstration.
+Engineering demonstrations remain fully permitted -- the gate binds the
+attribution, never the code path.
 """
 
 from __future__ import annotations
@@ -36,6 +49,13 @@ from sae_concept_lab.canonical.concept_bundle import Operation
 from sae_concept_lab.core.execution_guard import require_group_from_resolved
 from sae_concept_lab.core.protocol import GenerationRequest, GenerationResult
 from sae_concept_lab.core.runtime_acceptance import is_mechanically_accepted
+from sae_concept_lab.core.scientific_identity import (
+    ENGINEERING_DEMONSTRATION_TAG,
+    ScientificAttributionVerdict,
+    evaluate_science_attribution,
+    loaded_identity_from_provenance,
+    require_loaded_layer_matches_request,
+)
 
 #: Identical to core/qwen_backend.py's own constant of the same name --
 #: the masking contract this describes (hooks.py's _positions_mask /
@@ -99,7 +119,17 @@ class GemmaRuntimeBackend:
             )
         return self._loaded
 
-    def _tag(self, text: str) -> str:
+    def _tag(self, text: str, attribution: ScientificAttributionVerdict | None = None) -> str:
+        """Two INDEPENDENT tags, deliberately not collapsed into one.
+        MECHANICALLY_UNVERIFIED_TAG is about the intervention MECHANISM (has
+        it been run against real weights at all); ENGINEERING_DEMONSTRATION_TAG
+        is about IDENTITY (is the SAE that was loaded the certified primary).
+        A run can be mechanically accepted and still carry no scientific
+        attribution -- job 407008 accepted a layer-31 engineering pin, which
+        is not the certified primary -- so a single tag could not say both
+        things and would end up saying the more flattering one."""
+        if attribution is not None and not attribution.science_attributed:
+            text = f"{ENGINEERING_DEMONSTRATION_TAG} {text}"
         if is_mechanically_accepted(self.pairing):
             return text
         return f"{MECHANICALLY_UNVERIFIED_TAG} {text}"
@@ -148,6 +178,21 @@ class GemmaRuntimeBackend:
 
         model, sae, hook_name, provenance = self._ensure_loaded()
 
+        # THE GATE. Everything above this point describes what was REQUESTED;
+        # `provenance` is the first thing in this method that describes what
+        # was actually LOADED. Compare them here, before a hook is built --
+        # a mismatch discovered after generation is a wrong answer that has
+        # already been produced.
+        loaded_identity = loaded_identity_from_provenance(provenance)
+        require_loaded_layer_matches_request(
+            pairing=self.pairing,
+            requested_layer=layer,
+            requested_sae_id=sae_id,
+            feature_idx=target.feature_idx,
+            loaded=loaded_identity,
+        )
+        attribution = evaluate_science_attribution(pairing=self.pairing, loaded=loaded_identity)
+
         clamp_value = 0.0 if resolved.operation is Operation.ABLATE else float(resolved.value)
         positions = resolved.positions.value
 
@@ -185,6 +230,30 @@ class GemmaRuntimeBackend:
         diagnostics: dict[str, Any] = {
             "pairing": self.pairing,
             "mechanically_accepted": is_mechanically_accepted(self.pairing),
+            "claim_scope": attribution.claim_scope,
+            "science_attributed": attribution.science_attributed,
+            "scientific_attribution": attribution.as_dict(),
+            # requested_* / loaded_* are spelled out on every identity field.
+            # The previous shape put the bundle's own `sae_id` and `layer`
+            # under a bare "sae_id"/"layer" key next to the loader's
+            # provenance, which read as the identity that was loaded and was
+            # not -- that ambiguity is the reportable half of this defect.
+            "identity": {
+                "requested": {
+                    "bundle_sae_id": sae_id,
+                    "layer": layer,
+                    "feature_idx": target.feature_idx,
+                    "read_from": "the resolved control state (the concept bundle), not the loader",
+                },
+                "loaded": loaded_identity.as_dict(),
+                "requested_layer_equals_loaded_layer": True,
+                "note": (
+                    "requested_layer_equals_loaded_layer is unconditionally True here because a "
+                    "mismatch raises LoadedLayerIdentityMismatch and no result is produced at "
+                    "all; it is recorded so a reader of this record does not have to infer that "
+                    "the comparison happened."
+                ),
+            },
             "requested": {
                 "concept_id": resolved.concept_id,
                 "pairing_id": resolved.pairing_id,
@@ -192,8 +261,8 @@ class GemmaRuntimeBackend:
                 "strength": resolved.strength.value,
                 "operation": resolved.operation.value,
                 "positions": positions,
-                "sae_id": sae_id,
-                "layer": layer,
+                "requested_bundle_sae_id": sae_id,
+                "requested_layer": layer,
                 "feature_idx": target.feature_idx,
             },
             "resolved_absolute_target": clamp_value,
@@ -208,7 +277,7 @@ class GemmaRuntimeBackend:
         if positions == "generated_only":
             diagnostics["generated_only_first_token_disclosure"] = GENERATED_ONLY_FIRST_TOKEN_DISCLOSURE
         return GenerationResult(
-            text=self._tag(text),
+            text=self._tag(text, attribution),
             is_synthetic=False,
             resolved_config=resolved,
             diagnostics=diagnostics,

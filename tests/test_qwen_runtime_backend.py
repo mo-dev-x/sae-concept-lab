@@ -37,16 +37,27 @@ def _install_fakes(monkeypatch, *, num_layers=8):
 
     text_decoder = FakeQwenTextDecoder(num_layers=num_layers)
     hf_model = FakeQwenHfModel(text_decoder)
-    provenance = {
-        "target": "qwen-3.5-27b",
-        "model": {"repository": "Qwen/Qwen3.5-27B", "actual_class": "Qwen3_5ForCausalLM"},
-        "sae": {"repository": "Qwen/SAE-Res-Qwen3.5-27B-W80K-L0_50", "d_in": 5120, "d_sae": 81920, "k": 50},
-        "layer": {"engineering_layer": 0, "engineering_only": True, "hook_name": "resid_post:layer_0"},
-    }
 
     def fake_load_qwen_target(model_path, sae_layer_file_path, *, layer, k=None, device="cuda", dtype="bfloat16",
                                expected_model_revision=None, expected_sae_revision=None):
+        # engineering_layer is derived from the `layer` this loader was
+        # actually called with, exactly as the real
+        # qwen_loader.load_qwen_target does. A fixed literal here would make
+        # the fake report a layer it was not asked to load -- which is the
+        # precise defect core/scientific_identity.py exists to refuse, so a
+        # fake that carried it could not be run through the gate at all.
         hook_identifier = f"resid_post:layer_{layer}"
+        provenance = {
+            "target": "qwen-3.5-27b",
+            "model": {"repository": "Qwen/Qwen3.5-27B", "actual_class": "Qwen3_5ForCausalLM"},
+            "sae": {
+                "repository": "Qwen/SAE-Res-Qwen3.5-27B-W80K-L0_50", "release": None, "sae_id": None,
+                "d_in": 5120, "d_sae": 81920, "k": 50,
+            },
+            "layer": {
+                "engineering_layer": layer, "engineering_only": True, "hook_name": hook_identifier,
+            },
+        }
         return hf_model, text_decoder, object(), hook_identifier, provenance
 
     import sae_concept_lab.extracted_runtime.hooks as hooks_module

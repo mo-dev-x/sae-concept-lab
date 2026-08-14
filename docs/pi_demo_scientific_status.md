@@ -114,6 +114,53 @@ are:
   the hook moves the residual stream. Nothing about what it represents,
   if anything, has been evaluated."
 
+## 6. The loaded SAE is not the certified primary, and the tool now says so
+
+`sae_concept_lab/extracted_runtime/targets.py` pins Gemma to release
+`gemma-scope-2-12b-it-res`, sae_id
+`resid_post/layer_31_width_16k_l0_medium`, layer 31, and Qwen to
+`Qwen/SAE-Res-Qwen3.5-27B-W80K-L0_50`. Neither is the certified primary
+configuration. Per the qwen-sae-interp certified candidate
+`8ed2809`'s own gating identity protocols
+(`protocols/final_pairing/v1/scientific_config_identity.json` and
+`qwen_config_identity.json`), the certified **PRIMARY** configurations are:
+
+| Arm | release | scientific_sae_id | layer |
+|---|---|---|---|
+| Gemma | `gemma-scope-2-12b-it-res-all` | `resid_post_all/layer_29_width_16k_l0_big` | 29 |
+| Qwen | (raw-pt: repository is the namespace) `Qwen/SAE-Res-Qwen3.5-27B-W80K-L0_100` | `layer38.sae.pt` | 38 |
+
+The Qwen `L0_50` pin is the **ratified BACKUP**, which is the dangerous
+case rather than the harmless one: it is present, ratified and internally
+coherent, so a reader who checks it stops there.
+
+Which SAE is primary is a frozen scientific ruling and is **not** changed
+by this. What changed is the CLAIM:
+
+- `sae_concept_lab/core/scientific_identity.py` compares the identity the
+  loader actually returned against the certified primary on
+  `sae_repository`, `release`, `scientific_sae_id` and `layer`. Nothing
+  else may be presented as science-attributed.
+- A resolved control state naming a layer other than the layer actually
+  loaded now raises `LoadedLayerIdentityMismatch` and produces no output
+  at all. Previously the unpacked layer was used for nothing but a
+  diagnostics field, so a feature index could be clamped inside a
+  different layer's dictionary while the diagnostics reported the
+  requested layer.
+- Diagnostics report `identity.loaded` (read from the loader's own
+  provenance) beside `identity.requested` (read from the bundle). Every
+  requested identity field is spelled `requested_*`; there is no longer a
+  bare `sae_id`/`layer` key that could be read as either.
+- Engineering demonstrations on any pin remain fully permitted. They
+  carry `claim_scope: ENGINEERING_DEMONSTRATION_ONLY` and their generated
+  text is prefixed with `ENGINEERING_DEMONSTRATION_TAG`.
+
+Consequently every demonstration this build currently produces on either
+pairing is an **engineering demonstration**, mechanically accepted and
+not science-attributed. Section 1's mechanical acceptance is unchanged
+and unaffected: it was always a claim about the mechanism, never about
+the identity.
+
 ## Exact permitted and prohibited claims (quick reference)
 
 **Permitted:**
@@ -142,3 +189,7 @@ are:
   for a reason; do not say them live either.
 - Any claim that mechanical acceptance (section 1) or the product smoke
   (section 2) is itself a scientific finding about a concept.
+- Any claim attributing a demonstration on this build to the certified
+  primary SAE. Per section 6, the pinned identity is not it, on all three
+  scientific identity fields at once, and the tool refuses the
+  attribution mechanically.

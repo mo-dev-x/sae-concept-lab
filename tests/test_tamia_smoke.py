@@ -307,9 +307,13 @@ def test_run_qwen_all_scenario_end_to_end_with_fakes_passes(monkeypatch):
         backend, PositionMode.ALL, max_new_tokens=4, product_commit="deadbeef", extraction_source_commit="e63b08e",
     )
     assert result.passed, result.as_dict()
-    assert result.detail["requested"]["layer"] == entries.QWEN_SMOKE_LAYER
+    assert result.detail["requested"]["requested_layer"] == entries.QWEN_SMOKE_LAYER
     assert result.detail["requested"]["feature_idx"] == entries.QWEN_SMOKE_FEATURE_IDX
     assert result.detail["resolved_absolute_target"] == entries.QWEN_SMOKE_RAW_TARGET
+    # The sealed record states the scope of its own claim: an engineering-only
+    # smoke identity is never a science-attributed one.
+    assert result.detail["claim_scope"] == "ENGINEERING_DEMONSTRATION_ONLY"
+    assert result.detail["requested_vs_loaded_identity"]["loaded"]["layer"] == entries.QWEN_SMOKE_LAYER
     assert result.detail["acceptance_evidence_commit"] == ACCEPTANCE_REGISTRY["qwen"].evidence_commit
 
 
@@ -320,9 +324,11 @@ def test_run_gemma_all_scenario_end_to_end_with_fakes_passes(monkeypatch):
         backend, PositionMode.ALL, max_new_tokens=4, product_commit="deadbeef", extraction_source_commit="de3b499",
     )
     assert result.passed, result.as_dict()
-    assert result.detail["requested"]["layer"] == entries.GEMMA_SMOKE_LAYER
+    assert result.detail["requested"]["requested_layer"] == entries.GEMMA_SMOKE_LAYER
     assert result.detail["requested"]["feature_idx"] == entries.GEMMA_SMOKE_FEATURE_IDX
     assert result.detail["resolved_absolute_target"] == entries.GEMMA_SMOKE_RAW_CLAMP
+    assert result.detail["claim_scope"] == "ENGINEERING_DEMONSTRATION_ONLY"
+    assert result.detail["requested_vs_loaded_identity"]["loaded"]["layer"] == entries.GEMMA_SMOKE_LAYER
 
 
 # ---------------------------------------------------------------------------
