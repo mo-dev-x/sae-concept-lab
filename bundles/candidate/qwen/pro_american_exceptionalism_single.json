@@ -29,12 +29,6 @@
           "layer": 38,
           "sae_id": "layer38.sae.pt",
           "weight": 1.0
-        },
-        {
-          "feature_idx": 41745,
-          "layer": 38,
-          "sae_id": "layer38.sae.pt",
-          "weight": 1.0
         }
       ]
     },
@@ -62,12 +56,6 @@
       "targets": [
         {
           "feature_idx": 26943,
-          "layer": 38,
-          "sae_id": "layer38.sae.pt",
-          "weight": 1.0
-        },
-        {
-          "feature_idx": 41745,
           "layer": 38,
           "sae_id": "layer38.sae.pt",
           "weight": 1.0

@@ -24,6 +24,16 @@ class Localized(TypedDict):
 PAIRING_LABELS: dict[str, Localized] = {
     "fake-gemma-demo-pairing": {"en": "[FAKE] Gemma demo model", "fr": "[FAKE] Modèle de démo Gemma"},
     "fake-qwen-demo-pairing": {"en": "[FAKE] Qwen demo model", "fr": "[FAKE] Modèle de démo Qwen"},
+    # Real ratified pairings. Present so that a CANDIDATE bundle dropped into the
+    # Mode-A slot can be rendered at all -- see CONCEPT_LABELS below.
+    "gemma-3-12b-it+gemma-scope-2-12b-it": {
+        "en": "Gemma 3 12B-it · Gemma Scope 2 (layer 29)",
+        "fr": "Gemma 3 12B-it · Gemma Scope 2 (couche 29)",
+    },
+    "qwen-3.5-27b+SAE-Res-Qwen3.5-27B-W80K-L0_100": {
+        "en": "Qwen3.5 27B · SAE-Res W80K L0-100 (layer 38)",
+        "fr": "Qwen3.5 27B · SAE-Res W80K L0-100 (couche 38)",
+    },
 }
 
 CONCEPT_LABELS: dict[str, Localized] = {
@@ -35,9 +45,28 @@ CONCEPT_LABELS: dict[str, Localized] = {
     "FAKE-qwen-directness": {"en": "Directness", "fr": "Franchise"},
     "FAKE-qwen-playfulness": {"en": "Playfulness", "fr": "Espièglerie"},
     "FAKE-qwen-skepticism": {"en": "Skepticism", "fr": "Scepticisme"},
+    # A REAL, measured concept -- not a fixture. Its features are measured; its
+    # causal claim is not, which the release gate enforces (provenance is
+    # "candidate", so it can never publish) rather than the display string.
+    "pro-american-exceptionalism": {
+        "en": "Pro-American exceptionalism",
+        "fr": "Exceptionnalisme pro-américain",
+    },
 }
 
 CONCEPT_DESCRIPTIONS: dict[str, Localized] = {
+    "pro-american-exceptionalism": {
+        "en": ("Features that passed every "
+               "discovery gate in all six evaluation cells of a full-space scan on "
+               "real weights. No causal test has been run and no dose has been "
+               "calibrated, so only ablation is offered and this concept can never "
+               "be published in release mode."),
+        "fr": ("Caractéristiques ayant franchi "
+               "toutes les portes de découverte dans les six cellules d'un balayage "
+               "complet sur poids réels. Aucun test causal n'a été effectué et aucune "
+               "dose n'est calibrée : seule l'ablation est proposée, et ce concept ne "
+               "peut jamais être publié en mode release."),
+    },
     "FAKE-gemma-warmth": {
         "en": "[FAKE] Placeholder concept: friendly, personable tone.",
         "fr": "[FAKE] Concept fictif : ton chaleureux et personnel.",

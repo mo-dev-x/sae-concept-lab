@@ -41,7 +41,14 @@ def build_demo(
     with gr.Blocks(title=t("app_title", lang0)) as demo:
         lang_state = gr.State(lang0)
 
-        if mode != "release":
+        # The banner asserts "every reply and technical value below is synthetic
+        # stub data". That is TRUE exactly when a stub backend is serving, and
+        # FALSE against a real runtime backend -- so it is conditioned on the
+        # thing it claims, not on `mode`. A dev-mode build on real backends is
+        # not synthetic and must not say it is; a release build still omits it.
+        _any_stub = any(type(b).__name__ == "StubConceptLabBackend"
+                        for b in (gemma_backend, qwen_backend))
+        if mode != "release" and _any_stub:
             banner_md = gr.Markdown(f"### ⚠️ {t('fake_banner', lang0)}")
             relang.append((banner_md, lambda lang: gr.Markdown(f"### ⚠️ {t('fake_banner', lang)}")))
 

@@ -36,14 +36,38 @@ calibrated dose exists. Authoring one would be inventing the number the whole
 calibration protocol exists to produce. `amplify` is therefore `null` until a
 control-calibrated dose exists.
 
+## One feature per file, and why there are two of each
+
+`..._single.json` carries ONE feature; the unsuffixed file carries the measured
+GROUP of two. **Only the single-target file works.** The product's extracted hook
+clamps exactly one feature per call and refuses a multi-target group outright:
+
+```
+UnsupportedTargetCountError: execution group ...@L29 carries 2 targets [3048, 15405];
+this backend's extracted hook mechanism clamps exactly one feature per call --
+refusing rather than silently averaging, summing, or truncating to the first target.
+```
+
+That refusal is correct. The group file is kept beside it because the group is the
+real measured object and must not be silently reduced to its first member.
+
+**Layer note.** These features were measured at Gemma layer 29
+(`resid_post_all/layer_29_width_16k_l0_big`) and Qwen layer 38. The product's
+runtime is pinned to Gemma layer 31 (`resid_post/layer_31_width_16k_l0_medium`)
+and Qwen layer 0. Driving them therefore refuses with
+`LoadedLayerIdentityMismatch` -- a feature index only means something inside the
+dictionary it was found in. Reconciling that means repointing
+`extracted_runtime/targets.py`, which would invalidate the mechanical-acceptance
+record established at the pinned layers. It is a decision, not a bug.
+
 ## Activating them for a demo
 
 Copy into the bounded Mode-A import slot — no `.py` edit required:
 
 ```bash
 mkdir -p sae_concept_lab/fixtures/attested/gemma sae_concept_lab/fixtures/attested/qwen
-cp bundles/candidate/gemma/*.json sae_concept_lab/fixtures/attested/gemma/
-cp bundles/candidate/qwen/*.json  sae_concept_lab/fixtures/attested/qwen/
+cp bundles/candidate/gemma/*_single.json sae_concept_lab/fixtures/attested/gemma/
+cp bundles/candidate/qwen/*_single.json  sae_concept_lab/fixtures/attested/qwen/
 ```
 
 `load_entries("gemma")` then returns 5 entries, the fifth being the real one.

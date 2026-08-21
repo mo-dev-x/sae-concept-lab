@@ -7,15 +7,16 @@ enforcement, Compare, and the release gate."""
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import pytest
 
 from sae_concept_lab.canonical.concept_bundle import Operation, decode_entry, resolve_control
+from sae_concept_lab.canonical.concept_bundle.codec import load_entry_file
 from sae_concept_lab.core.logic import assert_compare_invariant, run_compare, send_message
 from sae_concept_lab.core.protocol import GenerationRequest
 from sae_concept_lab.core.qwen_backend import MECHANICALLY_UNVERIFIED_TAG, QwenRuntimeBackend
 from sae_concept_lab.core.runtime_acceptance import ACCEPTANCE_REGISTRY
-from sae_concept_lab.fixtures.loader import load_entries
 from tests._fake_runtime import (
     FakeQwenHfModel,
     FakeQwenTextDecoder,
@@ -26,9 +27,12 @@ from tests._fake_runtime import (
     make_fake_wrap_hook_with_diagnostics,
 )
 
-QWEN_ENTRIES = load_entries("qwen")
-CURIOSITY = next(e for e in QWEN_ENTRIES if e.concept_id == "FAKE-qwen-curiosity")
-DIRECTNESS = next(e for e in QWEN_ENTRIES if e.concept_id == "FAKE-qwen-directness")
+# Loaded from the fixture FILES rather than through load_entries(): these are
+# test fixtures for backend logic, and the product no longer SHIPS them.
+# Reading the files directly keeps this test independent of the shipped registry.
+_FIXTURE_DIR = Path(__file__).resolve().parent.parent / "sae_concept_lab" / "fixtures" / "qwen"
+CURIOSITY = load_entry_file(_FIXTURE_DIR / "curiosity.json")
+DIRECTNESS = load_entry_file(_FIXTURE_DIR / "directness.json")
 
 
 def _install_fakes(monkeypatch, *, num_layers=8):

@@ -6,6 +6,8 @@ multi-SAE/cross-layer defensive enforcement and Compare."""
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from sae_concept_lab.canonical.concept_bundle import (
@@ -13,20 +15,23 @@ from sae_concept_lab.canonical.concept_bundle import (
     Operation,
     resolve_control,
 )
+from sae_concept_lab.canonical.concept_bundle.codec import load_entry_file
 from sae_concept_lab.core.gemma_backend import MECHANICALLY_UNVERIFIED_TAG, GemmaRuntimeBackend
 from sae_concept_lab.core.logic import assert_compare_invariant, run_compare, send_message
 from sae_concept_lab.core.protocol import GenerationRequest
 from sae_concept_lab.core.runtime_acceptance import ACCEPTANCE_REGISTRY
-from sae_concept_lab.fixtures.loader import load_entries
 from tests._fake_runtime import (
     FakeGemmaModel,
     install_fake_torch,
     make_fake_wrap_hook_with_diagnostics,
 )
 
-GEMMA_ENTRIES = load_entries("gemma")
-WARMTH = next(e for e in GEMMA_ENTRIES if e.concept_id == "FAKE-gemma-warmth")
-ENTHUSIASM = next(e for e in GEMMA_ENTRIES if e.concept_id == "FAKE-gemma-enthusiasm")
+# Loaded from the fixture FILES rather than through load_entries(): these are
+# test fixtures for backend logic, and the product no longer SHIPS them.
+# Reading the files directly keeps this test independent of the shipped registry.
+_FIXTURE_DIR = Path(__file__).resolve().parent.parent / "sae_concept_lab" / "fixtures" / "gemma"
+WARMTH = load_entry_file(_FIXTURE_DIR / "warmth.json")
+ENTHUSIASM = load_entry_file(_FIXTURE_DIR / "enthusiasm.json")
 
 
 def _install_fakes(monkeypatch):

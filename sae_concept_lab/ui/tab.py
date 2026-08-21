@@ -393,8 +393,11 @@ def build_model_tab(
             "",
         )
 
-    chat_send_btn.click(
-        _on_send,
+    # Enter-to-send. Bound to the SAME handler, inputs and outputs as the
+    # button, so pressing Enter and clicking Send cannot diverge -- one
+    # wiring described twice is how the two drift apart.
+    _send_wiring = dict(
+        fn=_on_send,
         inputs=[chat_input, history_state, concept_state, direction_radio, strength_radio, seed_number, lang_state],
         outputs=[
             history_state,
@@ -406,6 +409,8 @@ def build_model_tab(
             capability_notice_md,
         ],
     )
+    chat_send_btn.click(**_send_wiring)
+    chat_input.submit(**_send_wiring)
 
     def _on_compare(message, history, concept_id, direction, strength, seed, lang, progress=_PROGRESS_DEFAULT):
         entry = next(e for e in entries if e.concept_id == concept_id)

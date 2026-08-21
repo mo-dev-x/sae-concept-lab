@@ -25,15 +25,9 @@
       },
       "targets": [
         {
-          "feature_idx": 26943,
-          "layer": 38,
-          "sae_id": "layer38.sae.pt",
-          "weight": 1.0
-        },
-        {
-          "feature_idx": 41745,
-          "layer": 38,
-          "sae_id": "layer38.sae.pt",
+          "feature_idx": 3048,
+          "layer": 29,
+          "sae_id": "resid_post_all/layer_29_width_16k_l0_big",
           "weight": 1.0
         }
       ]
@@ -61,21 +55,15 @@
       },
       "targets": [
         {
-          "feature_idx": 26943,
-          "layer": 38,
-          "sae_id": "layer38.sae.pt",
-          "weight": 1.0
-        },
-        {
-          "feature_idx": 41745,
-          "layer": 38,
-          "sae_id": "layer38.sae.pt",
+          "feature_idx": 3048,
+          "layer": 29,
+          "sae_id": "resid_post_all/layer_29_width_16k_l0_big",
           "weight": 1.0
         }
       ]
     }
   },
-  "pairing_id": "qwen-3.5-27b+SAE-Res-Qwen3.5-27B-W80K-L0_100",
+  "pairing_id": "gemma-3-12b-it+gemma-scope-2-12b-it",
   "positions": "all",
   "provenance": "candidate",
   "schema_version": "1.0"
