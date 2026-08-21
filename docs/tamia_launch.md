@@ -64,6 +64,30 @@ revisions may legitimately differ if the snapshots were re-staged):
 | repository | `Qwen/Qwen3.5-27B` | `Qwen/SAE-Res-Qwen3.5-27B-W80K-L0_50` | `google/gemma-3-12b-it` | `google/gemma-scope-2-12b-it` |
 | revision (evidence run) | `fc05daec18b0a78c049392ed2e771dde82bdf654` | `13d4221569f7ca5d3c1e605e3e3dc95117e4807c` | `96b6f1eccf38110c56df3a15bffe176da04bfd80` | `4c419f1ba0be8b7754d4151d4f26c23b92a9029e` |
 
+## Reaching the UI: forward the port, never bind the node
+
+**Bind `127.0.0.1`, never `0.0.0.0`.** A Tamia compute node is shared. Binding
+`0.0.0.0` publishes this UI -- and every generation it produces -- to every
+other user on that node, on an unauthenticated port. `0.0.0.0` is also
+unnecessary: SSH port-forwarding reaches a loopback bind perfectly well.
+
+From your laptop, jump through the login node to the allocated compute node and
+forward the port to your own loopback:
+
+```bash
+# 1. Allocate interactively, and note the node name it lands on.
+ssh yazid@tamia.alliancecan.ca
+salloc --account=aip-chgag196 --nodes=1 --gres=gpu:h100:4 --mem=0        --cpus-per-task=32 --time=02:00:00
+hostname          # e.g. tg10701
+
+# 2. From a SECOND terminal on your laptop, forward through the login node.
+ssh -N -L 7860:127.0.0.1:7860 -J yazid@tamia.alliancecan.ca yazid@tg10701
+```
+
+Then open `http://127.0.0.1:7860` locally. The `-J` jump reaches the compute
+node, and `-L 7860:127.0.0.1:7860` forwards to *that node's* loopback, which is
+exactly where the app is listening.
+
 ## Launch -- Qwen real backend, dev mode
 
 ```bash
@@ -74,7 +98,7 @@ HF_HUB_OFFLINE=1 python -m sae_concept_lab.app \
   --qwen-layer 0 \
   --qwen-expected-model-revision fc05daec18b0a78c049392ed2e771dde82bdf654 \
   --qwen-expected-sae-revision 13d4221569f7ca5d3c1e605e3e3dc95117e4807c \
-  --server-name 0.0.0.0 --server-port 7860
+  --server-name 127.0.0.1 --server-port 7860
 ```
 
 `--qwen-layer 0` is engineering-only (no code default -- see
@@ -93,7 +117,7 @@ HF_HUB_OFFLINE=1 python -m sae_concept_lab.app \
   --gemma-sae-path /path/from/inventory/gemma-scope-2-12b-it \
   --gemma-expected-model-revision 96b6f1eccf38110c56df3a15bffe176da04bfd80 \
   --gemma-expected-sae-revision 4c419f1ba0be8b7754d4151d4f26c23b92a9029e \
-  --server-name 0.0.0.0 --server-port 7860
+  --server-name 127.0.0.1 --server-port 7860
 ```
 
 `--gemma-sae-path` is the SAE snapshot **root** directory (not a single

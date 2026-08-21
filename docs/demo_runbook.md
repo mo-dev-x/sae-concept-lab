@@ -82,7 +82,10 @@ into the slot):
      --evidence-registry-root <real registry root> \
      --qwen-backend runtime --qwen-model-path <path> --qwen-sae-path <path> --qwen-layer <N> \
      --gemma-backend runtime --gemma-model-path <path> --gemma-sae-path <path> \
-     --server-name 0.0.0.0 --server-port 7860
+     --server-name 127.0.0.1 --server-port 7860
+   # 127.0.0.1, NEVER 0.0.0.0: a Tamia compute node is shared, and 0.0.0.0
+   # publishes this UI to every other user on it. Forward the port instead --
+   # see docs/tamia_launch.md, "Reaching the UI".
    ```
    This renders **only** the publishable entries (canonical's
    `select_layout_entries(..., exposure=Exposure.RELEASE)`, wired in
