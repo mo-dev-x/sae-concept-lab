@@ -1,0 +1,70 @@
+{
+  "calibration_provenance": null,
+  "concept_id": "pro-american-exceptionalism",
+  "directions": {
+    "amplify": {
+      "specs": {
+        "high": {
+          "operation": "clamp",
+          "unit": "absolute_activation",
+          "unit_source": null,
+          "value": 5000.0
+        },
+        "low": {
+          "operation": "clamp",
+          "unit": "absolute_activation",
+          "unit_source": null,
+          "value": 1000.0
+        },
+        "medium": {
+          "operation": "clamp",
+          "unit": "absolute_activation",
+          "unit_source": null,
+          "value": 2500.0
+        }
+      },
+      "targets": [
+        {
+          "feature_idx": 26943,
+          "layer": 38,
+          "sae_id": "layer38.sae.pt",
+          "weight": 1.0
+        }
+      ]
+    },
+    "suppress": {
+      "specs": {
+        "high": {
+          "operation": "ablate",
+          "unit": null,
+          "unit_source": null,
+          "value": null
+        },
+        "low": {
+          "operation": "ablate",
+          "unit": null,
+          "unit_source": null,
+          "value": null
+        },
+        "medium": {
+          "operation": "ablate",
+          "unit": null,
+          "unit_source": null,
+          "value": null
+        }
+      },
+      "targets": [
+        {
+          "feature_idx": 26943,
+          "layer": 38,
+          "sae_id": "layer38.sae.pt",
+          "weight": 1.0
+        }
+      ]
+    }
+  },
+  "pairing_id": "qwen-3.5-27b+SAE-Res-Qwen3.5-27B-W80K-L0_100",
+  "positions": "all",
+  "provenance": "candidate",
+  "schema_version": "1.0"
+}

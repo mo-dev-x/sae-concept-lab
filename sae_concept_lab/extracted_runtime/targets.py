@@ -249,14 +249,21 @@ GEMMA_3_12B_IT_TARGET = TargetPairing(
     sae_repo_id="google/gemma-scope-2-12b-it",
     sae_format="sae_lens_registry",
     sae_release="gemma-scope-2-12b-it-res",
-    sae_id="resid_post/layer_31_width_16k_l0_medium",
-    sae_loader_id="layer_31_width_16k_l0_medium",
-    expected_layer=31,
-    expected_hook_name="blocks.31.hook_resid_post",
+    sae_id="resid_post_all/layer_29_width_16k_l0_big",
+    sae_loader_id="layer_29_width_16k_l0_big",
+    expected_layer=29,
+    expected_hook_name="blocks.29.hook_resid_post",
     expected_hidden_dim=3840,
     notes=(
-        "Engineering target only (layer 31 is the same pre-existing D1 choice as the -pt "
-        "pairing, carried over for architecture/hook continuity -- not re-justified here). "
+        "Layer 29 is the RATIFIED primary for this pairing. It replaces layer 31, which this "
+        "field previously carried and which its own note described as an engineering carry-over "
+        "from the -pt pairing, explicitly 'not re-justified here'. Layer 29 lives in the "
+        "resid_post_all tree (all 48 layers); the bare resid_post tree publishes only 12/24/31/41, "
+        "so the tree prefix changes with the layer and is not interchangeable. "
+        "MECHANICAL ACCEPTANCE DOES NOT FOLLOW THE MOVE: the Gemma record is scoped to layer 31 "
+        "(runtime_acceptance.accepted_layer), so is_mechanically_accepted('gemma', layer=29) is "
+        "False and the backend prefixes its loud unaccepted notice until a layer-29 run is "
+        "imported. That is the intended, visible consequence of repointing. "
         "sae_release/sae_id verified present in the locally-installed sae_lens==6.44.2 "
         "registry; not yet verified that the corresponding HF snapshot is staged on Tamia."
     ),
@@ -267,16 +274,20 @@ QWEN_3_5_27B_TARGET = TargetPairing(
     model_repo_id="Qwen/Qwen3.5-27B",
     model_architecture="Qwen3_5ForConditionalGeneration",
     model_supported_by_transformer_lens=False,
-    sae_repo_id="Qwen/SAE-Res-Qwen3.5-27B-W80K-L0_50",
+    sae_repo_id="Qwen/SAE-Res-Qwen3.5-27B-W80K-L0_100",
     sae_format="qwen_scope_raw_pt",
     expected_hidden_dim=5120,
     expected_d_sae=81920,
-    expected_k=50,
+    expected_k=100,
     expected_num_layers=64,
     expected_layer=None,  # engineering-only, supplied by the caller -- see module docstring
     expected_hook_name="resid_post",  # generic hook_point name from the release's own config.json, not a TL hook string
     expected_runtime_class="Qwen3_5ForCausalLM",
     notes=(
+        "The SAE release is the RATIFIED L0_100 (k=100), replacing L0_50: the science this "
+        "product presents was measured at layer 38 in the L0_100 dictionary, and k must equal "
+        "the L0_<N> suffix of the repository id. Mechanical acceptance is scoped to layer 0 "
+        "(runtime_acceptance.accepted_layer), so a layer-38 run is NOT accepted and says so. "
         "model_supported_by_transformer_lens=False is a VERIFIED negative (not an assumption): "
         "'Qwen/Qwen3.5-27B' and every 'qwen3.5'-named entry are absent from transformer_lens==3.2.1's "
         "OFFICIAL_MODEL_NAMES. Loading requires the raw-HF-forward-hooks path (see "

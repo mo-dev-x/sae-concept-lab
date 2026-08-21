@@ -87,8 +87,8 @@ from tests._fake_runtime import (
 #: here rather than read from that module, so these tests state what they
 #: expect instead of agreeing with whatever the module happens to say.
 PINNED_GEMMA_RELEASE = "gemma-scope-2-12b-it-res"
-PINNED_GEMMA_SCIENTIFIC_SAE_ID = "resid_post/layer_31_width_16k_l0_medium"
-PINNED_GEMMA_LAYER = 31
+PINNED_GEMMA_SCIENTIFIC_SAE_ID = "resid_post_all/layer_29_width_16k_l0_big"
+PINNED_GEMMA_LAYER = 29
 
 BUNDLE_SAE_ID = "fake-sae-demo-gemma-000"
 FEATURE_IDX = 1001
@@ -231,10 +231,11 @@ def _request(resolved, model_key: str = "gemma"):
 
 
 def test_positive_control_layer_mismatch_raises_the_exact_named_exception(monkeypatch):
-    """The defect, reproduced: a bundle authored at the certified primary's
-    layer 29 against a runtime pinned to layer 31. Previously this produced a
-    generation with `"layer": 29` in the diagnostics while a layer-29 feature
-    index was clamped inside the layer-31 dictionary."""
+    """The defect, reproduced with the roles as they now stand: a bundle
+    authored at layer 31 -- the engineering layer this runtime used to pin --
+    against a runtime now pinned to the certified primary, layer 29. Before the
+    gate existed this produced a generation reporting `"layer": 31` while a
+    layer-31 feature index was clamped inside the layer-29 dictionary."""
     _install_gemma_fakes(
         monkeypatch,
         loaded_layer=PINNED_GEMMA_LAYER,
@@ -244,28 +245,28 @@ def test_positive_control_layer_mismatch_raises_the_exact_named_exception(monkey
     backend = GemmaRuntimeBackend(model_path="/fake/model", sae_path="/fake/sae")
 
     with pytest.raises(LoadedLayerIdentityMismatch) as excinfo:
-        backend.generate(_request(_resolved_at_layer(29)))
+        backend.generate(_request(_resolved_at_layer(31)))
 
     # The EXACT type, not a superclass that a broader except would also catch.
     assert type(excinfo.value) is LoadedLayerIdentityMismatch
     # The EXACT message, spelled out here rather than rebuilt from the module.
     assert str(excinfo.value) == (
-        "REFUSING TO GENERATE for pairing 'gemma': the resolved control state targets layer 29 "
+        "REFUSING TO GENERATE for pairing 'gemma': the resolved control state targets layer 31 "
         "(bundle sae_id 'fake-sae-demo-gemma-000', feature_idx 1001), but the SAE actually loaded "
-        "is at layer 31 (release 'gemma-scope-2-12b-it-res', scientific_sae_id "
-        "'resid_post/layer_31_width_16k_l0_medium'). A feature index is only meaningful inside the "
-        "dictionary it was found in, so clamping a layer-29 index inside the layer-31 dictionary "
+        "is at layer 29 (release 'gemma-scope-2-12b-it-res', scientific_sae_id "
+        "'resid_post_all/layer_29_width_16k_l0_big'). A feature index is only meaningful inside the "
+        "dictionary it was found in, so clamping a layer-31 index inside the layer-29 dictionary "
         "would produce a confident, wrong, well-labelled result. This is refused outright -- never "
         "clamped, never warned past, and never reported as a layer it was not run at."
     )
 
 
 def test_near_miss_request_agreeing_with_the_targets_py_pin_still_refuses(monkeypatch):
-    """NEAR-MISS. The request names layer 31, which is exactly what
+    """NEAR-MISS. The request names layer 29, which is exactly what
     extracted_runtime/targets.py declares as GEMMA_3_12B_IT_TARGET
     .expected_layer -- so a detector that compared the request against the
     RATIFIED PIN would find perfect agreement and let this through. The
-    loader, however, produced layer 29. Only a detector that compares against
+    loader, however, produced layer 31. Only a detector that compares against
     what was actually LOADED can reject this."""
     # The near-miss is real, not accidental: the request genuinely agrees with
     # the module-level pin a plausibly-broken detector would have consulted.
@@ -273,9 +274,9 @@ def test_near_miss_request_agreeing_with_the_targets_py_pin_still_refuses(monkey
 
     _install_gemma_fakes(
         monkeypatch,
-        loaded_layer=29,
-        release="gemma-scope-2-12b-it-res-all",
-        scientific_sae_id="resid_post_all/layer_29_width_16k_l0_big",
+        loaded_layer=31,
+        release="gemma-scope-2-12b-it-res",
+        scientific_sae_id="resid_post/layer_31_width_16k_l0_medium",
     )
     backend = GemmaRuntimeBackend(model_path="/fake/model", sae_path="/fake/sae")
 
@@ -283,11 +284,11 @@ def test_near_miss_request_agreeing_with_the_targets_py_pin_still_refuses(monkey
         backend.generate(_request(_resolved_at_layer(PINNED_GEMMA_LAYER)))
 
     assert str(excinfo.value) == (
-        "REFUSING TO GENERATE for pairing 'gemma': the resolved control state targets layer 31 "
+        "REFUSING TO GENERATE for pairing 'gemma': the resolved control state targets layer 29 "
         "(bundle sae_id 'fake-sae-demo-gemma-000', feature_idx 1001), but the SAE actually loaded "
-        "is at layer 29 (release 'gemma-scope-2-12b-it-res-all', scientific_sae_id "
-        "'resid_post_all/layer_29_width_16k_l0_big'). A feature index is only meaningful inside "
-        "the dictionary it was found in, so clamping a layer-31 index inside the layer-29 "
+        "is at layer 31 (release 'gemma-scope-2-12b-it-res', scientific_sae_id "
+        "'resid_post/layer_31_width_16k_l0_medium'). A feature index is only meaningful inside "
+        "the dictionary it was found in, so clamping a layer-29 index inside the layer-31 "
         "dictionary would produce a confident, wrong, well-labelled result. This is refused "
         "outright -- never clamped, never warned past, and never reported as a layer it was not "
         "run at."
@@ -345,7 +346,7 @@ def test_negative_control_matching_bundle_still_generates(monkeypatch):
     assert result.diagnostics["identity"]["loaded"]["layer"] == PINNED_GEMMA_LAYER
     assert result.diagnostics["identity"]["requested"]["layer"] == PINNED_GEMMA_LAYER
     assert len(wrap_calls) == 1
-    assert wrap_calls[0]["hook_name"] == "blocks.31.hook_resid_post"
+    assert wrap_calls[0]["hook_name"] == "blocks.29.hook_resid_post"
 
 
 def test_negative_control_certified_primary_identity_is_science_attributed(monkeypatch):
@@ -401,7 +402,7 @@ def test_diagnostics_report_the_loaded_identity_not_the_requested_one(monkeypatc
     assert loaded["release"] == PINNED_GEMMA_RELEASE
     assert loaded["scientific_sae_id"] == PINNED_GEMMA_SCIENTIFIC_SAE_ID
     assert loaded["sae_repository"] == "google/gemma-scope-2-12b-it"
-    assert loaded["hook_name"] == "blocks.31.hook_resid_post"
+    assert loaded["hook_name"] == "blocks.29.hook_resid_post"
     # The requested block reports the BUNDLE, under keys that say so.
     assert requested["bundle_sae_id"] == BUNDLE_SAE_ID
     assert requested["feature_idx"] == FEATURE_IDX
@@ -433,9 +434,12 @@ def test_pinned_engineering_identity_is_refused_scientific_attribution(monkeypat
 
     assert result.diagnostics["science_attributed"] is False
     assert result.diagnostics["claim_scope"] == CLAIM_SCOPE_ENGINEERING_ONLY
-    # The repository agrees; the three fields that carry the scientific
-    # identity do not.
-    assert attribution["mismatched_fields"] == ["release", "scientific_sae_id", "layer"]
+    # Repointing to layer 29 aligned scientific_sae_id and layer with the
+    # certified primary, so RELEASE is now the only scientific identity field
+    # that still diverges. Attribution is STILL refused on that one field
+    # alone: a release names which training run produced the dictionary, and
+    # two runs at the same layer and width are not the same dictionary.
+    assert attribution["mismatched_fields"] == ["release"]
     assert attribution["matches_ratified_backup"] is False
     assert result.text.startswith(ENGINEERING_DEMONSTRATION_TAG)
 
@@ -602,10 +606,18 @@ def test_certified_constants_match_the_certified_candidates_own_protocol_artifac
     assert RATIFIED_BACKUP["qwen"].scientific_sae_id == qwen_backup["params_file"]
     assert RATIFIED_BACKUP["qwen"].layer == qwen_backup["layer"]
 
-    # And the fact that makes this gate necessary at all: what
-    # extracted_runtime/targets.py pins is NOT the certified primary, on all
-    # three scientific identity fields at once.
-    assert targets.GEMMA_3_12B_IT_TARGET.sae_release != gemma_primary["release"]
-    assert targets.GEMMA_3_12B_IT_TARGET.sae_id != gemma_primary["scientific_sae_id"]
-    assert targets.GEMMA_3_12B_IT_TARGET.expected_layer != gemma_primary["layer"]
-    assert targets.QWEN_3_5_27B_TARGET.sae_repo_id != qwen_primary["sae_repository_id"]
+    # extracted_runtime/targets.py now pins the CERTIFIED PRIMARY on the
+    # scientific identity fields. This assertion was previously the inverse: it
+    # recorded that the pin DIVERGED from the certified science (Gemma layer 31,
+    # an admitted engineering carry-over; Qwen's L0_50 release). Repointing to
+    # layer 29 / L0_100 closed that divergence, so the same fields are asserted
+    # equal here.
+    #
+    # THE GATE IS NOT MADE UNNECESSARY BY THIS. It compares what was LOADED at
+    # run time against what the resolved control state REQUESTS, which is a
+    # different question from whether the pin matches the certified constants;
+    # a matching pin can still be loaded against a mismatched request, and the
+    # refusal tests above cover exactly that.
+    assert targets.GEMMA_3_12B_IT_TARGET.sae_id == gemma_primary["scientific_sae_id"]
+    assert targets.GEMMA_3_12B_IT_TARGET.expected_layer == gemma_primary["layer"]
+    assert targets.QWEN_3_5_27B_TARGET.sae_repo_id == qwen_primary["sae_repository_id"]

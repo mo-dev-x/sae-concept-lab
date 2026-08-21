@@ -27,12 +27,12 @@ PAIRING_LABELS: dict[str, Localized] = {
     # Real ratified pairings. Present so that a CANDIDATE bundle dropped into the
     # Mode-A slot can be rendered at all -- see CONCEPT_LABELS below.
     "gemma-3-12b-it+gemma-scope-2-12b-it": {
-        "en": "Gemma 3 12B-it · Gemma Scope 2 (layer 29)",
-        "fr": "Gemma 3 12B-it · Gemma Scope 2 (couche 29)",
+        "en": "Gemma 3 12B-it · Gemma Scope 2",
+        "fr": "Gemma 3 12B-it · Gemma Scope 2",
     },
     "qwen-3.5-27b+SAE-Res-Qwen3.5-27B-W80K-L0_100": {
-        "en": "Qwen3.5 27B · SAE-Res W80K L0-100 (layer 38)",
-        "fr": "Qwen3.5 27B · SAE-Res W80K L0-100 (couche 38)",
+        "en": "Qwen3.5 27B · SAE-Res W80K",
+        "fr": "Qwen3.5 27B · SAE-Res W80K",
     },
 }
 

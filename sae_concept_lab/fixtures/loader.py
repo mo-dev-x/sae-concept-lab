@@ -35,15 +35,18 @@ from sae_concept_lab.core.stub_backend import StubConceptLabBackend
 
 FIXTURES_DIR = Path(__file__).resolve().parent
 
-GEMMA_PAIRING_ID = "fake-gemma-demo-pairing"
-QWEN_PAIRING_ID = "fake-qwen-demo-pairing"
+GEMMA_PAIRING_ID = "gemma-3-12b-it+gemma-scope-2-12b-it"
+QWEN_PAIRING_ID = "qwen-3.5-27b+SAE-Res-Qwen3.5-27B-W80K-L0_100"
 
 #: Explicit, named files only -- never a directory scan (codec.py's own
 #: rule: "a build must name every entry it loads"). Adding a ninth file to
 #: fixtures/gemma/ without adding it here does not make it appear anywhere.
 _ENTRY_FILENAMES: dict[str, tuple[str, ...]] = {
-    "gemma": ("warmth.json", "formality.json", "enthusiasm.json", "caution.json"),
-    "qwen": ("curiosity.json", "directness.json", "playfulness.json", "skepticism.json"),
+    # The eight FAKE placeholders were removed from the build. What ships now is
+    # measured: features that passed every discovery gate in all six evaluation
+    # cells of a full-space scan on real weights.
+    "gemma": ("pro_american_exceptionalism.json",),
+    "qwen": ("pro_american_exceptionalism.json",),
 }
 
 PAIRING_ID_FOR_MODEL_KEY: dict[str, str] = {"gemma": GEMMA_PAIRING_ID, "qwen": QWEN_PAIRING_ID}

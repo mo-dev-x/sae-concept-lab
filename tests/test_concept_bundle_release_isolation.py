@@ -74,7 +74,7 @@ def _decodable_documents() -> list[tuple[str, str]]:
 def test_ui_bundle_discovery_is_scoped_under_sae_concept_lab_fixtures_only():
     assert FIXTURES_DIR.name == "fixtures"
     assert FIXTURES_DIR.parent.name == "sae_concept_lab"
-    for model_key, count in (("gemma", 4), ("qwen", 4)):
+    for model_key, count in (("gemma", 1), ("qwen", 1)):
         entries = load_entries(model_key)
         assert len(entries) == count
 

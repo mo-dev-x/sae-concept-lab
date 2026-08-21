@@ -1,0 +1,70 @@
+{
+  "calibration_provenance": null,
+  "concept_id": "pro-american-exceptionalism",
+  "directions": {
+    "amplify": {
+      "specs": {
+        "high": {
+          "operation": "clamp",
+          "unit": "absolute_activation",
+          "unit_source": null,
+          "value": 5000.0
+        },
+        "low": {
+          "operation": "clamp",
+          "unit": "absolute_activation",
+          "unit_source": null,
+          "value": 1000.0
+        },
+        "medium": {
+          "operation": "clamp",
+          "unit": "absolute_activation",
+          "unit_source": null,
+          "value": 2500.0
+        }
+      },
+      "targets": [
+        {
+          "feature_idx": 3048,
+          "layer": 29,
+          "sae_id": "resid_post_all/layer_29_width_16k_l0_big",
+          "weight": 1.0
+        }
+      ]
+    },
+    "suppress": {
+      "specs": {
+        "high": {
+          "operation": "ablate",
+          "unit": null,
+          "unit_source": null,
+          "value": null
+        },
+        "low": {
+          "operation": "ablate",
+          "unit": null,
+          "unit_source": null,
+          "value": null
+        },
+        "medium": {
+          "operation": "ablate",
+          "unit": null,
+          "unit_source": null,
+          "value": null
+        }
+      },
+      "targets": [
+        {
+          "feature_idx": 3048,
+          "layer": 29,
+          "sae_id": "resid_post_all/layer_29_width_16k_l0_big",
+          "weight": 1.0
+        }
+      ]
+    }
+  },
+  "pairing_id": "gemma-3-12b-it+gemma-scope-2-12b-it",
+  "positions": "all",
+  "provenance": "candidate",
+  "schema_version": "1.0"
+}

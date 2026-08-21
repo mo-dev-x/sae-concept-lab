@@ -91,10 +91,19 @@ class RuntimeAcceptanceRecord:
     pairing: str
     job_id: str
     evidence_commit: str
+    #: The layer the acceptance run actually used. Acceptance is scoped to it:
+    #: the mechanism was exercised in ONE layer's dictionary, and a feature
+    #: index means nothing outside the dictionary it was found in. A record
+    #: that did not carry this let `is_mechanically_accepted` keep returning
+    #: True after the pinned target moved to a different layer -- a true
+    #: statement about layer 31 silently re-read as a claim about layer 29.
     scenarios_passed: tuple[str, ...]
     artifact_hashes: tuple[tuple[str, str], ...]
     claim: str
     imported_at_utc: str
+    #: The layer the acceptance run used; None means unscoped. Scoped records
+    #: make is_mechanically_accepted(pairing, layer) False on a different layer.
+    accepted_layer: int | None = None
 
     def __post_init__(self) -> None:
         if not self.scenarios_passed:
@@ -127,6 +136,7 @@ ACCEPTANCE_REGISTRY: dict[str, RuntimeAcceptanceRecord | None] = {
     "qwen": RuntimeAcceptanceRecord(
         pairing="qwen",
         job_id="406092",
+        accepted_layer=0,
         evidence_commit=_EVIDENCE_COMMIT,
         scenarios_passed=("all", "generated_only"),
         artifact_hashes=(
@@ -158,6 +168,7 @@ ACCEPTANCE_REGISTRY: dict[str, RuntimeAcceptanceRecord | None] = {
     "gemma": RuntimeAcceptanceRecord(
         pairing="gemma",
         job_id="407008",
+        accepted_layer=31,
         evidence_commit=_EVIDENCE_COMMIT,
         scenarios_passed=("all", "generated_only"),
         artifact_hashes=(
@@ -192,8 +203,25 @@ ACCEPTANCE_REGISTRY: dict[str, RuntimeAcceptanceRecord | None] = {
 }
 
 
-def is_mechanically_accepted(pairing: str) -> bool:
-    return ACCEPTANCE_REGISTRY.get(pairing) is not None
+def is_mechanically_accepted(pairing: str, layer: int | None = None) -> bool:
+    """True only if a record exists AND it covers `layer`.
+
+    `layer=None` preserves the original "does a record exist" question for
+    callers that genuinely have no layer in hand. Callers that DO know which
+    layer they loaded must pass it: acceptance was established in one layer's
+    dictionary, and reporting it for another is the confident-wrong-answer
+    failure this repository refuses everywhere else."""
+    record = ACCEPTANCE_REGISTRY.get(pairing)
+    if record is None:
+        return False
+    if layer is None or record.accepted_layer is None:
+        return True
+    return int(layer) == int(record.accepted_layer)
+
+
+def accepted_layer_for(pairing: str) -> int | None:
+    record = ACCEPTANCE_REGISTRY.get(pairing)
+    return None if record is None else record.accepted_layer
 
 
 def _run_git(repo: Path, args: list[str]) -> subprocess.CompletedProcess:

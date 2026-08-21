@@ -84,9 +84,9 @@ def _populated_registry_root(tmp_path):
     return root
 
 
-def test_shipped_entries_are_all_provenance_fake():
+def test_shipped_entries_never_claim_attested_provenance():
     for entry in (*GEMMA_ENTRIES, *QWEN_ENTRIES):
-        assert entry.provenance is Provenance.FAKE
+        assert entry.provenance is not Provenance.ATTESTED
 
 
 def test_dev_mode_never_raises_with_stub_backend_and_no_evidence_registry_root():

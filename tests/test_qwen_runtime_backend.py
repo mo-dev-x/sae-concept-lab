@@ -27,10 +27,10 @@ from tests._fake_runtime import (
     make_fake_wrap_hook_with_diagnostics,
 )
 
-# Loaded from the fixture FILES rather than through load_entries(): these are
-# test fixtures for backend logic, and the product no longer SHIPS them.
-# Reading the files directly keeps this test independent of the shipped registry.
-_FIXTURE_DIR = Path(__file__).resolve().parent.parent / "sae_concept_lab" / "fixtures" / "qwen"
+# Test-OWNED fixtures (tests/fixtures/), not product fixtures. These tests need
+# an entry with known directions, strengths and layers to exercise resolution
+# and hook dispatch; that is a property of the tests, not of what ships.
+_FIXTURE_DIR = Path(__file__).resolve().parent / "fixtures" / "qwen"
 CURIOSITY = load_entry_file(_FIXTURE_DIR / "curiosity.json")
 DIRECTNESS = load_entry_file(_FIXTURE_DIR / "directness.json")
 
