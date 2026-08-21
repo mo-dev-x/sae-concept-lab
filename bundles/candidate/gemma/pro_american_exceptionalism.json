@@ -1,0 +1,47 @@
+{
+  "calibration_provenance": null,
+  "concept_id": "pro-american-exceptionalism",
+  "directions": {
+    "amplify": null,
+    "suppress": {
+      "specs": {
+        "high": {
+          "operation": "ablate",
+          "unit": null,
+          "unit_source": null,
+          "value": null
+        },
+        "low": {
+          "operation": "ablate",
+          "unit": null,
+          "unit_source": null,
+          "value": null
+        },
+        "medium": {
+          "operation": "ablate",
+          "unit": null,
+          "unit_source": null,
+          "value": null
+        }
+      },
+      "targets": [
+        {
+          "feature_idx": 3048,
+          "layer": 29,
+          "sae_id": "resid_post_all/layer_29_width_16k_l0_big",
+          "weight": 1.0
+        },
+        {
+          "feature_idx": 15405,
+          "layer": 29,
+          "sae_id": "resid_post_all/layer_29_width_16k_l0_big",
+          "weight": 1.0
+        }
+      ]
+    }
+  },
+  "pairing_id": "gemma-3-12b-it+gemma-scope-2-12b-it",
+  "positions": "all",
+  "provenance": "candidate",
+  "schema_version": "1.0"
+}
