@@ -253,7 +253,7 @@ Two smaller correctness fixes rode along with this pass:
    rendered entries to the publishable subset
    (`canonical.select_layout_entries`), and a local, GPU-free preflight
    (`sae_concept_lab/smoke/pi_demo_preflight.py`) checks the whole stack
-   end to end -- see `../docs/pi_demo_runbook.md` and
+   end to end -- see `../docs/demo_runbook.md` and
    `../docs/pi_demo_scientific_status.md`.
 2. Compare is currently a non-committing side-by-side probe: sending the
    same message via "Compare" does NOT append either response to the

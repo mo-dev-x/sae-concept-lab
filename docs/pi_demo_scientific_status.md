@@ -5,7 +5,7 @@ may not, be described as during the PI demo. It is deliberately narrow:
 every claim below is traceable to a specific commit, evidence artifact, or
 test, and nothing here restates or widens any of them. See
 [`BOUNDARY.md`](../BOUNDARY.md) for the full account and
-[`docs/pi_demo_runbook.md`](pi_demo_runbook.md) for how to present this
+[`docs/demo_runbook.md`](demo_runbook.md) for how to present this
 live.
 
 ## 1. Mechanically accepted runtimes: Qwen and Gemma
@@ -52,7 +52,7 @@ Every concept-bundle entry this repository ships is `provenance: "fake"`.
 concepts anywhere in this build are eligible to publish
 (`evaluate_publishability`), and `--mode release` refuses to launch for
 both pairings, unconditionally, regardless of which backend is selected --
-run `sae_concept_lab.smoke.pi_demo_preflight` (`docs/pi_demo_runbook.md`)
+run `sae_concept_lab.smoke.pi_demo_preflight` (`docs/demo_runbook.md`)
 for a live, timestamped confirmation of this exact count immediately
 before the demo. If a bundle arrives and is staged before the cutoff,
 update this line to state the new count and cite the specific evidence

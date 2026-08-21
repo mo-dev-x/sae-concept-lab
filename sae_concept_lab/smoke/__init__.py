@@ -30,7 +30,7 @@ mechanical proof of that isolation.
 boots the real dev-mode app with StubConceptLabBackend, HTTP-probes it,
 checks the currently staged release-eligibility status, and shuts it down
 cleanly. It never touches Tamia, never constructs a real backend, and
-never depends on anything in this module. See docs/pi_demo_runbook.md.
+never depends on anything in this module. See docs/demo_runbook.md.
 """
 
 from __future__ import annotations

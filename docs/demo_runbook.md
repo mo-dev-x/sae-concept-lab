@@ -101,7 +101,8 @@ B** -- do not attempt to demo a half-verified Mode A build.
 
 ```bash
 cd /d/sae-concept-lab
-HF_HUB_OFFLINE=1 python -m sae_concept_lab.app --server-name 127.0.0.1 --server-port 7860
+$env:HF_HUB_OFFLINE = "1"
+python -m sae_concept_lab.app --server-name 127.0.0.1 --server-port 7860
 ```
 
 (`--mode` defaults to `dev`; both backends default to `stub`; no GPU, no

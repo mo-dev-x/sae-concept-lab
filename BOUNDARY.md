@@ -267,7 +267,7 @@ still refuses locally with stub backends (hard assertion -- a real
 backend is a separate, GPU-side precondition this preflight cannot and
 does not satisfy), boot/HTTP-200/visible-status/clean-shutdown of the
 real dev-mode app on loopback, and one aggregate machine-readable JSON
-result. See `docs/pi_demo_runbook.md` (the operational script, Mode A/B
+result. See `docs/demo_runbook.md` (the operational script, Mode A/B
 branches, five-minute walkthrough, recovery) and
 `docs/pi_demo_scientific_status.md` (exact permitted/prohibited claims,
 current ATTESTED count, the working-instrument-vs-validated-science

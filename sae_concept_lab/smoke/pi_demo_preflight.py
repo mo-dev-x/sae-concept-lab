@@ -15,7 +15,7 @@ application, that it renders the correct preview/release status for
 whichever mode is actually staged, and that it shuts down cleanly --
 exactly the set of facts a PI demo needs confirmed the morning of.
 
-See docs/pi_demo_runbook.md for the exact command and how this fits into
+See docs/demo_runbook.md for the exact command and how this fits into
 the Mode A / Mode B decision, and docs/pi_demo_scientific_status.md for
 what "Mode A eligible" is, and is not, permitted to claim.
 """
@@ -131,7 +131,7 @@ REQUIRED_FILES: tuple[str, ...] = (
     "sae_concept_lab/fixtures/qwen/skepticism.json",
     "provenance/source_import.json",
     "BOUNDARY.md",
-    "docs/pi_demo_runbook.md",
+    "docs/demo_runbook.md",
     "docs/pi_demo_scientific_status.md",
 )
 
