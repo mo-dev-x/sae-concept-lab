@@ -10,6 +10,9 @@ import json
 from pathlib import Path
 
 from sae_concept_lab.canonical.concept_bundle.codec import load_entry_file
+from sae_concept_lab.core.gemma_backend import MECHANICALLY_UNVERIFIED_TAG
+from sae_concept_lab.core.protocol import GenerationResult
+from sae_concept_lab.core.scientific_identity import ENGINEERING_DEMONSTRATION_TAG
 from sae_concept_lab.core.stub_backend import StubConceptLabBackend
 from sae_concept_lab.fixtures.labels import concept_label
 from sae_concept_lab.fixtures.loader import load_entries
@@ -183,3 +186,76 @@ def test_one_direction_concept_removes_the_unavailable_choice_and_shows_the_exac
     _concept_id, _detail, direction_update, unavailable_notice, *_rest = result
     assert direction_update.constructor_args["choices"] == [("Amplify", "amplify")]
     assert "this direction is not calibrated for this concept on this model" in unavailable_notice
+
+
+# ---------------------------------------------------------------------------
+# Provenance labels moved OUT of the chat bubble and into their own persistent
+# line. The backend still emits them -- that contract is asserted in
+# tests/test_gemma_runtime_backend.py, test_qwen_runtime_backend.py and
+# test_scientific_identity_gate.py, and none of those changed. What is checked
+# here is the presentation: the reply is readable AND the label is still on
+# screen. Deleting the label instead of relocating it would pass a "no tag in
+# the bubble" assertion just as well, which is why the notice is asserted too.
+# ---------------------------------------------------------------------------
+
+
+class _TaggingBackend:
+    """Returns a reply prefixed with both real provenance tags, exactly as a
+    real runtime backend does when the mechanism is unaccepted at the loaded
+    layer and the loaded SAE is not the certified primary."""
+
+    def generate(self, request):
+        return GenerationResult(
+            text=f"{MECHANICALLY_UNVERIFIED_TAG} {ENGINEERING_DEMONSTRATION_TAG} Ottawa is the capital.",
+            is_synthetic=False,
+            resolved_config=request.resolved_config,
+            diagnostics={"pairing": "gemma"},
+        )
+
+
+def _send_fn(demo):
+    fns = [bf for bf in demo.fns.values() if bf.fn.__name__ == "_on_send"]
+    assert fns, "no _on_send handler registered"
+    return fns[0]
+
+
+def test_provenance_tags_are_lifted_out_of_the_reply_and_shown_beside_it():
+    gemma_entries = load_entries("gemma")
+    demo = build_demo(
+        gemma_entries=gemma_entries,
+        qwen_entries=load_entries("qwen"),
+        gemma_backend=_TaggingBackend(),
+        qwen_backend=StubConceptLabBackend(),
+    )
+    block_fn = _send_fn(demo)
+    entry = gemma_entries[0]
+    direction = entry.calibrated_directions[0]
+    result = block_fn.fn("What is the capital of Canada?", [], entry.concept_id, direction, "low", 0, "en")
+
+    # The wiring itself: a handler returning a different number of values than
+    # its declared outputs is the classic way an added output breaks at run
+    # time while every pure-logic test still passes.
+    assert len(result) == len(block_fn.outputs)
+
+    new_history = result[0]
+    reply = new_history[-1]
+    reply_text = reply["content"] if isinstance(reply, dict) else reply[1]
+    assert MECHANICALLY_UNVERIFIED_TAG not in reply_text
+    assert ENGINEERING_DEMONSTRATION_TAG not in reply_text
+    assert "Ottawa is the capital." in reply_text
+
+    notice = result[-1]
+    assert MECHANICALLY_UNVERIFIED_TAG in notice
+    assert ENGINEERING_DEMONSTRATION_TAG in notice
+
+
+def test_a_tag_string_inside_the_models_own_answer_is_not_stripped():
+    """Only a LEADING run of tags is peeled. A reply that happens to quote one
+    keeps it, because rewriting a model's own output is a different act from
+    relocating a label the product itself attached."""
+    from sae_concept_lab.ui.tab import _split_provenance_tags
+
+    quoted = f"The tool prints {MECHANICALLY_UNVERIFIED_TAG} before each reply."
+    body, found = _split_provenance_tags(quoted)
+    assert body == quoted
+    assert found == []

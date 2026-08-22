@@ -28,6 +28,7 @@ from sae_concept_lab.canonical.concept_bundle import (
     check_direction_executable,
     resolve_control,
 )
+from sae_concept_lab.core.gemma_backend import MECHANICALLY_UNVERIFIED_TAG
 from sae_concept_lab.core.logic import (
     Selection,
     advanced_output_details,
@@ -39,6 +40,7 @@ from sae_concept_lab.core.logic import (
     send_message,
 )
 from sae_concept_lab.core.protocol import ConceptLabBackend
+from sae_concept_lab.core.scientific_identity import ENGINEERING_DEMONSTRATION_TAG
 from sae_concept_lab.fixtures.labels import concept_description, concept_label
 from sae_concept_lab.i18n import DEFAULT_LANG, t
 
@@ -48,6 +50,59 @@ from sae_concept_lab.i18n import DEFAULT_LANG, t
 # pending/progress state is visible for a manual demo or a screenshot,
 # not a simulation of real generation latency.
 DEMO_THINK_TIME_SECONDS = 0.4
+
+#: The provenance labels a real backend prepends to every reply. They are
+#: peeled off the CHAT BUBBLE and rendered once, persistently, beside it --
+#: not discarded. The backend still emits them (asserted by
+#: tests/test_gemma_runtime_backend.py, test_qwen_runtime_backend.py and
+#: test_scientific_identity_gate.py) and result.diagnostics still carries the
+#: structured verdict; this is presentation only. Repeating a two-line legal
+#: notice in front of all eight words of every answer made the answers
+#: unreadable, which is its own way of not being read.
+_PROVENANCE_TAGS = (MECHANICALLY_UNVERIFIED_TAG, ENGINEERING_DEMONSTRATION_TAG)
+
+
+def _split_provenance_tags(text: str) -> tuple[str, list[str]]:
+    """Return (body, tags_found). Only strips tags that appear as a LEADING
+    run, which is the only place a backend puts them -- a tag string occurring
+    inside a model's own answer is left exactly where it is."""
+    body = text
+    found: list[str] = []
+    changed = True
+    while changed:
+        changed = False
+        for tag in _PROVENANCE_TAGS:
+            if body.startswith(tag):
+                found.append(tag)
+                body = body[len(tag):].lstrip()
+                changed = True
+    return body, found
+
+
+def _provenance_notice(tags: list[str]) -> str:
+    if not tags:
+        return ""
+    return "\n\n".join(f"> {tag}" for tag in tags)
+
+
+def _strip_tags_from_last_reply(history: list) -> tuple[list, list[str]]:
+    """Peel the tags off the most recent assistant turn only. Returns the
+    history with that turn's text replaced, plus the tags removed."""
+    if not history:
+        return history, []
+    cleaned = list(history)
+    last = cleaned[-1]
+    if isinstance(last, dict) and isinstance(last.get("content"), str):
+        body, found = _split_provenance_tags(last["content"])
+        if found:
+            cleaned[-1] = {**last, "content": body}
+        return cleaned, found
+    if isinstance(last, (list, tuple)) and len(last) == 2 and isinstance(last[1], str):
+        body, found = _split_provenance_tags(last[1])
+        if found:
+            cleaned[-1] = [last[0], body]
+        return cleaned, found
+    return cleaned, []
 
 #: Chat-determinism control only (StubConceptLabBackend's digest input).
 #: Not a canonical field -- the canonical contract has no notion of a
@@ -179,6 +234,9 @@ def build_model_tab(
     relang.append((chat_send_btn, lambda lang: gr.Button(t("chat_send", lang))))
 
     reset_notice_md = gr.Markdown("")
+    # Where the provenance labels live now: once, beside the conversation,
+    # instead of prepended to every reply. Empty until a reply carries one.
+    provenance_notice_md = gr.Markdown("")
     capability_notice_md = gr.Markdown("")
     output_summary_title_md = gr.Markdown(f"**{t('output_summary_title', lang0)}**")
     relang.append((output_summary_title_md, lambda lang: gr.Markdown(f"**{t('output_summary_title', lang)}**")))
@@ -364,7 +422,7 @@ def build_model_tab(
         entry = next(e for e in entries if e.concept_id == concept_id)
         report = check_direction_executable(entry, direction)
         if not report.executable:
-            return (history, history, message, "", None, {}, _capability_notice(report, lang))
+            return (history, history, message, "", None, {}, _capability_notice(report, lang), "")
 
         progress(0, desc=t("loading_label", lang))
         time.sleep(DEMO_THINK_TIME_SECONDS)
@@ -382,6 +440,11 @@ def build_model_tab(
         details = advanced_output_details(resolved)
         if result.diagnostics is not None:
             details = {**details, "backend_diagnostics": result.diagnostics}
+        # The tags come off the bubble and go into their own persistent line.
+        # history_state keeps the CLEANED text so the label is not re-shown on
+        # every later turn, while result.text and result.diagnostics -- the
+        # machine-readable record -- are untouched.
+        new_history, tags = _strip_tags_from_last_reply(new_history)
         progress(1)
         return (
             new_history,
@@ -391,6 +454,7 @@ def build_model_tab(
             resolved,
             details,
             "",
+            _provenance_notice(tags),
         )
 
     # Enter-to-send. Bound to the SAME handler, inputs and outputs as the
@@ -407,6 +471,7 @@ def build_model_tab(
             resolved_config_state,
             resolved_state_json,
             capability_notice_md,
+            provenance_notice_md,
         ],
     )
     chat_send_btn.click(**_send_wiring)
@@ -416,7 +481,7 @@ def build_model_tab(
         entry = next(e for e in entries if e.concept_id == concept_id)
         report = check_direction_executable(entry, direction)
         if not report.executable:
-            return ("", "", None, {}, _capability_notice(report, lang))
+            return ("", "", None, {}, _capability_notice(report, lang), "")
 
         progress(0, desc=t("loading_label", lang))
         time.sleep(DEMO_THINK_TIME_SECONDS)
@@ -431,11 +496,15 @@ def build_model_tab(
             resolved_config=resolved,
         )
         assert_compare_invariant(compare)
-        original_md = f"**{t('compare_original_label', lang)}**\n\n{compare.original_text}"
-        modified_md = f"**{t('compare_modified_label', lang)}**\n\n{compare.modified_text}"
+        original_body, original_tags = _split_provenance_tags(compare.original_text)
+        modified_body, modified_tags = _split_provenance_tags(compare.modified_text)
+        original_md = f"**{t('compare_original_label', lang)}**\n\n{original_body}"
+        modified_md = f"**{t('compare_modified_label', lang)}**\n\n{modified_body}"
         details = advanced_output_details(resolved)
         if compare.modified_result is not None and compare.modified_result.diagnostics is not None:
             details = {**details, "backend_diagnostics": compare.modified_result.diagnostics}
+        # Same tags on both arms; show the union once rather than twice.
+        seen = list(dict.fromkeys(original_tags + modified_tags))
         progress(1)
         return (
             original_md,
@@ -443,6 +512,7 @@ def build_model_tab(
             resolved,
             details,
             "",
+            _provenance_notice(seen),
         )
 
     compare_btn.click(
@@ -454,6 +524,7 @@ def build_model_tab(
             resolved_config_state,
             resolved_state_json,
             capability_notice_md,
+            provenance_notice_md,
         ],
     )
 
