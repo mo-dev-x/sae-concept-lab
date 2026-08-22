@@ -684,6 +684,49 @@ def test_certified_constants_match_the_certified_candidates_own_protocol_artifac
     # different question from whether the pin matches the certified constants;
     # a matching pin can still be loaded against a mismatched request, and the
     # refusal tests above cover exactly that.
+    # sae_release was ABSENT from this block until 13a3f57, and its absence is
+    # exactly what let the layer-31 -> 29 repoint move sae_id into the
+    # resid_post_all tree while leaving the release on the bare resid_post one.
+    # Three of the four identity fields were asserted, all three passed, and
+    # the product raised TargetIdentityMismatch at the first real Gemma message
+    # with 342 tests green. A partial identity check is the defect class this
+    # repository exists to refuse.
+    assert targets.GEMMA_3_12B_IT_TARGET.sae_release == gemma_primary["release"]
     assert targets.GEMMA_3_12B_IT_TARGET.sae_id == gemma_primary["scientific_sae_id"]
     assert targets.GEMMA_3_12B_IT_TARGET.expected_layer == gemma_primary["layer"]
     assert targets.QWEN_3_5_27B_TARGET.sae_repo_id == qwen_primary["sae_repository_id"]
+
+
+# ---------------------------------------------------------------------------
+# The release and the tree prefix are ONE fact, not two independent fields.
+# Unlike the protocol test above, this needs no external checkout and so can
+# never silently skip.
+# ---------------------------------------------------------------------------
+
+
+def test_gemma_release_suffix_and_sae_id_tree_prefix_cannot_disagree():
+    """Verified 2026-08-22 on a Tamia compute node against the installed
+    sae_lens==6.44.2 registry: the flat loader id 'layer_29_width_16k_l0_big'
+    is registered in FOUR gemma-scope-2-12b-it releases -- -att-all, -mlp-all,
+    -res-all and -transcoders-all -- resolving to attn_out_all/, mlp_out_all/,
+    resid_post_all/ and transcoder_all/ respectively. The loader id alone
+    therefore cannot say which dictionary a feature index lives in; only the
+    release can. The release's '-all' suffix and the sae_id's '_all' tree
+    prefix are consequently not independent, and the defect fixed in 13a3f57
+    was precisely their disagreement: release 'gemma-scope-2-12b-it-res',
+    which publishes only layers 12/24/31/41, carrying sae_id
+    'resid_post_all/layer_29_width_16k_l0_big'.
+
+    This assertion is deliberately structural rather than a hardcoded pair, so
+    it keeps holding the next time the pin moves trees."""
+    target = targets.GEMMA_3_12B_IT_TARGET
+    assert target.sae_release is not None
+    tree = target.sae_id.split("/")[0]
+    assert target.sae_release.endswith("-all") == tree.endswith("_all"), (
+        f"sae_release {target.sae_release!r} and sae_id tree prefix {tree!r} disagree "
+        "about the -all tree; a feature index resolved through this pair would land in "
+        "a different dictionary than the one it was measured in"
+    )
+    # SAE.from_pretrained(sae_id=) takes the registry KEY, which is the flat
+    # leaf -- not the tree-qualified path. These two must stay in step too.
+    assert target.sae_loader_id == target.sae_id.split("/")[-1]
