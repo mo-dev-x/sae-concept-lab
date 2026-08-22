@@ -30,7 +30,7 @@ from sae_concept_lab.canonical.concept_bundle import (
     select_layout_entries,
 )
 from sae_concept_lab.core.protocol import ConceptLabBackend
-from sae_concept_lab.core.runtime_acceptance import is_mechanically_accepted
+from sae_concept_lab.core.runtime_acceptance import accepted_layer_for, is_mechanically_accepted
 from sae_concept_lab.core.stub_backend import StubConceptLabBackend
 
 FIXTURES_DIR = Path(__file__).resolve().parent
@@ -142,6 +142,22 @@ def build_registry(model_key: str) -> ConceptRegistry:
     return ConceptRegistry(load_entries(model_key))
 
 
+def _target_layers_for_model_key(entries: tuple[BundleEntry, ...]) -> tuple[int, ...]:
+    """Every layer named by a target in any calibrated direction of
+    `entries` -- the layer(s) a real backend would actually need its
+    mechanism verified at to run any of them, mirroring how
+    core/gemma_backend.py and core/qwen_backend.py derive `layer` from
+    `require_group_from_resolved(resolved)` for one resolved request, just
+    ahead of resolving any one of them. Empty only if none of this
+    model_key's entries has a calibrated direction at all, which is not
+    true of anything shipped today."""
+    layers: set[int] = set()
+    for entry in entries:
+        for direction in entry.calibrated_directions:
+            layers.update(entry.direction(direction).layers)
+    return tuple(sorted(layers))
+
+
 def _validate_evidence_registry_root(evidence_registry_root: Path | str | None) -> Path:
     """Fail-closed pre-flight, independent of (and prior to) any specific
     evidence reference: an absent, missing, unreadable, or empty root is
@@ -195,6 +211,8 @@ def enforce_release_gate(
             "required before evidence/publishability is even worth checking."
         )
 
+    entries = load_entries(model_key)
+
     # A real backend's own `pairing` attribute (QwenRuntimeBackend.pairing,
     # GemmaRuntimeBackend.pairing) is checked here by duck typing, not by
     # importing either concrete class -- this module stays decoupled from
@@ -203,19 +221,39 @@ def enforce_release_gate(
     # entirely independent of mechanical ACCEPTANCE against real weights;
     # a backend whose code imports and runs perfectly is still refused
     # here until its pairing has an attached, verified
-    # RuntimeAcceptanceRecord (core/runtime_acceptance.py).
+    # RuntimeAcceptanceRecord (core/runtime_acceptance.py), SCOPED to the
+    # layer this model_key's own shipped concept(s) actually target --
+    # exactly the same scoping core/gemma_backend.py and
+    # core/qwen_backend.py apply per generated request, worked out here
+    # from the entries themselves since no single resolved request exists
+    # yet at gate time.
     pairing = getattr(backend, "pairing", None)
-    if pairing is not None and not is_mechanically_accepted(pairing):
-        raise ReleaseGateError(
-            f"refusing --mode release: backend for model_key={model_key!r} is a real backend for "
-            f"pairing={pairing!r}, but that pairing has no attached, verified "
-            "RuntimeAcceptanceRecord (core/runtime_acceptance.py) -- mechanical acceptance against "
-            "real weights has not been imported from a tracked qwen-sae-interp evidence commit yet."
-        )
+    if pairing is not None:
+        target_layers = _target_layers_for_model_key(entries)
+        if target_layers:
+            unaccepted_layers = tuple(
+                layer for layer in target_layers if not is_mechanically_accepted(pairing, layer)
+            )
+            if unaccepted_layers:
+                raise ReleaseGateError(
+                    f"refusing --mode release: backend for model_key={model_key!r} is a real "
+                    f"backend for pairing={pairing!r}, but its mechanical-acceptance record "
+                    f"(core/runtime_acceptance.py) is scoped to layer "
+                    f"{accepted_layer_for(pairing)!r}, not layer(s) {list(unaccepted_layers)} -- "
+                    f"the layer(s) this model_key's own shipped concept(s) actually target. "
+                    "Mechanical acceptance against real weights has not been imported for this "
+                    "layer from a tracked qwen-sae-interp evidence commit yet."
+                )
+        elif not is_mechanically_accepted(pairing):
+            raise ReleaseGateError(
+                f"refusing --mode release: backend for model_key={model_key!r} is a real backend for "
+                f"pairing={pairing!r}, but that pairing has no attached, verified "
+                "RuntimeAcceptanceRecord (core/runtime_acceptance.py) -- mechanical acceptance against "
+                "real weights has not been imported from a tracked qwen-sae-interp evidence commit yet."
+            )
 
     root = _validate_evidence_registry_root(evidence_registry_root)
     registry = RepositoryEvidenceRegistry(root=root)
-    entries = load_entries(model_key)
 
     selection = select_layout_entries(entries, exposure=Exposure.RELEASE, evidence_registry=registry)
     if not selection:

@@ -148,6 +148,37 @@ def test_release_mode_raises_when_no_entry_is_publishable_even_with_a_populated_
         )
 
 
+class _FakeRealBackendForPairing:
+    """Like _FakeRealBackend, but with a real pairing name -- exercises the
+    mechanical-acceptance branch enforce_release_gate skips entirely for a
+    backend with no `.pairing` at all (every other test in this file)."""
+
+    def __init__(self, pairing):
+        self.pairing = pairing
+
+    def generate(self, request):  # pragma: no cover - never called
+        raise NotImplementedError
+
+
+@pytest.mark.parametrize(("model_key", "shipped_layer"), [("gemma", 29), ("qwen", 38)])
+def test_release_mode_refuses_a_real_backend_whose_acceptance_is_scoped_to_a_different_layer(
+    tmp_path, model_key, shipped_layer,
+):
+    """REGRESSION: the layer-blind is_mechanically_accepted(pairing) question
+    (no layer) is True for both pairings -- a record exists for each. The
+    SCOPED question is what must be asked here: runtime_acceptance.py's
+    Gemma record is scoped to layer 31 (job 407008), Qwen's to layer 0 (job
+    406092), and this model_key's own shipped concept targets a different
+    layer ({shipped_layer}) neither record covers. Fails if
+    enforce_release_gate ever reverts to the unscoped call."""
+    root = _populated_registry_root(tmp_path)
+    with pytest.raises(ReleaseGateError, match="is scoped to layer"):
+        enforce_release_gate(
+            mode="release", backend=_FakeRealBackendForPairing(model_key), model_key=model_key,
+            evidence_registry_root=root,
+        )
+
+
 def _attested_entry_citing(artifact_type, artifact_hash):
     """Builds a genuinely ATTESTED, schema-valid entry citing the given
     evidence reference -- never shipped by this repository, constructed

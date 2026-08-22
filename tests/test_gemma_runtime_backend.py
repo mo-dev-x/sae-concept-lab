@@ -96,10 +96,15 @@ def test_clamp_request_end_to_end(monkeypatch):
     assert result.diagnostics["resolved_absolute_target"] == resolved.value
     assert result.diagnostics["backend_received_value"] == resolved.value
     assert result.diagnostics["provenance"]["layer"]["engineering_layer"] == 11
-    assert result.diagnostics["mechanically_accepted"] is True
+    # Mechanical acceptance is SCOPED to the layer actually in use (job
+    # 420174-style fix): runtime_acceptance.py's Gemma record is scoped to
+    # layer 31 (job 407008); this test's own fixture loader reports layer
+    # 11, a layer that record has never covered, so acceptance is
+    # correctly False here and the loud notice correctly appears.
+    assert result.diagnostics["mechanically_accepted"] is False
     assert result.diagnostics["verdict"]["hook_invocation_count"] == 4
     assert len(wrap_calls) == 1
-    assert MECHANICALLY_UNVERIFIED_TAG not in result.text
+    assert MECHANICALLY_UNVERIFIED_TAG in result.text
 
 
 def test_ablate_operation_resolves_backend_received_value_to_zero(monkeypatch):

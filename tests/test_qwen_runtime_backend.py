@@ -103,13 +103,18 @@ def test_clamp_request_end_to_end(monkeypatch):
     assert result.diagnostics["resolved_absolute_target"] == resolved.value
     assert result.diagnostics["backend_received_value"] == resolved.value
     assert result.diagnostics["provenance"]["layer"]["engineering_only"] is True
-    assert result.diagnostics["mechanically_accepted"] is True
+    # Mechanical acceptance is SCOPED to the layer actually in use:
+    # runtime_acceptance.py's Qwen record is scoped to layer 0 (job
+    # 406092); this test's backend/fixture use layer 7 (CURIOSITY's
+    # target), a layer that record has never covered, so acceptance is
+    # correctly False here and the loud notice correctly appears.
+    assert result.diagnostics["mechanically_accepted"] is False
     assert result.diagnostics["verdict"]["hook_invocation_count"] == 4
     assert result.diagnostics["verdict"]["prefill_call_count"] == 1
     assert result.diagnostics["verdict"]["decode_call_count"] == 3
     assert len(wrap_calls) == 1
     assert wrap_calls[0]["resolved_absolute_target"] == resolved.value
-    assert MECHANICALLY_UNVERIFIED_TAG not in result.text
+    assert MECHANICALLY_UNVERIFIED_TAG in result.text
 
 
 def test_ablate_request_resolves_to_exactly_zero(monkeypatch):

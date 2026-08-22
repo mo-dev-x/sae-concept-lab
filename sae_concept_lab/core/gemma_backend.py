@@ -119,7 +119,9 @@ class GemmaRuntimeBackend:
             )
         return self._loaded
 
-    def _tag(self, text: str, attribution: ScientificAttributionVerdict | None = None) -> str:
+    def _tag(
+        self, text: str, attribution: ScientificAttributionVerdict | None = None, *, layer: int | None = None,
+    ) -> str:
         """Two INDEPENDENT tags, deliberately not collapsed into one.
         MECHANICALLY_UNVERIFIED_TAG is about the intervention MECHANISM (has
         it been run against real weights at all); ENGINEERING_DEMONSTRATION_TAG
@@ -127,10 +129,18 @@ class GemmaRuntimeBackend:
         A run can be mechanically accepted and still carry no scientific
         attribution -- job 407008 accepted a layer-31 engineering pin, which
         is not the certified primary -- so a single tag could not say both
-        things and would end up saying the more flattering one."""
+        things and would end up saying the more flattering one.
+
+        `layer` scopes the mechanical-acceptance question to the layer
+        actually in use, exactly as `require_loaded_layer_matches_request`
+        already scopes the identity gate -- job 407008 accepted layer 31,
+        the pin later moved to 29, and a caller that omits `layer` (the
+        baseline branch, which resolves no feature/layer at all) gets the
+        original unscoped "has this pairing EVER been accepted" question,
+        never a silent assumption that 29 was covered too."""
         if attribution is not None and not attribution.science_attributed:
             text = f"{ENGINEERING_DEMONSTRATION_TAG} {text}"
-        if is_mechanically_accepted(self.pairing):
+        if is_mechanically_accepted(self.pairing, layer):
             return text
         return f"{MECHANICALLY_UNVERIFIED_TAG} {text}"
 
@@ -158,6 +168,11 @@ class GemmaRuntimeBackend:
             verbose=False,
         )
         text = model.tokenizer.decode(output_ids[0][tokens.shape[1] :], skip_special_tokens=True)
+        # layer intentionally omitted: the baseline arm resolves no
+        # feature/layer at all (resolved_config is None, asserted above),
+        # so there is genuinely no layer to scope acceptance to here --
+        # this is the original "has this pairing EVER been accepted"
+        # question, not a layer-blind shortcut around a known layer.
         return GenerationResult(text=self._tag(text), is_synthetic=False, resolved_config=None, diagnostics=None)
 
     def _generate_with_intervention(self, request: GenerationRequest) -> GenerationResult:
@@ -229,7 +244,10 @@ class GemmaRuntimeBackend:
         verdict = mechanical_verdict(trace, positions=positions)
         diagnostics: dict[str, Any] = {
             "pairing": self.pairing,
-            "mechanically_accepted": is_mechanically_accepted(self.pairing),
+            # Scoped to `layer` -- proven equal to loaded_identity.layer by
+            # require_loaded_layer_matches_request above, which raises
+            # before this point on any disagreement.
+            "mechanically_accepted": is_mechanically_accepted(self.pairing, layer),
             "claim_scope": attribution.claim_scope,
             "science_attributed": attribution.science_attributed,
             "scientific_attribution": attribution.as_dict(),
@@ -277,7 +295,7 @@ class GemmaRuntimeBackend:
         if positions == "generated_only":
             diagnostics["generated_only_first_token_disclosure"] = GENERATED_ONLY_FIRST_TOKEN_DISCLOSURE
         return GenerationResult(
-            text=self._tag(text, attribution),
+            text=self._tag(text, attribution, layer=layer),
             is_synthetic=False,
             resolved_config=resolved,
             diagnostics=diagnostics,

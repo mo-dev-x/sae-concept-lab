@@ -154,15 +154,22 @@ def _acceptance_evidence_commits() -> dict[str, str | None]:
     return {pairing: (record.evidence_commit if record is not None else None) for pairing, record in ACCEPTANCE_REGISTRY.items()}
 
 
-def _require_mechanical_acceptance(pairing: str) -> None:
+def _require_mechanical_acceptance(pairing: str, layer: int | None = None) -> None:
     """The runner's own precondition, checked first in every real-weight
     scenario: missing (or previously reset) acceptance evidence must
     prevent this runner from ever constructing/loading a real backend for
-    that pairing -- never a warning, never a degraded dev-mode tag."""
-    if not is_mechanically_accepted(pairing):
+    that pairing -- never a warning, never a degraded dev-mode tag.
+
+    `layer` scopes the check to the layer the scenario is actually about to
+    exercise, exactly as core/gemma_backend.py and core/qwen_backend.py
+    scope their own per-request check -- entries.QWEN_SMOKE_LAYER (0) and
+    entries.GEMMA_SMOKE_LAYER (31) are each caller's own fixed, known
+    layer, so both callers have one in hand and neither should pass None."""
+    if not is_mechanically_accepted(pairing, layer):
         raise RuntimeAcceptanceError(
-            f"refusing to run a real {pairing!r} scenario: is_mechanically_accepted({pairing!r}) is False -- "
-            "core/runtime_acceptance.py has no attached, verified RuntimeAcceptanceRecord for this pairing. "
+            f"refusing to run a real {pairing!r} scenario at layer {layer!r}: "
+            f"is_mechanically_accepted({pairing!r}, {layer!r}) is False -- core/runtime_acceptance.py "
+            "has no attached, verified RuntimeAcceptanceRecord covering this pairing at this layer. "
             "This smoke runner never proceeds to construct or load a real backend in that state."
         )
 
@@ -397,7 +404,7 @@ def run_qwen_position_scenario(
     extraction_source_commit: str,
 ) -> ScenarioResult:
     scenario_id = f"qwen_{positions.value}"
-    _require_mechanical_acceptance("qwen")
+    _require_mechanical_acceptance("qwen", entries.QWEN_SMOKE_LAYER)
     entry = entries.qwen_smoke_entry(positions)
     resolved = resolve_control(entry, direction=entries.SMOKE_DIRECTION, strength=entries.SMOKE_STRENGTH)
     _new_history, result = send_message(
@@ -415,7 +422,7 @@ def run_gemma_position_scenario(
     extraction_source_commit: str,
 ) -> ScenarioResult:
     scenario_id = f"gemma_{positions.value}"
-    _require_mechanical_acceptance("gemma")
+    _require_mechanical_acceptance("gemma", entries.GEMMA_SMOKE_LAYER)
     entry = entries.gemma_smoke_entry(positions)
     resolved = resolve_control(entry, direction=entries.SMOKE_DIRECTION, strength=entries.SMOKE_STRENGTH)
     _new_history, result = send_message(

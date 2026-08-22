@@ -124,15 +124,24 @@ class QwenRuntimeBackend:
             )
         return self._loaded
 
-    def _tag(self, text: str, attribution: ScientificAttributionVerdict | None = None) -> str:
+    def _tag(
+        self, text: str, attribution: ScientificAttributionVerdict | None = None, *, layer: int | None = None,
+    ) -> str:
         """Two INDEPENDENT tags -- see core/gemma_backend.py's identical
         method for why they are not collapsed into one. Mechanical acceptance
         (the mechanism ran against real weights) and scientific attribution
         (the SAE loaded is the certified primary) are separate claims, and a
-        single tag would end up asserting the more flattering of the two."""
+        single tag would end up asserting the more flattering of the two.
+
+        `layer` scopes the mechanical-acceptance question to the layer
+        actually in use -- see core/gemma_backend.py's identical parameter.
+        Job 406092 accepted layer 0; the shipped concept is at layer 38. A
+        caller that omits `layer` (the baseline branch, which resolves no
+        feature/layer at all) gets the original unscoped question, never a
+        silent assumption that 38 was covered too."""
         if attribution is not None and not attribution.science_attributed:
             text = f"{ENGINEERING_DEMONSTRATION_TAG} {text}"
-        if is_mechanically_accepted(self.pairing):
+        if is_mechanically_accepted(self.pairing, layer):
             return text
         return f"{MECHANICALLY_UNVERIFIED_TAG} {text}"
 
@@ -162,6 +171,11 @@ class QwenRuntimeBackend:
                 do_sample=False,
             )
         text = tokenizer.decode(output_ids[0][inputs["input_ids"].shape[1] :], skip_special_tokens=True)
+        # layer intentionally omitted: the baseline arm resolves no
+        # feature/layer at all (resolved_config is None, asserted above).
+        # self._qwen_layer is this backend's own CONFIGURED intent, not
+        # evidence of anything exercised by THIS call -- no hook runs here
+        # -- so it is not substituted in as a stand-in "layer in use".
         return GenerationResult(text=self._tag(text), is_synthetic=False, resolved_config=None, diagnostics=None)
 
     def _generate_with_intervention(self, request: GenerationRequest) -> GenerationResult:
@@ -249,7 +263,10 @@ class QwenRuntimeBackend:
         verdict = mechanical_verdict(trace, positions=positions)
         diagnostics: dict[str, Any] = {
             "pairing": self.pairing,
-            "mechanically_accepted": is_mechanically_accepted(self.pairing),
+            # Scoped to `layer` -- proven equal to loaded_identity.layer by
+            # require_loaded_layer_matches_request above, which raises
+            # before this point on any disagreement.
+            "mechanically_accepted": is_mechanically_accepted(self.pairing, layer),
             "claim_scope": attribution.claim_scope,
             "science_attributed": attribution.science_attributed,
             "scientific_attribution": attribution.as_dict(),
@@ -297,7 +314,7 @@ class QwenRuntimeBackend:
             diagnostics["generated_only_first_token_disclosure"] = GENERATED_ONLY_FIRST_TOKEN_DISCLOSURE
 
         return GenerationResult(
-            text=self._tag(text, attribution),
+            text=self._tag(text, attribution, layer=layer),
             is_synthetic=False,
             resolved_config=resolved,
             diagnostics=diagnostics,

@@ -89,7 +89,7 @@ is a separate step.
 | Gemma model | `google/gemma-3-12b-it` |
 | Gemma SAE | `google/gemma-scope-2-12b-it` |
 | Qwen model | `Qwen/Qwen3.5-27B` |
-| Qwen SAE | `Qwen/SAE-Res-Qwen3.5-27B-W80K-L0_50` |
+| Qwen SAE | `Qwen/SAE-Res-Qwen3.5-27B-W80K-L0_100` |
 
 ### 2. Launch against the real weights
 
@@ -100,8 +100,8 @@ HF_HUB_OFFLINE=1 python -m sae_concept_lab.app \
   --gemma-sae-path    /path/to/gemma-scope-2-12b-it \
   --qwen-backend runtime \
   --qwen-model-path   /path/to/Qwen3.5-27B \
-  --qwen-sae-path     /path/to/qwen-scope/layer0.sae.pt \
-  --qwen-layer 0 \
+  --qwen-sae-path     /path/to/qwen-scope/layer38.sae.pt \
+  --qwen-layer 38 \
   --server-name 127.0.0.1 --server-port 7860
 ```
 
@@ -110,6 +110,26 @@ stays on the stub, which is a normal way to run it.
 
 `HF_HUB_OFFLINE=1` guarantees nothing is fetched from the network at run time.
 Weights load from the paths you gave and nowhere else.
+
+Layer 38 is the layer the one shipped Qwen concept (`pro-american-exceptionalism`)
+was actually measured at, in the `layer38.sae.pt` file from the `L0_100` SAE
+staged above — not an arbitrary choice. Passing a different `--qwen-layer` (or a
+`layerN.sae.pt` file for a different `N`) will not drive that concept; see the
+`REFUSING TO GENERATE` entry in Troubleshooting below for what happens if the two
+disagree.
+
+### What you will see
+
+Real replies from either tab are prefixed
+`[MECHANICALLY UNVERIFIED AGAINST REAL WEIGHTS -- see core/runtime_acceptance.py]`.
+That is correct and intended, not a bug: the underlying steering mechanism was
+mechanically verified against real weights at specific engineering layers (Gemma
+layer 31, Qwen layer 0), and the shipped concepts run at the certified-primary
+layers (Gemma layer 29, Qwen layer 38) instead — different layers, so that
+verification does not automatically carry over. It says nothing about whether
+*this* generation worked; it says that layer has not yet had its own mechanical
+acceptance run imported. See `sae_concept_lab/core/runtime_acceptance.py` for the
+exact scope of what has been verified so far.
 
 ### 3. Reach the interface from your laptop
 
@@ -142,6 +162,10 @@ backend. Check you passed `--gemma-backend runtime` (and/or `--qwen-backend
 runtime`) and that the paths exist.
 
 **`ssh -N` seems frozen** — it is meant to. It has no shell to give you.
+
+**Replies are prefixed `[MECHANICALLY UNVERIFIED AGAINST REAL WEIGHTS ...]`** —
+expected in Mode 2 today; see "What you will see" above. It means this specific
+layer's mechanism has no imported acceptance record yet, not that anything failed.
 
 **`REFUSING TO GENERATE ... targets layer N ... loaded is at layer M`** — the
 concept was measured in one layer's dictionary and the loaded SAE is a different

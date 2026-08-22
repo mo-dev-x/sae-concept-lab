@@ -56,9 +56,13 @@ from pathlib import Path
 import pytest
 
 from sae_concept_lab.canonical.concept_bundle import decode_entry, resolve_control
-from sae_concept_lab.core.gemma_backend import GemmaRuntimeBackend
+from sae_concept_lab.core.gemma_backend import MECHANICALLY_UNVERIFIED_TAG, GemmaRuntimeBackend
 from sae_concept_lab.core.protocol import GenerationRequest
+from sae_concept_lab.core.qwen_backend import (
+    MECHANICALLY_UNVERIFIED_TAG as QWEN_MECHANICALLY_UNVERIFIED_TAG,
+)
 from sae_concept_lab.core.qwen_backend import QwenRuntimeBackend
+from sae_concept_lab.core.runtime_acceptance import is_mechanically_accepted
 from sae_concept_lab.core.scientific_identity import (
     CERTIFIED_PRIMARY,
     CLAIM_SCOPE_ENGINEERING_ONLY,
@@ -441,7 +445,11 @@ def test_pinned_engineering_identity_is_refused_scientific_attribution(monkeypat
     # two runs at the same layer and width are not the same dictionary.
     assert attribution["mismatched_fields"] == ["release"]
     assert attribution["matches_ratified_backup"] is False
-    assert result.text.startswith(ENGINEERING_DEMONSTRATION_TAG)
+    # Layer 29 is also not the layer runtime_acceptance.py's Gemma record
+    # is scoped to (31, job 407008), so the mechanical-acceptance tag is
+    # ALSO correctly present -- the two tags are independent (see
+    # core/gemma_backend.py::_tag) and both fire here.
+    assert result.text.startswith(f"{MECHANICALLY_UNVERIFIED_TAG} {ENGINEERING_DEMONSTRATION_TAG}")
 
 
 def test_ratified_backup_is_named_as_the_backup_and_still_refused_attribution(monkeypatch):
@@ -465,7 +473,11 @@ def test_ratified_backup_is_named_as_the_backup_and_still_refused_attribution(mo
     assert attribution["matches_ratified_backup"] is True
     assert attribution["mismatched_fields"] == ["release", "scientific_sae_id", "layer"]
     assert "RATIFIED BACKUP configuration, not the certified PRIMARY" in attribution["statement"]
-    assert result.text.startswith(ENGINEERING_DEMONSTRATION_TAG)
+    # The ratified backup's layer (24) is also not runtime_acceptance.py's
+    # accepted Gemma layer (31), so the mechanical-acceptance tag is ALSO
+    # correctly present alongside the independent engineering-demonstration
+    # tag (see core/gemma_backend.py::_tag).
+    assert result.text.startswith(f"{MECHANICALLY_UNVERIFIED_TAG} {ENGINEERING_DEMONSTRATION_TAG}")
 
 
 def test_qwen_l0_50_pin_is_reported_as_not_the_certified_primary(monkeypatch):
@@ -496,7 +508,61 @@ def test_qwen_l0_50_pin_is_reported_as_not_the_certified_primary(monkeypatch):
     ]
     assert result.diagnostics["identity"]["loaded"]["scientific_sae_id"] is None
     assert result.diagnostics["identity"]["backend_configured_qwen_layer"] == 32
-    assert result.text.startswith(ENGINEERING_DEMONSTRATION_TAG)
+    # Layer 32 is also not runtime_acceptance.py's accepted Qwen layer (0),
+    # so the mechanical-acceptance tag is ALSO correctly present alongside
+    # the independent engineering-demonstration tag.
+    assert result.text.startswith(f"{QWEN_MECHANICALLY_UNVERIFIED_TAG} {ENGINEERING_DEMONSTRATION_TAG}")
+
+
+# ---------------------------------------------------------------------------
+# REGRESSION: mechanical acceptance must be SCOPED to the layer actually in
+# use, end to end through generate() -- not the layer-blind
+# is_mechanically_accepted(pairing) question core/gemma_backend.py and
+# core/qwen_backend.py asked before this fix (both call sites silently kept
+# returning True after the pinned layer moved). Fails if either backend's
+# _tag() or its diagnostics dict ever reverts to omitting `layer`.
+# ---------------------------------------------------------------------------
+
+
+def test_certified_primary_gemma_layer_is_not_mechanically_accepted_end_to_end(monkeypatch):
+    """runtime_acceptance.py's Gemma record is scoped to layer 31 (job
+    407008); the pin moved to the certified primary, layer 29, which that
+    record has never covered. The UNSCOPED question is still True (a
+    record exists at all) -- exactly the value a reverted call site would
+    silently keep using -- so this only passes if the real generate() path
+    asks the SCOPED question."""
+    _install_gemma_fakes(
+        monkeypatch,
+        loaded_layer=PINNED_GEMMA_LAYER,
+        release=PINNED_GEMMA_RELEASE,
+        scientific_sae_id=PINNED_GEMMA_SCIENTIFIC_SAE_ID,
+    )
+    backend = GemmaRuntimeBackend(model_path="/fake/model", sae_path="/fake/sae")
+
+    result = backend.generate(_request(_resolved_at_layer(PINNED_GEMMA_LAYER)))
+
+    assert is_mechanically_accepted("gemma") is True
+    assert is_mechanically_accepted("gemma", PINNED_GEMMA_LAYER) is False
+    assert result.diagnostics["mechanically_accepted"] is False
+    assert MECHANICALLY_UNVERIFIED_TAG in result.text
+
+
+def test_certified_primary_qwen_layer_is_not_mechanically_accepted_end_to_end(monkeypatch):
+    """runtime_acceptance.py's Qwen record is scoped to layer 0 (job
+    406092); the shipped concept is at the certified primary, layer 38,
+    which that record has never covered. Same unscoped-vs-scoped contrast
+    as the Gemma test above."""
+    _install_qwen_fakes(
+        monkeypatch, loaded_layer=38, repository="Qwen/SAE-Res-Qwen3.5-27B-W80K-L0_100",
+    )
+    backend = QwenRuntimeBackend(model_path="/fake/model", sae_path="/fake/sae", qwen_layer=38)
+
+    result = backend.generate(_request(_resolved_at_layer(38, sae_id="layer38.sae.pt"), model_key="qwen"))
+
+    assert is_mechanically_accepted("qwen") is True
+    assert is_mechanically_accepted("qwen", 38) is False
+    assert result.diagnostics["mechanically_accepted"] is False
+    assert QWEN_MECHANICALLY_UNVERIFIED_TAG in result.text
 
 
 # ---------------------------------------------------------------------------
