@@ -7,12 +7,19 @@ proxy_caveat test already plays in this repo."""
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
+from sae_concept_lab.canonical.concept_bundle.codec import load_entry_file
 from sae_concept_lab.core.stub_backend import StubConceptLabBackend
 from sae_concept_lab.fixtures.labels import concept_label
 from sae_concept_lab.fixtures.loader import load_entries
 from sae_concept_lab.i18n import t
 from sae_concept_lab.ui.app_ui import build_demo
+
+#: A test-owned entry of a KNOWN SHAPE (one calibrated direction) -- the
+#: shipped set is not obliged to contain one, exactly
+#: test_sae_concept_lab_config.py's own SHAPE_FIXTURES convention.
+_TF = Path(__file__).resolve().parent / "fixtures"
 
 
 def _build():
@@ -64,15 +71,22 @@ def test_advanced_accordion_present_and_starts_closed():
         assert a["props"].get("open") is False
 
 
-def test_concept_cards_are_present_for_both_models_with_distinct_concepts():
+def test_concept_cards_are_present_for_both_models_and_render_the_shipped_concept():
+    """The shipped set is now ONE real, measured concept
+    ('pro-american-exceptionalism'), independently per pairing -- so both
+    tabs render the SAME concept label, one card each, rather than the
+    disjoint FAKE sets this test used to pin. What still matters is that
+    each pairing's own tab actually renders its own shipped card."""
     demo, gemma_entries, qwen_entries = _build()
     cfg = demo.get_config_file()
     datasets = [c for c in cfg["components"] if c["type"] == "dataset"]
     assert len(datasets) == 2
+    assert [len(ds["props"]["samples"]) for ds in datasets] == [1, 1]
     all_samples = [row for ds in datasets for row in ds["props"]["samples"]]
     gemma_labels = {concept_label(e.concept_id, "en") for e in gemma_entries}
     qwen_labels = {concept_label(e.concept_id, "en") for e in qwen_entries}
-    assert gemma_labels.isdisjoint(qwen_labels)  # the two pairings use different concept sets
+    expected_label = concept_label("pro-american-exceptionalism", "en")
+    assert gemma_labels == qwen_labels == {expected_label}
     rendered_labels = {row[0] for row in all_samples}
     assert gemma_labels <= rendered_labels
     assert qwen_labels <= rendered_labels
@@ -149,15 +163,23 @@ def test_no_raw_technical_value_appears_outside_the_advanced_accordion_subtree()
 def test_one_direction_concept_removes_the_unavailable_choice_and_shows_the_exact_notice():
     """Acceptance case: a one-direction concept's unavailable control is
     not offered as a choice at all, and the exact canonical refusal
-    message is rendered verbatim for it."""
-    demo, gemma_entries, _qwen = _build()
-    caution = next(e for e in gemma_entries if e.concept_id == "FAKE-gemma-caution")
+    message is rendered verbatim for it. The shipped set has no
+    one-direction concept any more, so this is built from a test-owned
+    entry of that KNOWN SHAPE (tests/fixtures/gemma/caution.json) rather
+    than reading load_entries() -- and never by re-adding a one-direction
+    concept to the product to satisfy this test."""
+    caution = load_entry_file(_TF / "gemma" / "caution.json")
     assert caution.calibrated_directions == (caution.calibrated_directions[0],)
+    demo = build_demo(
+        gemma_entries=(caution,),
+        qwen_entries=load_entries("qwen"),
+        gemma_backend=StubConceptLabBackend(),
+        qwen_backend=StubConceptLabBackend(),
+    )
 
     click_fns = [bf for bf in demo.fns.values() if bf.fn.__name__ == "_on_concept_click"]
-    caution_index = gemma_entries.index(caution)
     fn = click_fns[0].fn  # gemma tab is registered first
-    result = fn(caution_index, "low", [], None, "en")
+    result = fn(0, "low", [], None, "en")
     _concept_id, _detail, direction_update, unavailable_notice, *_rest = result
     assert direction_update.constructor_args["choices"] == [("Amplify", "amplify")]
     assert "this direction is not calibrated for this concept on this model" in unavailable_notice

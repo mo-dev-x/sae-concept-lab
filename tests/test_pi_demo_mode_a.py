@@ -110,9 +110,9 @@ def attested_slot(tmp_path, monkeypatch):
 
 
 def test_attested_slot_is_empty_in_this_repositorys_own_committed_state():
-    """Today's shipped behavior (exactly 4 FAKE entries per pairing,
-    nothing more) must not silently change because a staged file was
-    left behind uncommitted."""
+    """Today's shipped behavior (exactly one real, measured entry per
+    pairing, nothing more) must not silently change because a staged file
+    was left behind uncommitted."""
     assert load_attested_entries("gemma").entries == ()
     assert load_attested_entries("qwen").entries == ()
 
@@ -120,7 +120,7 @@ def test_attested_slot_is_empty_in_this_repositorys_own_committed_state():
 def test_a_valid_attested_bundle_dropped_into_the_slot_is_picked_up_with_no_code_edit(attested_slot):
     """The literal dispatch requirement: staging a well-formed file here
     -- with ZERO changes to any .py file -- makes load_entries() include
-    it, additively alongside the shipped FAKE fixtures."""
+    it, additively alongside the shipped real concept."""
     root = attested_slot.parent / "registry"
     root.mkdir()
     digest = _write_registry_record(root, _registry_record())
@@ -134,7 +134,7 @@ def test_a_valid_attested_bundle_dropped_into_the_slot_is_picked_up_with_no_code
     arrived = [e for e in entries if e.concept_id == "pi-demo-mode-a-concept"]
     assert len(arrived) == 1
     assert arrived[0].provenance.value == "attested"
-    assert any(e.concept_id == "FAKE-gemma-warmth" for e in entries)
+    assert any(e.concept_id == "pro-american-exceptionalism" for e in entries)
 
 
 def test_release_gate_passes_for_that_pairing_once_evidence_resolves(attested_slot):
@@ -163,10 +163,10 @@ def test_a_malformed_file_in_the_slot_is_excluded_and_reported_not_raised(attest
     assert reason
 
     # Mode B's guarantee: load_entries() must not raise, and the shipped
-    # FAKE fixtures must still be present, even with a broken file sitting
-    # in the attested slot.
+    # concept must still be present, even with a broken file sitting in
+    # the attested slot.
     entries = load_entries("gemma")
-    assert any(e.concept_id == "FAKE-gemma-warmth" for e in entries)
+    assert any(e.concept_id == "pro-american-exceptionalism" for e in entries)
     stderr = capsys.readouterr().err
     assert "broken.json" in stderr
 
@@ -226,9 +226,9 @@ def test_mode_b_release_still_refuses_with_stub_backend_even_with_a_publishable_
 def test_app_main_release_mode_renders_only_the_publishable_entries_once_bundles_are_staged(monkeypatch, attested_slot):
     """Once a publishable bundle exists for BOTH pairings, --mode
     release opens (does not refuse) and passes build_demo ONLY the
-    publishable entries -- never the shipped FAKE ones alongside them,
-    even though the FAKE ones are still what load_entries() itself
-    returns. No .py file was edited to stage the bundle; only
+    publishable entries -- never the shipped (non-attested) ones alongside
+    them, even though the shipped ones are still what load_entries()
+    itself returns. No .py file was edited to stage the bundle; only
     monkeypatching the backend constructors (there is no CLI flag for a
     fake "real" backend, and this repository has no real one that does
     not require actual GPU weights)."""
@@ -277,11 +277,11 @@ def test_app_main_release_mode_renders_only_the_publishable_entries_once_bundles
     assert {e.concept_id for e in captured["qwen_entries"]} == {"pi-demo-qwen-concept"}
 
 
-def test_app_main_dev_mode_renders_shipped_fake_and_staged_attested_entries_unfiltered(monkeypatch, attested_slot):
+def test_app_main_dev_mode_renders_shipped_and_staged_attested_entries_unfiltered(monkeypatch, attested_slot):
     """Dev mode's own existing behavior (render whatever load_entries()
     returns, unfiltered) is unchanged by the attested-slot machinery: a
-    staged bundle appears ALONGSIDE the shipped FAKE fixtures rather than
-    replacing or hiding them -- dev mode is a superset, never a filter."""
+    staged bundle appears ALONGSIDE the shipped real concept rather than
+    replacing or hiding it -- dev mode is a superset, never a filter."""
     import sae_concept_lab.app as app_module
 
     root = attested_slot.parent / "registry"
@@ -315,7 +315,7 @@ def test_app_main_dev_mode_renders_shipped_fake_and_staged_attested_entries_unfi
     assert captured["mode"] == "dev"
     gemma_ids = {e.concept_id for e in captured["gemma_entries"]}
     assert "pi-demo-dev-mode-concept" in gemma_ids
-    assert "FAKE-gemma-warmth" in gemma_ids
+    assert "pro-american-exceptionalism" in gemma_ids
 
 
 # ---------------------------------------------------------------------------

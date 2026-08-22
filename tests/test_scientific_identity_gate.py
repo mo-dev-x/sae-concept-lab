@@ -313,7 +313,7 @@ def test_loader_reporting_no_layer_refuses_rather_than_assuming_agreement(monkey
 
     assert type(excinfo.value) is LoadedIdentityUnavailable
     assert str(excinfo.value) == (
-        "REFUSING TO GENERATE for pairing 'gemma': the resolved control state targets layer 31 "
+        "REFUSING TO GENERATE for pairing 'gemma': the resolved control state targets layer 29 "
         "(bundle sae_id 'fake-sae-demo-gemma-000', feature_idx 1001), but the loader's provenance "
         "record does not report which layer was actually loaded, so the two cannot be compared. "
         "An unverifiable layer identity is refused, not assumed to agree."

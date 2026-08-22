@@ -15,9 +15,9 @@ load_entries(); tests about resolution BEHAVIOUR read tests/fixtures/.
 
 from __future__ import annotations
 
-import pytest
-
 from pathlib import Path
+
+import pytest
 
 from sae_concept_lab.canonical.concept_bundle import Provenance, resolve_control
 from sae_concept_lab.canonical.concept_bundle.codec import load_entry_file
