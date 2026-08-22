@@ -248,7 +248,7 @@ GEMMA_3_12B_IT_TARGET = TargetPairing(
     model_supported_by_transformer_lens=True,
     sae_repo_id="google/gemma-scope-2-12b-it",
     sae_format="sae_lens_registry",
-    sae_release="gemma-scope-2-12b-it-res",
+    sae_release="gemma-scope-2-12b-it-res-all",
     sae_id="resid_post_all/layer_29_width_16k_l0_big",
     sae_loader_id="layer_29_width_16k_l0_big",
     expected_layer=29,
@@ -264,8 +264,18 @@ GEMMA_3_12B_IT_TARGET = TargetPairing(
         "(runtime_acceptance.accepted_layer), so is_mechanically_accepted('gemma', layer=29) is "
         "False and the backend prefixes its loud unaccepted notice until a layer-29 run is "
         "imported. That is the intended, visible consequence of repointing. "
-        "sae_release/sae_id verified present in the locally-installed sae_lens==6.44.2 "
-        "registry; not yet verified that the corresponding HF snapshot is staged on Tamia."
+        "VERIFIED 2026-08-22 against the locally-installed sae_lens==6.44.2 registry on a "
+        "Tamia compute node: release 'gemma-scope-2-12b-it-res-all' maps loader id "
+        "'layer_29_width_16k_l0_big' to 'resid_post_all/layer_29_width_16k_l0_big'. The "
+        "bare 'gemma-scope-2-12b-it-res' release this field previously named publishes 52 "
+        "ids and does NOT contain layer 29: the repoint off layer 31 changed sae_id and "
+        "sae_loader_id but left the release on the old tree, and the product raised "
+        "TargetIdentityMismatch at the first Gemma message. The flat loader id is NOT "
+        "unique -- 'layer_29_width_16k_l0_big' is registered in -att-all, -mlp-all, "
+        "-res-all and -transcoders-all, each resolving to a DIFFERENT tree, so the release "
+        "is the only thing that disambiguates it and the two fields must move together. "
+        "The HF snapshot is staged on Tamia under models--google--gemma-scope-2-12b-it/"
+        "snapshots/4c419f1ba0be8b7754d4151d4f26c23b92a9029e/resid_post_all/."
     ),
 )
 
