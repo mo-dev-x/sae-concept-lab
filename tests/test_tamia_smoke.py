@@ -14,6 +14,7 @@ tests/test_tamia_smoke_torch.py, torch-gated for Tamia)."""
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import json
 import os
 import subprocess
@@ -222,6 +223,41 @@ def test_missing_acceptance_evidence_becomes_a_failed_scenario_via_run_guarded(m
     )
     assert result.passed is False
     assert "RuntimeAcceptanceError" in result.error
+
+
+# ---------------------------------------------------------------------------
+# REGRESSION (e3c83fb mutation-tested): entries.QWEN_SMOKE_LAYER (0) and
+# entries.GEMMA_SMOKE_LAYER (31) happen to equal the layers
+# runtime_acceptance.py's records are scoped to, so reverting either
+# run_*_position_scenario's `_require_mechanical_acceptance(pairing,
+# entries.*_SMOKE_LAYER)` call back to the layer-blind
+# `_require_mechanical_acceptance(pairing)` passes the full suite
+# unchanged -- the scoped and unscoped questions agree by coincidence. Each
+# test below moves the record's OWN accepted_layer away from the smoke
+# constant (never touching the smoke constant itself, which genuinely IS
+# the layer that scenario exercises) to break that coincidence: the scoped
+# call must now refuse, naming the smoke layer; a layer-blind call would
+# still find a record and return True regardless of accepted_layer, and
+# would NOT refuse.
+# ---------------------------------------------------------------------------
+
+
+def test_qwen_smoke_scenario_refuses_when_its_own_layer_is_not_covered(monkeypatch):
+    accepted = ACCEPTANCE_REGISTRY["qwen"]
+    monkeypatch.setitem(ACCEPTANCE_REGISTRY, "qwen", dataclasses.replace(accepted, accepted_layer=99))
+    with pytest.raises(RuntimeAcceptanceError, match=f"scenario at layer {entries.QWEN_SMOKE_LAYER}:"):
+        tamia_smoke.run_qwen_position_scenario(
+            _RefusingBackend(), PositionMode.ALL, max_new_tokens=4, product_commit="x", extraction_source_commit="y",
+        )
+
+
+def test_gemma_smoke_scenario_refuses_when_its_own_layer_is_not_covered(monkeypatch):
+    accepted = ACCEPTANCE_REGISTRY["gemma"]
+    monkeypatch.setitem(ACCEPTANCE_REGISTRY, "gemma", dataclasses.replace(accepted, accepted_layer=99))
+    with pytest.raises(RuntimeAcceptanceError, match=f"scenario at layer {entries.GEMMA_SMOKE_LAYER}:"):
+        tamia_smoke.run_gemma_position_scenario(
+            _RefusingBackend(), PositionMode.ALL, max_new_tokens=4, product_commit="x", extraction_source_commit="y",
+        )
 
 
 # ---------------------------------------------------------------------------
