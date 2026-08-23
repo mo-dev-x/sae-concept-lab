@@ -60,6 +60,14 @@ STRINGS: dict[str, dict[str, str]] = {
     "chat_input_label": {"en": "Your message", "fr": "Votre message"},
     "chat_send": {"en": "Send", "fr": "Envoyer"},
     "loading_label": {"en": "Generating…", "fr": "Génération en cours…"},
+    "empty_prompt_notice": {
+        "en": "Type a message first. Send and Compare both read the chat box above, and it is "
+              "cleared after each send -- so clicking Compare straight after sending would "
+              "otherwise ask the model about nothing.",
+        "fr": "Saisissez d'abord un message. Envoyer et Comparer utilisent tous deux la zone de "
+              "chat ci-dessus, qui est vidée après chaque envoi -- cliquer sur Comparer juste "
+              "après un envoi interrogerait donc le modèle sur rien.",
+    },
     "compare_section_title": {"en": "3. Compare", "fr": "3. Comparer"},
     "compare_button": {"en": "Compare Original vs Modified", "fr": "Comparer Original et Modifié"},
     "compare_original_label": {

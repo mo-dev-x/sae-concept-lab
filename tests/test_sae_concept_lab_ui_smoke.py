@@ -9,6 +9,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from sae_concept_lab.canonical.concept_bundle.codec import load_entry_file
 from sae_concept_lab.core.gemma_backend import MECHANICALLY_UNVERIFIED_TAG
 from sae_concept_lab.core.protocol import GenerationResult
@@ -259,3 +261,73 @@ def test_a_tag_string_inside_the_models_own_answer_is_not_stripped():
     body, found = _split_provenance_tags(quoted)
     assert body == quoted
     assert found == []
+
+
+# ---------------------------------------------------------------------------
+# An empty chat box is not a question. Send and Compare both read chat_input,
+# and _on_send CLEARS it, so clicking Compare straight after sending used to
+# run two full generations on "" -- the models replied by politely asking what
+# the user meant, which reads like a model failure and is a UI one.
+#
+# What matters is that the backend is never REACHED. Asserting only that a
+# notice appears would still pass while both generations ran behind it.
+# ---------------------------------------------------------------------------
+
+
+class _MustNotGenerate:
+    def generate(self, request):  # pragma: no cover - reaching this IS the failure
+        raise AssertionError(
+            f"backend reached with prompt {request.prompt!r}; an empty box must refuse first"
+        )
+
+
+def _handler(demo, name):
+    fns = [bf for bf in demo.fns.values() if bf.fn.__name__ == name]
+    assert fns, f"no {name} handler registered"
+    return fns[0]
+
+
+def _demo_that_must_not_generate():
+    return build_demo(
+        gemma_entries=load_entries("gemma"),
+        qwen_entries=load_entries("qwen"),
+        gemma_backend=_MustNotGenerate(),
+        qwen_backend=_MustNotGenerate(),
+    )
+
+
+@pytest.mark.parametrize("blank", ["", "   ", "\n\t "])
+def test_send_refuses_a_blank_prompt_without_reaching_the_backend(blank):
+    demo = _demo_that_must_not_generate()
+    entry = load_entries("gemma")[0]
+    block_fn = _handler(demo, "_on_send")
+    result = block_fn.fn(blank, [], entry.concept_id, entry.calibrated_directions[0], "low", 0, "en")
+
+    assert len(result) == len(block_fn.outputs)
+    assert result[0] == []                      # history untouched
+    assert result[-2] == t("empty_prompt_notice", "en")
+
+
+@pytest.mark.parametrize("blank", ["", "   "])
+def test_compare_refuses_a_blank_prompt_without_reaching_the_backend(blank):
+    """Compare costs TWO generations, not one: an Original arm and a Modified
+    arm. It has no input box of its own and reads the same chat box Send
+    clears, which is exactly how it got run on an empty string."""
+    demo = _demo_that_must_not_generate()
+    entry = load_entries("gemma")[0]
+    block_fn = _handler(demo, "_on_compare")
+    result = block_fn.fn(blank, [], entry.concept_id, entry.calibrated_directions[0], "low", 0, "en")
+
+    assert len(result) == len(block_fn.outputs)
+    assert result[0] == "" and result[1] == ""  # neither arm rendered
+    assert result[-2] == t("empty_prompt_notice", "en")
+
+
+def test_the_blank_prompt_notice_explains_the_cleared_box_in_both_languages():
+    """The trap is not "you typed nothing", it is "the box empties itself after
+    a send". A notice that only said the former would leave a user clicking
+    Compare repeatedly."""
+    for lang in ("en", "fr"):
+        notice = t("empty_prompt_notice", lang)
+        assert "Compare" in notice or "Comparer" in notice
+        assert notice.strip()

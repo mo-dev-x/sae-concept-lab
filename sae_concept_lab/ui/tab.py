@@ -419,6 +419,12 @@ def build_model_tab(
         )
 
     def _on_send(message, history, concept_id, direction, strength, seed, lang, progress=_PROGRESS_DEFAULT):
+        # An empty box is not a question. Both Send and Compare read chat_input,
+        # and _on_send clears it, so clicking Compare right after sending used to
+        # run TWO full generations on "" and return the model politely asking
+        # what you meant. Refuse before touching a backend.
+        if not message or not message.strip():
+            return (history, history, message, "", None, {}, t("empty_prompt_notice", lang), "")
         entry = next(e for e in entries if e.concept_id == concept_id)
         report = check_direction_executable(entry, direction)
         if not report.executable:
@@ -478,6 +484,9 @@ def build_model_tab(
     chat_input.submit(**_send_wiring)
 
     def _on_compare(message, history, concept_id, direction, strength, seed, lang, progress=_PROGRESS_DEFAULT):
+        # See _on_send: an empty box costs two generations here, not one.
+        if not message or not message.strip():
+            return ("", "", None, {}, t("empty_prompt_notice", lang), "")
         entry = next(e for e in entries if e.concept_id == concept_id)
         report = check_direction_executable(entry, direction)
         if not report.executable:
