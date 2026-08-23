@@ -8,19 +8,19 @@
           "operation": "clamp",
           "unit": "absolute_activation",
           "unit_source": null,
-          "value": 5000.0
+          "value": 113.0
         },
         "low": {
           "operation": "clamp",
           "unit": "absolute_activation",
           "unit_source": null,
-          "value": 1000.0
+          "value": 28.0
         },
         "medium": {
           "operation": "clamp",
           "unit": "absolute_activation",
           "unit_source": null,
-          "value": 2500.0
+          "value": 57.0
         }
       },
       "targets": [

@@ -91,13 +91,16 @@ def test_two_leading_bos_tokens_are_refused():
 
 
 def test_one_leading_bos_is_fine_and_so_is_a_repeat_further_in():
-    assert_at_most_one_leading_bos([2, 105, 2, 106], bos_token_id=2) is None
-    assert_at_most_one_leading_bos([105, 106], bos_token_id=2) is None
-    assert_at_most_one_leading_bos([], bos_token_id=2) is None
+    # The guard returns nothing; the behaviour under test is that it does NOT
+    # raise. Comparing the return to None would assert precisely nothing --
+    # ruff B015 caught exactly that mistake in the first draft of this file.
+    assert_at_most_one_leading_bos([2, 105, 2, 106], bos_token_id=2)
+    assert_at_most_one_leading_bos([105, 106], bos_token_id=2)
+    assert_at_most_one_leading_bos([], bos_token_id=2)
 
 
 def test_a_tokenizer_reporting_no_bos_id_cannot_double_one():
-    assert_at_most_one_leading_bos([7, 7, 7], bos_token_id=None) is None
+    assert_at_most_one_leading_bos([7, 7, 7], bos_token_id=None)
 
 
 # ---------------------------------------------------------------------------
