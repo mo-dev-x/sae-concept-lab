@@ -116,12 +116,18 @@ def test_first_ever_direction_or_strength_change_still_resets_using_the_apps_own
         checked_any = True
         concept_id, direction, _strength, history, previous_selection, lang = [c.value for c in blockfn.inputs]
         assert previous_selection is not None, "selection_state must not be seeded None"
-        new_history, chatbot_value, notice, _new_selection = blockfn.fn(
-            concept_id, direction, "high", history, previous_selection, lang
-        )
+        returned = blockfn.fn(concept_id, direction, "high", history, previous_selection, lang)
+        assert len(returned) == len(blockfn.outputs)
+        new_history, chatbot_value, notice, _new_selection, original_pane, modified_pane = returned
         assert new_history == [], "first-ever strength change from the page's own default must still reset"
         assert chatbot_value == []
         assert notice
+        # The Compare panes are reset by the same change, for the same reason
+        # the conversation is: what they show was produced under the PREVIOUS
+        # strength, and leaving it beside a changed control invites reading it
+        # as the new strength's result.
+        assert original_pane == f"**{t('compare_original_label', lang)}**"
+        assert modified_pane == f"**{t('compare_modified_label', lang)}**"
     assert checked_any, "did not find any _on_direction_or_strength_change handler to test"
 
 

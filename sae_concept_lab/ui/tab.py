@@ -367,6 +367,21 @@ def build_model_tab(
     # handlers
     # -------------------------------------------------------------------------
 
+    def _cleared_compare_panes(lang) -> tuple[str, str]:
+        """The Compare panes' page-load state.
+
+        They must not survive a concept/direction/strength change: what they
+        show was produced under the PREVIOUS setting, and leaving it on screen
+        beside a changed control invites reading it as the new setting's
+        result -- the conversation is already reset for exactly this reason.
+        Restores the bold labels the panes start with rather than blanking
+        them, so the section does not collapse to nothing.
+        """
+        return (
+            f"**{t('compare_original_label', lang)}**",
+            f"**{t('compare_modified_label', lang)}**",
+        )
+
     def _check_and_apply(concept_id, direction, strength, history, previous_selection, lang):
         new_selection = Selection(concept_id=concept_id, direction=direction, strength_level=strength)
         result = apply_selection_change(
@@ -398,6 +413,7 @@ def build_model_tab(
             chatbot_value,
             notice,
             new_selection,
+            *_cleared_compare_panes(lang),
         )
 
     concept_dataset.click(
@@ -413,11 +429,16 @@ def build_model_tab(
             chatbot,
             reset_notice_md,
             selection_state,
+            compare_original_md,
+            compare_modified_md,
         ],
     )
 
     def _on_direction_or_strength_change(concept_id, direction, strength, history, previous_selection, lang):
-        return _check_and_apply(concept_id, direction, strength, history, previous_selection, lang)
+        return (
+            *_check_and_apply(concept_id, direction, strength, history, previous_selection, lang),
+            *_cleared_compare_panes(lang),
+        )
 
     for trigger in (direction_radio, strength_radio):
         trigger.change(
@@ -430,7 +451,14 @@ def build_model_tab(
                 selection_state,
                 lang_state,
             ],
-            outputs=[history_state, chatbot, reset_notice_md, selection_state],
+            outputs=[
+                history_state,
+                chatbot,
+                reset_notice_md,
+                selection_state,
+                compare_original_md,
+                compare_modified_md,
+            ],
         )
 
     def _on_send(message, history, concept_id, direction, strength, seed, lang, progress=_PROGRESS_DEFAULT):
