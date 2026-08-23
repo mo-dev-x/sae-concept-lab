@@ -79,12 +79,6 @@ def _split_provenance_tags(text: str) -> tuple[str, list[str]]:
     return body, found
 
 
-def _provenance_notice(tags: list[str]) -> str:
-    if not tags:
-        return ""
-    return "\n\n".join(f"> {tag}" for tag in tags)
-
-
 def _strip_tags_from_last_reply(history: list) -> tuple[list, list[str]]:
     """Peel the tags off the most recent assistant turn only. Returns the
     history with that turn's text replaced, plus the tags removed."""
@@ -234,9 +228,6 @@ def build_model_tab(
     relang.append((chat_send_btn, lambda lang: gr.Button(t("chat_send", lang))))
 
     reset_notice_md = gr.Markdown("")
-    # Where the provenance labels live now: once, beside the conversation,
-    # instead of prepended to every reply. Empty until a reply carries one.
-    provenance_notice_md = gr.Markdown("")
     capability_notice_md = gr.Markdown("")
     output_summary_title_md = gr.Markdown(f"**{t('output_summary_title', lang0)}**")
     relang.append((output_summary_title_md, lambda lang: gr.Markdown(f"**{t('output_summary_title', lang)}**")))
@@ -424,11 +415,11 @@ def build_model_tab(
         # run TWO full generations on "" and return the model politely asking
         # what you meant. Refuse before touching a backend.
         if not message or not message.strip():
-            return (history, history, message, "", None, {}, t("empty_prompt_notice", lang), "")
+            return (history, history, message, "", None, {}, t("empty_prompt_notice", lang))
         entry = next(e for e in entries if e.concept_id == concept_id)
         report = check_direction_executable(entry, direction)
         if not report.executable:
-            return (history, history, message, "", None, {}, _capability_notice(report, lang), "")
+            return (history, history, message, "", None, {}, _capability_notice(report, lang))
 
         progress(0, desc=t("loading_label", lang))
         time.sleep(DEMO_THINK_TIME_SECONDS)
@@ -446,11 +437,15 @@ def build_model_tab(
         details = advanced_output_details(resolved)
         if result.diagnostics is not None:
             details = {**details, "backend_diagnostics": result.diagnostics}
-        # The tags come off the bubble and go into their own persistent line.
-        # history_state keeps the CLEANED text so the label is not re-shown on
-        # every later turn, while result.text and result.diagnostics -- the
-        # machine-readable record -- are untouched.
-        new_history, tags = _strip_tags_from_last_reply(new_history)
+        # The provenance tags come off the bubble and are NOT rendered as a
+        # notice: the product owner asked for them off screen. They are not
+        # lost -- result.diagnostics still carries the structured verdict
+        # (mechanically_accepted, science_attributed, claim_scope,
+        # scientific_attribution) and it is attached to `details` just below,
+        # which is what the Advanced accordion renders. The backends still
+        # emit the tags on result.text, and that contract is still asserted by
+        # the three backend test modules.
+        new_history, _tags = _strip_tags_from_last_reply(new_history)
         progress(1)
         return (
             new_history,
@@ -460,7 +455,6 @@ def build_model_tab(
             resolved,
             details,
             "",
-            _provenance_notice(tags),
         )
 
     # Enter-to-send. Bound to the SAME handler, inputs and outputs as the
@@ -477,7 +471,6 @@ def build_model_tab(
             resolved_config_state,
             resolved_state_json,
             capability_notice_md,
-            provenance_notice_md,
         ],
     )
     chat_send_btn.click(**_send_wiring)
@@ -486,11 +479,11 @@ def build_model_tab(
     def _on_compare(message, history, concept_id, direction, strength, seed, lang, progress=_PROGRESS_DEFAULT):
         # See _on_send: an empty box costs two generations here, not one.
         if not message or not message.strip():
-            return ("", "", None, {}, t("empty_prompt_notice", lang), "")
+            return ("", "", None, {}, t("empty_prompt_notice", lang))
         entry = next(e for e in entries if e.concept_id == concept_id)
         report = check_direction_executable(entry, direction)
         if not report.executable:
-            return ("", "", None, {}, _capability_notice(report, lang), "")
+            return ("", "", None, {}, _capability_notice(report, lang))
 
         progress(0, desc=t("loading_label", lang))
         time.sleep(DEMO_THINK_TIME_SECONDS)
@@ -505,15 +498,15 @@ def build_model_tab(
             resolved_config=resolved,
         )
         assert_compare_invariant(compare)
-        original_body, original_tags = _split_provenance_tags(compare.original_text)
-        modified_body, modified_tags = _split_provenance_tags(compare.modified_text)
+        # Tags stripped for display only; the structured verdict rides in
+        # details["backend_diagnostics"] below and is shown under Advanced.
+        original_body, _original_tags = _split_provenance_tags(compare.original_text)
+        modified_body, _modified_tags = _split_provenance_tags(compare.modified_text)
         original_md = f"**{t('compare_original_label', lang)}**\n\n{original_body}"
         modified_md = f"**{t('compare_modified_label', lang)}**\n\n{modified_body}"
         details = advanced_output_details(resolved)
         if compare.modified_result is not None and compare.modified_result.diagnostics is not None:
             details = {**details, "backend_diagnostics": compare.modified_result.diagnostics}
-        # Same tags on both arms; show the union once rather than twice.
-        seen = list(dict.fromkeys(original_tags + modified_tags))
         progress(1)
         return (
             original_md,
@@ -521,7 +514,6 @@ def build_model_tab(
             resolved,
             details,
             "",
-            _provenance_notice(seen),
         )
 
     compare_btn.click(
@@ -533,7 +525,6 @@ def build_model_tab(
             resolved_config_state,
             resolved_state_json,
             capability_notice_md,
-            provenance_notice_md,
         ],
     )
 

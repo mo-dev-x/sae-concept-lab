@@ -204,14 +204,20 @@ def test_one_direction_concept_removes_the_unavailable_choice_and_shows_the_exac
 class _TaggingBackend:
     """Returns a reply prefixed with both real provenance tags, exactly as a
     real runtime backend does when the mechanism is unaccepted at the loaded
-    layer and the loaded SAE is not the certified primary."""
+    layer and the loaded SAE is not the certified primary -- and carrying the
+    same structured verdict in diagnostics that a real backend attaches."""
 
     def generate(self, request):
         return GenerationResult(
             text=f"{MECHANICALLY_UNVERIFIED_TAG} {ENGINEERING_DEMONSTRATION_TAG} Ottawa is the capital.",
             is_synthetic=False,
             resolved_config=request.resolved_config,
-            diagnostics={"pairing": "gemma"},
+            diagnostics={
+                "pairing": "gemma",
+                "mechanically_accepted": False,
+                "science_attributed": False,
+                "claim_scope": "engineering_only",
+            },
         )
 
 
@@ -221,7 +227,7 @@ def _send_fn(demo):
     return fns[0]
 
 
-def test_provenance_tags_are_lifted_out_of_the_reply_and_shown_beside_it():
+def test_provenance_tags_are_lifted_out_of_the_reply_but_kept_in_diagnostics():
     gemma_entries = load_entries("gemma")
     demo = build_demo(
         gemma_entries=gemma_entries,
@@ -246,9 +252,16 @@ def test_provenance_tags_are_lifted_out_of_the_reply_and_shown_beside_it():
     assert ENGINEERING_DEMONSTRATION_TAG not in reply_text
     assert "Ottawa is the capital." in reply_text
 
-    notice = result[-1]
-    assert MECHANICALLY_UNVERIFIED_TAG in notice
-    assert ENGINEERING_DEMONSTRATION_TAG in notice
+    # The labels are off screen by the product owner's decision, but the claim
+    # they encoded must not vanish with them: the structured verdict still
+    # reaches the Advanced accordion. Asserting only that the bubble is clean
+    # would pass just as well if the verdict were dropped entirely, which is
+    # the difference between "not shown" and "not recorded".
+    details = result[5]
+    diagnostics = details["backend_diagnostics"]
+    assert diagnostics["mechanically_accepted"] is False
+    assert diagnostics["science_attributed"] is False
+    assert diagnostics["claim_scope"] == "engineering_only"
 
 
 def test_a_tag_string_inside_the_models_own_answer_is_not_stripped():
@@ -305,7 +318,7 @@ def test_send_refuses_a_blank_prompt_without_reaching_the_backend(blank):
 
     assert len(result) == len(block_fn.outputs)
     assert result[0] == []                      # history untouched
-    assert result[-2] == t("empty_prompt_notice", "en")
+    assert result[-1] == t("empty_prompt_notice", "en")
 
 
 @pytest.mark.parametrize("blank", ["", "   "])
@@ -320,7 +333,7 @@ def test_compare_refuses_a_blank_prompt_without_reaching_the_backend(blank):
 
     assert len(result) == len(block_fn.outputs)
     assert result[0] == "" and result[1] == ""  # neither arm rendered
-    assert result[-2] == t("empty_prompt_notice", "en")
+    assert result[-1] == t("empty_prompt_notice", "en")
 
 
 def test_the_blank_prompt_notice_explains_the_cleared_box_in_both_languages():
