@@ -65,9 +65,38 @@ class FakeInputs(dict):
 class FakeTokenizer:
     """Deterministic, torch-free stand-in for AutoTokenizer/HookedTransformer's
     own .tokenizer: one fake token id per prompt character (never a real
-    vocabulary -- this is a translation-logic test, not a tokenization test)."""
+    vocabulary -- this is a translation-logic test, not a tokenization test).
 
-    def __call__(self, prompt, return_tensors="pt"):
+    It publishes a chat_template and apply_chat_template because the REAL
+    instruction-tuned tokenizers do. A fake that omitted them would be more
+    permissive than reality and would let a backend that never renders a chat
+    template pass its tests -- which is exactly how this product shipped
+    document-continuation prompts to two -it models while 345 tests were
+    green. A fake must not accept what the real thing refuses.
+    """
+
+    chat_template = "fake-chat-template"
+    #: A fake vocabulary has no real BOS, so there is none to double here.
+    #: assert_at_most_one_leading_bos is covered directly, as a pure function,
+    #: in tests/test_chat_render.py rather than pretended at through a fake.
+    bos_token_id = None
+
+    def __init__(self):
+        self.last_apply_kwargs: dict | None = None
+        self.last_add_special_tokens: bool | None = None
+        self.last_messages: list | None = None
+
+    def apply_chat_template(self, messages, add_generation_prompt=False, tokenize=False, **kwargs):
+        assert tokenize is False, "this product renders to text, then tokenizes separately"
+        self.last_messages = list(messages)
+        self.last_apply_kwargs = dict(kwargs)
+        parts = [f"<{m['role']}>{m['content']}</{m['role']}>" for m in messages]
+        if add_generation_prompt:
+            parts.append("<assistant>")
+        return "".join(parts)
+
+    def __call__(self, prompt, return_tensors="pt", add_special_tokens=True):
+        self.last_add_special_tokens = add_special_tokens
         ids = [ord(c) % 50 for c in prompt] or [0]
         return FakeInputs(input_ids=FakeTensor([ids]))
 
@@ -141,7 +170,11 @@ class FakeGemmaModel:
         self.tokenizer = FakeTokenizer()
         self._active_hook = None
 
-    def to_tokens(self, prompt):
+    def to_tokens(self, prompt, prepend_bos=True):
+        # Recorded so a test can assert the backend disables prepending on
+        # already-templated text; the real HookedTransformer would otherwise
+        # add a second BOS on top of the template's own.
+        self.last_prepend_bos = prepend_bos
         return self.tokenizer(prompt)["input_ids"]
 
     def hooks(self, fwd_hooks):

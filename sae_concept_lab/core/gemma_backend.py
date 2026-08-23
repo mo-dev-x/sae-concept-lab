@@ -46,6 +46,10 @@ from pathlib import Path
 from typing import Any
 
 from sae_concept_lab.canonical.concept_bundle import Operation
+from sae_concept_lab.core.chat_render import (
+    assert_at_most_one_leading_bos,
+    render_chat_prompt,
+)
 from sae_concept_lab.core.execution_guard import require_group_from_resolved
 from sae_concept_lab.core.protocol import GenerationRequest, GenerationResult
 from sae_concept_lab.core.runtime_acceptance import is_mechanically_accepted
@@ -159,7 +163,14 @@ class GemmaRuntimeBackend:
         import torch
 
         model, _sae, _hook_name, _provenance = self._ensure_loaded()
-        tokens = model.to_tokens(request.prompt)
+        # Through the model's OWN chat template, or refuse -- gemma-3-12b-it is
+        # instruction-tuned and continues a bare string as a document instead
+        # of answering it. prepend_bos=False because the template emits its own.
+        rendered = render_chat_prompt(model.tokenizer, request.history, request.prompt)
+        tokens = model.to_tokens(rendered, prepend_bos=False)
+        assert_at_most_one_leading_bos(
+            list(tokens[0]), getattr(model.tokenizer, "bos_token_id", None)
+        )
         torch.manual_seed(request.seed)
         output_ids = model.generate(
             tokens,
@@ -211,7 +222,14 @@ class GemmaRuntimeBackend:
         clamp_value = 0.0 if resolved.operation is Operation.ABLATE else float(resolved.value)
         positions = resolved.positions.value
 
-        tokens = model.to_tokens(request.prompt)
+        # Through the model's OWN chat template, or refuse -- gemma-3-12b-it is
+        # instruction-tuned and continues a bare string as a document instead
+        # of answering it. prepend_bos=False because the template emits its own.
+        rendered = render_chat_prompt(model.tokenizer, request.history, request.prompt)
+        tokens = model.to_tokens(rendered, prepend_bos=False)
+        assert_at_most_one_leading_bos(
+            list(tokens[0]), getattr(model.tokenizer, "bos_token_id", None)
+        )
         prompt_lengths = tokens.shape[1] if positions == "generated_only" else None
 
         trace: list[Any] = []

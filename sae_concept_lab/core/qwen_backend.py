@@ -48,6 +48,10 @@ from pathlib import Path
 from typing import Any
 
 from sae_concept_lab.canonical.concept_bundle import Operation
+from sae_concept_lab.core.chat_render import (
+    assert_at_most_one_leading_bos,
+    render_chat_prompt,
+)
 from sae_concept_lab.core.execution_guard import require_group_from_resolved
 from sae_concept_lab.core.protocol import GenerationRequest, GenerationResult
 from sae_concept_lab.core.runtime_acceptance import is_mechanically_accepted
@@ -162,7 +166,16 @@ class QwenRuntimeBackend:
 
         hf_model, _text_decoder, _sae, _hook_identifier, _provenance = self._ensure_loaded()
         tokenizer = AutoTokenizer.from_pretrained(str(self._model_path))
-        inputs = tokenizer(request.prompt, return_tensors="pt").to(self._device)
+        # Through the model's OWN chat template, or refuse. enable_thinking=False
+        # keeps Qwen3.5's reasoning trace out of the reply; add_special_tokens=
+        # False because the template already emitted BOS.
+        rendered = render_chat_prompt(
+            tokenizer, request.history, request.prompt, enable_thinking=False
+        )
+        inputs = tokenizer(rendered, return_tensors="pt", add_special_tokens=False).to(self._device)
+        assert_at_most_one_leading_bos(
+            list(inputs["input_ids"][0]), getattr(tokenizer, "bos_token_id", None)
+        )
         torch.manual_seed(request.seed)
         with torch.no_grad():
             output_ids = hf_model.generate(
@@ -226,7 +239,16 @@ class QwenRuntimeBackend:
         positions = resolved.positions.value
 
         tokenizer = AutoTokenizer.from_pretrained(str(self._model_path))
-        inputs = tokenizer(request.prompt, return_tensors="pt").to(self._device)
+        # Through the model's OWN chat template, or refuse. enable_thinking=False
+        # keeps Qwen3.5's reasoning trace out of the reply; add_special_tokens=
+        # False because the template already emitted BOS.
+        rendered = render_chat_prompt(
+            tokenizer, request.history, request.prompt, enable_thinking=False
+        )
+        inputs = tokenizer(rendered, return_tensors="pt", add_special_tokens=False).to(self._device)
+        assert_at_most_one_leading_bos(
+            list(inputs["input_ids"][0]), getattr(tokenizer, "bos_token_id", None)
+        )
         prompt_lengths = inputs["input_ids"].shape[1] if positions == "generated_only" else None
 
         trace: list[Any] = []
