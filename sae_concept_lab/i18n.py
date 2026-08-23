@@ -68,6 +68,14 @@ STRINGS: dict[str, dict[str, str]] = {
               "chat ci-dessus, qui est vidée après chaque envoi -- cliquer sur Comparer juste "
               "après un envoi interrogerait donc le modèle sur rien.",
     },
+    "compare_prompt_used": {
+        "en": "Comparing your most recent message",
+        "fr": "Comparaison de votre message le plus récent",
+    },
+    "compare_nothing_to_reuse": {
+        "en": "Nothing to compare yet. Type a message above, or send one first -- Compare reuses your most recent message when the box is empty.",
+        "fr": "Rien à comparer pour l'instant. Saisissez un message ci-dessus, ou envoyez-en un d'abord -- Comparer réutilise votre message le plus récent lorsque la zone est vide.",
+    },
     "compare_section_title": {"en": "3. Compare", "fr": "3. Comparer"},
     "compare_button": {"en": "Compare Original vs Modified", "fr": "Comparer Original et Modifié"},
     "compare_original_label": {

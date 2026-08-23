@@ -322,10 +322,10 @@ def test_send_refuses_a_blank_prompt_without_reaching_the_backend(blank):
 
 
 @pytest.mark.parametrize("blank", ["", "   "])
-def test_compare_refuses_a_blank_prompt_without_reaching_the_backend(blank):
+def test_compare_with_a_blank_box_and_no_history_refuses_without_reaching_the_backend(blank):
     """Compare costs TWO generations, not one: an Original arm and a Modified
-    arm. It has no input box of its own and reads the same chat box Send
-    clears, which is exactly how it got run on an empty string."""
+    arm. With nothing typed and nothing said yet there is no prompt to reuse,
+    so it must refuse before touching either backend."""
     demo = _demo_that_must_not_generate()
     entry = load_entries("gemma")[0]
     block_fn = _handler(demo, "_on_compare")
@@ -333,7 +333,57 @@ def test_compare_refuses_a_blank_prompt_without_reaching_the_backend(blank):
 
     assert len(result) == len(block_fn.outputs)
     assert result[0] == "" and result[1] == ""  # neither arm rendered
-    assert result[-1] == t("empty_prompt_notice", "en")
+    assert result[-1] == t("compare_nothing_to_reuse", "en")
+
+
+class _RecordingBackend:
+    def __init__(self):
+        self.requests = []
+
+    def generate(self, request):
+        self.requests.append(request)
+        return GenerationResult(
+            text="a reply", is_synthetic=False,
+            resolved_config=request.resolved_config, diagnostics=None,
+        )
+
+
+def test_compare_with_a_blank_box_reuses_the_last_message_and_trims_the_history():
+    """The sequence that broke: type, Send (which CLEARS the box), then click
+    Compare. Refusing there is technically safe and practically useless -- the
+    obvious meaning of Compare right after a send is "compare that".
+
+    The history must be trimmed to what PRECEDED the reused message. Replaying
+    it on top of a history that already contains it would ask the model the
+    same question twice in a row, which is a different request from the one
+    that produced the reply on screen -- and Compare's whole value is that
+    both arms are the same request but for the intervention."""
+    backend = _RecordingBackend()
+    gemma_entries = load_entries("gemma")
+    demo = build_demo(
+        gemma_entries=gemma_entries, qwen_entries=load_entries("qwen"),
+        gemma_backend=backend, qwen_backend=StubConceptLabBackend(),
+    )
+    entry = gemma_entries[0]
+    history = [
+        {"role": "user", "content": "an older question"},
+        {"role": "assistant", "content": "an older reply"},
+        {"role": "user", "content": "what I actually asked"},
+        {"role": "assistant", "content": "the reply on screen"},
+    ]
+    block_fn = _handler(demo, "_on_compare")
+    result = block_fn.fn("", history, entry.concept_id, entry.calibrated_directions[0], "low", 0, "en")
+
+    assert len(result) == len(block_fn.outputs)
+    assert len(backend.requests) == 2, "Compare runs an Original and a Modified arm"
+    assert {r.prompt for r in backend.requests} == {"what I actually asked"}
+    # Trimmed: the reused turn and its reply are NOT replayed as context.
+    for request in backend.requests:
+        assert [c for _r, c in request.history] == ["an older question", "an older reply"]
+    # And the user is told which prompt was used -- a silent substitution
+    # would be a worse bug than the empty send it replaced.
+    assert "what I actually asked" in result[0]
+    assert t("compare_prompt_used", "en") in result[0]
 
 
 def test_the_blank_prompt_notice_explains_the_cleared_box_in_both_languages():

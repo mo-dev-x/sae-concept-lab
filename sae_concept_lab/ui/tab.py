@@ -62,6 +62,30 @@ DEMO_THINK_TIME_SECONDS = 0.4
 _PROVENANCE_TAGS = (MECHANICALLY_UNVERIFIED_TAG, ENGINEERING_DEMONSTRATION_TAG)
 
 
+def _reuse_last_exchange(history) -> tuple[str, list]:
+    """The most recent user message, and the history that PRECEDED it.
+
+    Compare has no input box of its own and reads the chat box, which
+    _on_send clears -- so the single most natural sequence, "send a message,
+    then compare it", handed Compare an empty string. Falling back to the last
+    user turn makes that sequence do the obvious thing.
+
+    The preceding history is returned trimmed, not whole: replaying the last
+    message on top of a history that already contains it would ask the model
+    the same question twice in a row, which is a different request from the
+    one that produced the reply on screen.
+    """
+    turns = list(history or [])
+    for i in range(len(turns) - 1, -1, -1):
+        turn = turns[i]
+        if isinstance(turn, dict):
+            if turn.get("role") == "user":
+                return str(turn.get("content") or ""), turns[:i]
+        elif isinstance(turn, (list, tuple)) and len(turn) == 2 and turn[0]:
+            return str(turn[0]), turns[:i]
+    return "", turns
+
+
 def _split_provenance_tags(text: str) -> tuple[str, list[str]]:
     """Return (body, tags_found). Only strips tags that appear as a LEADING
     run, which is the only place a backend puts them -- a tag string occurring
@@ -477,9 +501,15 @@ def build_model_tab(
     chat_input.submit(**_send_wiring)
 
     def _on_compare(message, history, concept_id, direction, strength, seed, lang, progress=_PROGRESS_DEFAULT):
-        # See _on_send: an empty box costs two generations here, not one.
+        # An empty box costs TWO generations here, not one. Rather than
+        # refuse outright, reuse the message that produced the reply on
+        # screen -- that is what "compare this" means right after a send.
+        reused = False
         if not message or not message.strip():
-            return ("", "", None, {}, t("empty_prompt_notice", lang))
+            message, history = _reuse_last_exchange(history)
+            reused = True
+        if not message.strip():
+            return ("", "", None, {}, t("compare_nothing_to_reuse", lang))
         entry = next(e for e in entries if e.concept_id == concept_id)
         report = check_direction_executable(entry, direction)
         if not report.executable:
@@ -502,7 +532,11 @@ def build_model_tab(
         # details["backend_diagnostics"] below and is shown under Advanced.
         original_body, _original_tags = _split_provenance_tags(compare.original_text)
         modified_body, _modified_tags = _split_provenance_tags(compare.modified_text)
-        original_md = f"**{t('compare_original_label', lang)}**\n\n{original_body}"
+        # Never leave the user guessing WHICH prompt was compared; a silent
+        # fallback to a different string than the one in the box would be a
+        # worse bug than the empty send it replaced.
+        header = f"*{t('compare_prompt_used', lang)}: {message.strip()}*\n\n" if reused else ""
+        original_md = f"{header}**{t('compare_original_label', lang)}**\n\n{original_body}"
         modified_md = f"**{t('compare_modified_label', lang)}**\n\n{modified_body}"
         details = advanced_output_details(resolved)
         if compare.modified_result is not None and compare.modified_result.diagnostics is not None:
