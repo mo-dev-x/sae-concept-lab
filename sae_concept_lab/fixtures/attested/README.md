@@ -32,8 +32,8 @@ unsafe `artifact_type`) is excluded and reported -- see
 `load_attested_entries(model_key).rejected` -- rather than raised. The
 shipped FAKE fixtures (Mode B, the guaranteed engineering preview) always
 load regardless of what this directory currently contains or how broken
-it is. See `../../../_attic/docs/demo_runbook.md` and
-`../../../_attic/docs/pi_demo_scientific_status.md` (both archived internal
+it is. See the internal `demo_runbook.md` (archived, not shipped publicly) and
+the internal `pi_demo_scientific_status.md` (archived, not shipped publicly) (both archived internal
 PI-demo material) for the full Mode A / Mode B procedure this slot exists
 to support, and
 `BOUNDARY.md`'s "Bounded Mode-A import slot" section for the design

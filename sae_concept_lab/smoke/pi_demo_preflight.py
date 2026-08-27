@@ -15,8 +15,8 @@ application, that it renders the correct preview/release status for
 whichever mode is actually staged, and that it shuts down cleanly --
 exactly the set of facts a PI demo needs confirmed the morning of.
 
-See _attic/docs/demo_runbook.md for the exact command and how this fits
-into the Mode A / Mode B decision, and _attic/docs/pi_demo_scientific_status.md
+See the internal demo runbook for the exact command and how this fits
+into the Mode A / Mode B decision, and the internal scientific-status note
 for what "Mode A eligible" is, and is not, permitted to claim -- both
 archived alongside the PI demo they were written for (2026-08-13), kept
 for the record rather than deleted.
@@ -127,8 +127,6 @@ REQUIRED_FILES: tuple[str, ...] = (
     "BOUNDARY.md",
     "sae_concept_lab/fixtures/gemma/pro_american_exceptionalism.json",
     "sae_concept_lab/fixtures/qwen/pro_american_exceptionalism.json",
-    "_attic/docs/demo_runbook.md",
-    "_attic/docs/pi_demo_scientific_status.md",
 )
 
 
