@@ -1,175 +1,103 @@
-# SAE Concept Lab (standalone product repository)
+<p align="center">
+  <img src="assets/logo-wide.svg" alt="sae-concept-lab" width="360">
+</p>
 
-Standalone Gradio UI/stub product build, extracted from the
-`qwen-sae-interp` scientific repository under recorded provenance. This
-repository owns the product UI and its deployment adapter only; it does
-not own, and must never be treated as, a scientific source of truth. See
-[`BOUNDARY.md`](BOUNDARY.md) for the full repository-boundary statement.
+<p align="center">
+  <img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-1e7b4f.svg">
+  <img alt="Python 3.11+" src="https://img.shields.io/badge/python-3.11%2B-1e7b4f.svg">
+</p>
 
-By default, both model tabs are backed by `StubConceptLabBackend`
-(deterministic, GPU-free, every response tagged
-`[FAKE STUB -- UI TEST ONLY]`) and eight canonical `provenance: "fake"`
-concept-bundle documents (four per pairing), loaded and resolved entirely
-through
-[`sae_concept_lab/canonical/concept_bundle/`](sae_concept_lab/canonical/concept_bundle/)
--- see below. `--qwen-backend runtime`/`--gemma-backend runtime` select a
-REAL backend instead (`sae_concept_lab/core/qwen_backend.py` /
-`gemma_backend.py`, wired to mechanically-extracted, mechanically-accepted
-intervention code -- see "Runtime backends" below and
-[`docs/tamia_launch.md`](docs/tamia_launch.md)). `--mode release` is a
-fail-closed gate that refuses to launch on this build no matter which
-backend is selected: every fixture this repository ships is
-`provenance: "fake"`, never `attested`, so canonical publishability blocks
-all of them regardless. See [`sae_concept_lab/README.md`](sae_concept_lab/README.md)
-for the full detail on the UI, the release gate, and known Gradio
-limitations.
+An interactive tool for steering sparse-autoencoder (SAE) features in language models: pick a concept, turn it up or down while you chat, and watch the reply change.
+
+## What this is, and is not
+
+This is a **Gradio UI and a release gate**, not a scientific instrument. It exists to make one question answerable by clicking, rather than by reading code: *if I amplify or suppress this specific SAE feature, what does the model say differently?*
+
+What it does:
+- Runs two model tabs, `gemma-3-12b-it` + `gemma-scope-2-12b-it` and `Qwen3.5-27B` + `Qwen-Scope`, each wired to a real intervention hook that clamps (amplify) or zeroes (suppress) one SAE feature at a fixed layer.
+- Ships with a deterministic, GPU-free stub backend by default, so the interface is fully explorable on a laptop with no model weights anywhere.
+- Ships one real, **measured** concept per pairing (`pro-american-exceptionalism`): a feature that survived a full-space discovery scan on real weights. Its `provenance` is recorded as `candidate`, not `attested` — see Limitations.
+- Renders every prompt through the model's own chat template, and refuses to generate rather than fall back to a hand-written prompt wrapper if a template is unavailable.
+- Refuses to launch in `--mode release` on this build, on purpose: the fail-closed release gate only publishes concepts with fully verified evidence, and none ship yet.
+
+What it does **not** do:
+- It does not discover, calibrate, or validate concepts. That happens in a separate scientific repository; this tool only renders and executes what that repository hands it. See [`BOUNDARY.md`](BOUNDARY.md) for the exact line between the two.
+- It does not claim a calibrated steering dose. The shipped amplify strengths are engineering defaults derived from an activation measurement, not an experimentally validated dose-response curve.
+- It does not do anything with ablation strength: a feature is zeroed or it is not, so Low/Medium/High are identical under Suppress and differ only under Amplify.
+- It has no auth, no persistence, and no multi-user support. State lives in memory for one session.
 
 ## Install
 
+Requires Python 3.11 or newer.
+
 ```bash
+git clone https://github.com/mo-dev-x/sae-concept-lab.git
+cd sae-concept-lab
+python -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\Activate.ps1
 pip install -e ".[test]"
 ```
 
-## Test
+Verify the install:
 
 ```bash
-pytest
+pytest -q
 ```
 
-## Launch (development mode -- fake UI, always safe)
+This runs entirely on CPU with no model weights. On a clean install it passes in full — 360 tests, 2 skipped (the 2 skips require real GPU-staged weights on a cluster and are gated behind environment variables that are unset by default).
+
+## Quickstart
 
 ```bash
-python -m sae_concept_lab.app
+python -m sae_concept_lab.app --server-name 127.0.0.1 --server-port 7860
 ```
 
-Then open the printed local URL (default `http://127.0.0.1:7860`).
+Open `http://127.0.0.1:7860` in a browser on the same machine. Both tabs are backed by the stub model, so replies are synthetic and clearly tagged `[FAKE STUB -- UI TEST ONLY]` — this is the guaranteed, always-working path, meant for exploring the interface rather than the science.
 
-## Launch (release mode -- always refuses on this build)
+To drive a real model instead, pass real, locally staged weights:
 
 ```bash
-python -m sae_concept_lab.app --mode release --evidence-registry-root /path/to/registry
+HF_HUB_OFFLINE=1 python -m sae_concept_lab.app \
+  --gemma-backend runtime --gemma-model-path /path/to/gemma-3-12b-it --gemma-sae-path /path/to/gemma-scope-2-12b-it \
+  --qwen-backend runtime  --qwen-model-path /path/to/Qwen3.5-27B     --qwen-sae-path /path/to/qwen-scope/layer38.sae.pt --qwen-layer 38 \
+  --server-name 127.0.0.1 --server-port 7860
 ```
 
-This exits non-zero and never opens a server: with the default stub
-backend, the backend-type check refuses first; even past that (or with a
-real, mechanically-accepted backend selected -- see below),
-`--evidence-registry-root` is validated fail-closed (refused if absent/
-missing/unreadable/empty), and canonical publishability still blocks
-every shipped fixture (all `provenance: "fake"`). See
-[`sae_concept_lab/README.md`](sae_concept_lab/README.md) for why that is a
-deliberate, structural refusal rather than a flag someone forgot to flip.
+Each `--<model>-backend runtime` flag is independent; passing only one leaves the other tab on the stub. This needs a GPU, the four model/SAE snapshots downloaded ahead of time (compute nodes are typically offline), and `torch` installed alongside the extras above. Full step-by-step instructions, including reaching a headless GPU node over SSH port-forwarding and every `--help` flag, are in [`docs/RUNNING.md`](docs/RUNNING.md).
 
-## Runtime backends (extracted intervention code, mechanically accepted)
+## The interactive UI
 
-`sae_concept_lab/extracted_runtime/` mirrors the minimum runtime surface
-needed to run a real intervention against Qwen3.5-27B + Qwen-Scope or
-gemma-3-12b-it + gemma-scope-2-12b-it-res, extracted from qwen-sae-interp
-under a third `extraction_class`, `RUNTIME_CODE_MIRROR` (code only -- see
-[`BOUNDARY.md`](BOUNDARY.md)). `sae_concept_lab/core/qwen_backend.py` /
-`gemma_backend.py` translate a canonical `ResolvedControlState` into calls
-on that code, lazily -- no torch/transformers/transformer_lens/sae_lens
-import happens until a real backend's `generate()` actually runs.
+Each model tab is one shared component tree:
 
-Whether either pairing's intervention MECHANISM has been mechanically
-proven against real weights is `sae_concept_lab/core/runtime_acceptance.py`'s
-entirely separate concern from code extraction, checked independently by
-the release gate. Both pairings are currently mechanically accepted (see
-that module for the exact bounded claim and the qwen-sae-interp evidence
-commit it was imported from) -- this is never a scientific or public-release
-claim; see `BOUNDARY.md`'s "Runtime backends" section for the full account,
-including two earlier acceptance claims this repository rejected before
-accepting a third. See [`docs/tamia_launch.md`](docs/tamia_launch.md) for
-exact launch commands and pinned paths/revisions.
+- **Concept cards** — click a concept to select it. One is shipped per model today.
+- **Direction** — Amplify (clamp the feature up) or Suppress (ablate it to zero). Unavailable directions are hidden with the exact reason (`PROHIBITED` / `CAPABILITY_LIMIT`) rather than silently disabled.
+- **Strength** — Low / Medium / High, meaningful for Amplify only (see above).
+- **Chat** — type a message, get a reply generated with that intervention applied. Any change to concept, direction, or strength resets the conversation, in both modes, with no override — a reply produced under a different setting is never left on screen next to a changed control.
+- **Compare** — runs the same prompt through the model with and without the intervention, side by side, so you can see exactly what the feature changed.
+- **Public / Advanced views** — Public shows only model, concept, direction, and strength. Advanced additionally shows the resolved feature index, SAE id, layer, and positions mode, plus (on a real backend) the raw diagnostic verdict — mechanical-acceptance status, provenance, and fingerprints — behind the reply.
+- **Language** — the whole interface (not model output) switches between English and French from one control.
 
-## Canonical concept-bundle contract (extracted, certified, and wired into the UI)
+A permanent banner states plainly when everything on screen is placeholder data, and disappears only once a real, non-stub backend is actually answering.
 
-`sae_concept_lab/canonical/concept_bundle/` carries the eight-module
-concept-bundle contract, mechanically extracted from qwen-sae-interp and
-certified against the frozen 75-vector conformance pack current as of
-this extraction (this mirror has been deliberately re-extracted once
-already -- see `provenance/source_import.json`'s `concept_bundle_contract`
-entry). It is standard-library-only, has zero import-time dependency on
-qwen-sae-interp, and every control this UI renders -- concept selection,
-direction availability, resolved dose, execution payload, fingerprints --
-is computed by this package directly (see
-[`BOUNDARY.md`](BOUNDARY.md) for the full wiring statement and for
-`extraction_class`, the code-provenance axis this repository uses to
-track it). To re-run the conformance check against this repository's own
-copy:
+## Limitations
 
-```bash
-python - <<'PY'
-import importlib.util, json
-from pathlib import Path
-runner_path = Path("provenance/runtime_extractions/concept_bundle/concept_bundle_conformance.py")
-spec = importlib.util.spec_from_file_location("concept_bundle_conformance", runner_path)
-runner = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(runner)
-pack = json.loads(Path("provenance/runtime_extractions/concept_bundle/vectors.json").read_text())
-failures = runner.verify_pack(pack, package="sae_concept_lab.canonical.concept_bundle")
-print(f"{len(pack['vectors'])} vectors, {len(failures)} failures")
-PY
-```
+Read in full before treating any output as more than an engineering demonstration:
 
-Or, from a qwen-sae-interp checkout at the commit named in
-`provenance/source_import.json`'s `concept_bundle_contract.source_repository.checkout_commit`
-(currently `3a9c153`; this repository must be installed and importable
-from that Python environment):
+- **No concept here is scientifically validated.** `pro-american-exceptionalism`'s feature indices were measured — they passed a full discovery-gate scan on real weights — but no calibration boundary and no causal test has been run. `provenance: "candidate"` is the honest label; `--mode release` refuses to publish it, correctly.
+- **The Gemma amplify doses are unmeasured.** Qwen's amplify strengths were remeasured against the feature's own observed activation range; Gemma's (1000 / 2500 / 5000) are the original placeholder values and are known, in engineering testing, to produce no visible effect at the high setting — that intervention path is suspect on its own terms, not merely uncalibrated.
+- **The loaded SAE is not always the certified-primary configuration.** The mechanically-accepted intervention mechanism was proven at specific engineering layers (Gemma layer 31, Qwen layer 0); the shipped concept runs at the certified-primary layers instead (Gemma 29, Qwen 38). Every real generation is tagged accordingly and the tool refuses outright — rather than mislabeling the source — if a resolved target's layer disagrees with the layer actually loaded.
+- **A feature index is not a "persona."** No feature has been shown to correspond to a stable trait, only to move a residual stream in a measured, on-concept direction on a handful of prompts.
+- **This is a single-session, single-user tool.** No queue, no auth, no rate limiting — do not bind `0.0.0.0` on a shared machine.
+- **The scientific record lives elsewhere.** This repository owns the UI and the release gate only; it is a downstream consumer of another repository's discovery and evidence work, never a source of truth for either. See [`BOUNDARY.md`](BOUNDARY.md).
 
-```bash
-python scripts/concept_bundle_conformance.py --check --package sae_concept_lab.canonical.concept_bundle
-```
+## Citation
 
-## Provenance
+If this tool is useful in your own work, please cite it — see [`CITATION.cff`](CITATION.cff).
 
-Every extraction into this repository -- the UI import from commit
-`9a9f3b7` and the concept-bundle contract extraction currently mirroring
-checkout `3a9c153` (deliberately re-extracted once already, superseding
-an earlier mirror at `cdae9c7`) -- is recorded in
-[`provenance/source_import.json`](provenance/source_import.json): source
-repository identity, source commit(s), the exact source-to-destination
-path mapping, a SHA-256 per imported file, the import timestamp, and an
-explicit statement of what was and was not imported.
+## Licence
 
-Each extraction also carries an `extraction_class` -- `HISTORICAL_SEED`
-(a past import permitted to evolve, verified against this repository's
-own frozen import commit), `CANONICAL_MIRROR` (a byte-for-byte mirror
-that may never evolve, verified against current bytes AND every frozen
-conformance vector), or `RUNTIME_CODE_MIRROR` (byte-for-byte immutable
-extracted runtime code with no conformance pack of its own, verified by
-hash alone at whole-file or per-function granularity -- see
-`sae_concept_lab/extracted_runtime/`). This is a code-provenance axis,
-entirely separate from the scientific `Provenance` field
-(`ATTESTED`/`CANDIDATE`/`DRAFT`/`FAKE`/`UNKNOWN`) a `BundleEntry` carries
--- see [`BOUNDARY.md`](BOUNDARY.md) for the full statement.
+[MIT](LICENSE).
 
-To verify that recorded provenance against a live `qwen-sae-interp`
-checkout (read-only -- this never modifies that checkout):
+## Author
 
-```bash
-python -m provenance.verify_provenance --qwen-sae-interp-checkout /path/to/qwen-sae-interp
-```
-
-This fails loudly if any imported file is missing, has been modified
-since import, or exists under an imported path without being recorded in
-the manifest -- checked across every extraction in the manifest, not just
-one. See [`provenance/verify_provenance.py`](provenance/verify_provenance.py)
-for exactly what it checks.
-
-## Dependencies
-
-- `gradio>=6.22,<7` (runtime, for the UI)
-- `pytest>=7` (test, optional extra `test`)
-
-The extracted concept-bundle contract (`sae_concept_lab/canonical/`) and
-the extracted runtime code (`sae_concept_lab/extracted_runtime/`) add no
-hard dependency of their own -- both import cleanly with neither torch
-nor any other heavy package installed (proven directly: this repository's
-own test suite runs, and passes in full, with no torch/transformers/
-transformer_lens/sae_lens present). `torch`/`transformers` (Qwen) and
-`torch`/`transformer_lens`/`sae_lens` (Gemma) are only ever imported
-inside a real backend's `generate()` method, at the moment it actually
-runs -- install them only if you intend to launch `--qwen-backend runtime`
-or `--gemma-backend runtime` (see `docs/tamia_launch.md`). No scientific
-dependency (`interplab` or any qwen-sae-interp-internal package) appears
-anywhere in this repository's import graph, in any configuration.
+Mohamed El Yazid El Yaakoubi — IID. [LinkedIn](https://www.linkedin.com/in/mohamed-el-yazid-el-yaakoubi/)
