@@ -267,11 +267,12 @@ still refuses locally with stub backends (hard assertion -- a real
 backend is a separate, GPU-side precondition this preflight cannot and
 does not satisfy), boot/HTTP-200/visible-status/clean-shutdown of the
 real dev-mode app on loopback, and one aggregate machine-readable JSON
-result. See `docs/demo_runbook.md` (the operational script, Mode A/B
+result. See `_attic/docs/demo_runbook.md` (the operational script, Mode A/B
 branches, five-minute walkthrough, recovery) and
-`docs/pi_demo_scientific_status.md` (exact permitted/prohibited claims,
+`_attic/docs/pi_demo_scientific_status.md` (exact permitted/prohibited claims,
 current ATTESTED count, the working-instrument-vs-validated-science
-distinction).
+distinction) -- both archived as internal PI-demo material, kept for the
+record rather than deleted.
 
 ## Tamia product-integration smoke packet
 
@@ -283,13 +284,14 @@ through the real product adapters (`core/logic.py:send_message`,
 `ui/app_ui.build_demo`), on real weights on Tamia. It never calls
 `extracted_runtime.qwen_loader`/`gemma_loader`/`hooks` directly to drive a
 generation (the one exception, proving the loader's own identity guard
-rather than bypassing it, is documented in `docs/tamia_smoke.md`). Every
+rather than bypassing it, is documented in `_attic/docs/tamia_smoke.md`,
+archived internal material). Every
 concept-bundle entry it resolves against (`sae_concept_lab/smoke/entries.py`)
 is built directly in Python, prefixed `ENGINEERING-ONLY-SMOKE-`, and
 `provenance=FAKE` -- never added to `fixtures.loader._ENTRY_FILENAMES`, so
 it can never enter fixture discovery, the Gradio UI, or the release gate.
-See `docs/tamia_smoke.md` for the full scenario list, exact Tamia
-submission command, expected artifacts, and failure classification.
+See `_attic/docs/tamia_smoke.md` (archived) for the full scenario list, exact
+Tamia submission command, expected artifacts, and failure classification.
 
 ## extraction_class: a code-provenance axis, never the scientific-content axis
 
