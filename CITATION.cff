@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use SAE Concept Lab in your work, please cite this software."
+title: "SAE Concept Lab: an interactive tool for steering sparse-autoencoder features in language models"
+type: software
+version: 0.1.0
+date-released: 2026-08-27
+license: MIT
+authors:
+  - family-names: "El Yaakoubi"
+    given-names: "Mohamed El Yazid"
+    affiliation: "IID"
+repository-code: "https://github.com/mo-dev-x/sae-concept-lab"
+keywords:
+  - sparse autoencoders
+  - activation steering
+  - mechanistic interpretability
+  - large language models
