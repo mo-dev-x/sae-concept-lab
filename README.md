@@ -1,13 +1,26 @@
 <p align="center">
-  <img src="assets/logo-wide.svg" alt="SAE Concept Lab" width="360">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/logo-wide-dark.svg">
+    <img src="assets/logo-wide.svg" alt="SAE Concept Lab" height="120">
+  </picture>
 </p>
 
 <p align="center">
-  <img alt="Python 3.11+" src="https://img.shields.io/badge/python-3.11%2B-1e7b4f.svg">
-  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-1e7b4f.svg"></a>
+  <img alt="Python 3.11+" src="https://img.shields.io/badge/python-3.11%2B-3776AB?logo=python&amp;logoColor=white">
+  <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/mo-dev-x/sae-concept-lab"></a>
+  <a href="https://github.com/mo-dev-x/sae-concept-lab/commits/main"><img alt="Last commit" src="https://img.shields.io/github/last-commit/mo-dev-x/sae-concept-lab"></a>
+  <img alt="Top language" src="https://img.shields.io/github/languages/top/mo-dev-x/sae-concept-lab">
 </p>
 
-# SAE Concept Lab
+<p align="center">
+  <a href="#quickstart">Quickstart</a> ·
+  <a href="#key-features">Key features</a> ·
+  <a href="#architecture">Architecture</a> ·
+  <a href="docs/RUNNING.md">Running guide</a> ·
+  <a href="#testing">Testing</a> ·
+  <a href="#roadmap-and-limitations">Roadmap</a> ·
+  <a href="#related-projects">Related projects</a>
+</p>
 
 **SAE Concept Lab is a web app for "turning a dial" inside a language model.** You pick a concept the model represents internally, turn it up or switch it off, and chat with the model to see how its replies change. You can also run the same prompt with and without the change, side by side. It runs on any laptop with a built-in fake model, or on a GPU with real Gemma and Qwen models.
 
@@ -21,6 +34,7 @@
 </p>
 <p align="center"><sub>Captured from <code>python -m sae_concept_lab.app</code> running in the default <b>stub mode</b> (no GPU, no model weights). Every reply shown is synthetic and tagged <code>[FAKE STUB -- UI TEST ONLY]</code>; it demonstrates the interface, not model behaviour.</sub></p>
 
+> [!NOTE]
 > Part of a three-repo interpretability toolkit, see [Related projects](#related-projects).
 
 ---
@@ -72,9 +86,16 @@ pip install -e ".[test]"
 python -m sae_concept_lab.app --server-name 127.0.0.1 --server-port 7860
 ```
 
-Open <http://127.0.0.1:7860>. Both tabs run on the stub model, so the replies are synthetic and clearly tagged. This path always works without a GPU and is meant for exploring the interface. Keep the bind address on `127.0.0.1`, because the app has no authentication.
+Open <http://127.0.0.1:7860>.
 
-To drive real models, stage the four model and SAE snapshots on a GPU machine, install `torch`, and run:
+> [!NOTE]
+> Both tabs run on the stub model, so the replies are synthetic and clearly tagged. This path always works without a GPU and is meant for exploring the interface.
+
+> [!WARNING]
+> Keep the bind address on `127.0.0.1`, because the app has no authentication.
+
+> [!IMPORTANT]
+> To drive real models, stage the four model and SAE snapshots on a GPU machine, install `torch`, and run:
 
 ```bash
 HF_HUB_OFFLINE=1 python -m sae_concept_lab.app \
@@ -124,18 +145,21 @@ BOUNDARY.md                   what this repo owns, and what it does not
 python -m pytest -q
 ```
 
-Use `python -m pytest` rather than bare `pytest`. Some test modules import the shared helper `tests/_fake_runtime.py` as `tests._fake_runtime`, and that import only resolves when the repository root is on `sys.path`.
+> [!TIP]
+> Use `python -m pytest` rather than bare `pytest`. Some test modules import the shared helper `tests/_fake_runtime.py` as `tests._fake_runtime`, and that import only resolves when the repository root is on `sys.path`.
 
 The suite runs on CPU with no model weights. A fake torch runtime stands in for real models. A few tests are skipped by design:
 
 - tests that need real `torch`, which is not part of the `[test]` extra;
 - one test that needs a local checkout of the upstream research repository.
 
-Four tests in `tests/test_pi_demo_preflight.py` check that the demo preflight rejects Windows `C:` drive paths. They assume Windows path parsing and fail on Linux and macOS, where `Path("C:/...")` has no drive.
+> [!WARNING]
+> Four tests in `tests/test_pi_demo_preflight.py` check that the demo preflight rejects Windows `C:` drive paths. They assume Windows path parsing and fail on Linux and macOS, where `Path("C:/...")` has no drive.
 
 ## Roadmap and limitations
 
-This is an engineering demonstration, not a scientific instrument:
+> [!IMPORTANT]
+> This is an engineering demonstration, not a scientific instrument.
 
 - **No concept here is scientifically validated.** The shipped concept, `pro-american-exceptionalism`, uses measured feature indices that passed a full discovery-gate scan on real weights. No calibration boundary has been set and no causal test has been run, so its provenance is `candidate`, not `attested`, and `--mode release` correctly refuses to publish it.
 - **The amplify strengths are engineering defaults, not a calibrated dose.** Qwen's strengths were re-measured against the feature's observed activation range. Gemma's values (1000 / 2500 / 5000) are the original placeholders, and in engineering testing they showed no visible effect at the high setting. The Gemma amplify path is therefore suspect.
