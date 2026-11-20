@@ -13,6 +13,14 @@
 
 **In technical terms:** SAE Concept Lab is a Gradio 6 UI and a fail-closed release gate for single-feature interventions with sparse autoencoders (SAEs). It has two model tabs, `gemma-3-12b-it` + Gemma Scope 2 and `Qwen3.5-27B` + Qwen-Scope. Each tab is wired to a forward hook that clamps (amplify) or zeroes (suppress) one SAE feature at a fixed layer. Every control the UI offers, such as which concepts exist, which directions are allowed and what dose a strength resolves to, comes from a hash-verified concept-bundle contract extracted from the upstream research repository. The UI never re-implements that logic.
 
+<p align="center">
+  <img src="assets/app-stub-mode.png" alt="SAE Concept Lab main view in stub mode: placeholder banner, Gemma/Qwen tabs, a concept card, Direction and Strength controls" width="800">
+</p>
+<p align="center">
+  <img src="assets/amplify-compare-stub.gif" alt="Animated walkthrough in stub mode: set Strength to High, send a chat message, then run Compare Original vs Modified" width="800">
+</p>
+<p align="center"><sub>Captured from <code>python -m sae_concept_lab.app</code> running in the default <b>stub mode</b> (no GPU, no model weights). Every reply shown is synthetic and tagged <code>[FAKE STUB -- UI TEST ONLY]</code>; it demonstrates the interface, not model behaviour.</sub></p>
+
 > Part of a three-repo interpretability toolkit, see [Related projects](#related-projects).
 
 ---
