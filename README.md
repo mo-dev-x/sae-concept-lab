@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/logo-wide-dark.svg">
-    <img src="assets/logo-wide.svg" alt="SAE Concept Lab" height="120">
+    <source media="(prefers-color-scheme: dark)" srcset="assets/logo-animated-dark.svg">
+    <img src="assets/logo-animated.svg" alt="SAE Concept Lab" height="120">
   </picture>
 </p>
 
@@ -20,6 +20,13 @@
   <a href="#testing">Testing</a> ·
   <a href="#roadmap-and-limitations">Roadmap</a> ·
   <a href="#related-projects">Related projects</a>
+</p>
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/divider-dark.svg">
+    <img src="assets/divider.svg" alt="" width="100%" height="12">
+  </picture>
 </p>
 
 **SAE Concept Lab is a web app for "turning a dial" inside a language model.** You pick a concept the model represents internally, turn it up or switch it off, and chat with the model to see how its replies change. You can also run the same prompt with and without the change, side by side. It runs on any laptop with a built-in fake model, or on a GPU with real Gemma and Qwen models.
